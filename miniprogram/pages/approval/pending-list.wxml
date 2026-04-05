@@ -1,0 +1,44 @@
+﻿<view class="container">
+  <view class="card hero-card reveal-card">
+    <view class="badge">审批中心</view>
+    <view class="row approval-title-row" style="margin-top: 18rpx;">
+      <view class="title approval-page-title">审批列表</view>
+      <button class="ghost-btn action-btn-inline history-btn" size="mini" bindtap="goHistory">历史记录</button>
+    </view>
+    <view class="muted">这里展示当前分配给你的待审批申请，可按类型筛选，也可进入历史记录查看已处理内容。</view>
+  </view>
+
+  <view class="card reveal-card reveal-delay-1">
+    <view class="section-head">
+      <view>
+        <view class="section-title">筛选</view>
+        <view class="subtitle">按申请类型过滤待审批列表</view>
+      </view>
+    </view>
+    <picker range="{{typeOptions}}" range-key="label" value="{{typeIndex}}" bindchange="onTypeChange">
+      <view class="toolbar-item picker-shell">{{typeOptions[typeIndex].label}}</view>
+    </picker>
+  </view>
+
+  <view
+    class="list-card approval-card reveal-card reveal-delay-2"
+    wx:for="{{list}}"
+    wx:key="request_id"
+    bindtap="goDetail"
+    data-type="{{item.request_type}}"
+    data-id="{{item.request_id}}"
+  >
+    <view class="row approval-head">
+      <view class="approval-title">{{item.request_type_label}}</view>
+      <view class="{{item.status_class}} approval-status">{{item.status_label}}</view>
+    </view>
+    <view class="approval-meta">申请人：{{item.applicant_nickname || item.user_id}}</view>
+    <view class="approval-meta">单号：{{item.request_no}}</view>
+    <view class="approval-meta">提交时间：{{item.submitted_at_text}}</view>
+  </view>
+
+  <view class="list-end muted">
+    <text wx:if="{{loading}}">加载中...</text>
+    <text wx:elif="{{finished}}">没有更多数据</text>
+  </view>
+</view>

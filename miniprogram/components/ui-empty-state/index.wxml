@@ -1,0 +1,9 @@
+<view class="empty-shell {{compact ? 'empty-shell-compact' : ''}}">
+  <view class="empty-illustration">
+    <view class="empty-orb empty-orb-left"></view>
+    <view class="empty-orb empty-orb-right"></view>
+    <view class="empty-card"></view>
+  </view>
+  <view class="empty-title">{{title}}</view>
+  <view class="empty-description">{{description}}</view>
+</view>

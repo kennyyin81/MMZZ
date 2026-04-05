@@ -1,0 +1,10 @@
+<view class="skeleton-card">
+  <view wx:if="{{media}}" class="skeleton-media skeleton-shimmer"></view>
+  <view class="skeleton-line skeleton-line-lg skeleton-shimmer"></view>
+  <view class="skeleton-line skeleton-shimmer"></view>
+  <view
+    wx:for="{{rowList}}"
+    wx:key="*this"
+    class="skeleton-line skeleton-line-sm skeleton-shimmer"
+  ></view>
+</view>

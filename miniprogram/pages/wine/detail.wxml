@@ -1,0 +1,126 @@
+<view class="container">
+  <view wx:if="{{loading && !hasLoaded}}" class="stack-lg">
+    <ui-skeleton rows="2"></ui-skeleton>
+    <ui-skeleton rows="4" media="{{false}}"></ui-skeleton>
+  </view>
+
+  <block wx:elif="{{wine}}">
+    <view class="card hero-card reveal-card">
+      <view class="badge">{{wine.category}}</view>
+      <view class="title" style="margin-top: 18rpx;">{{wine.name}} {{wine.alcohol}}</view>
+      <view class="media-frame detail-media" style="margin-top: 26rpx;">
+        <image src="{{wine.image}}" class="wine-cover" mode="aspectFit"></image>
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-1">
+      <view class="section-title">风味概览</view>
+      <view class="muted">{{wine.summary}}</view>
+      <view class="chip-row detail-tags" wx:if="{{wine.flavor}}">
+        <view class="chip">{{wine.flavor}}</view>
+      </view>
+      <view class="chip-row detail-tags detail-taste-row">
+        <view class="chip" wx:if="{{wine.acidityText}}">{{wine.acidityText}}</view>
+        <view class="chip" wx:if="{{wine.sweetnessText}}">{{wine.sweetnessText}}</view>
+        <view class="chip" wx:if="{{wine.bitternessText}}">{{wine.bitternessText}}</view>
+        <view class="chip" wx:if="{{wine.spicinessText}}">{{wine.spicinessText}}</view>
+      </view>
+      <view class="score-panel">
+        <view>
+          <view class="subtitle">综合评分</view>
+          <view class="score-value">{{wine.averageRatingText}} / 5</view>
+        </view>
+        <view class="stars">
+          <text
+            wx:for="{{wine.ratingStars}}"
+            wx:key="value"
+            class="star {{item.active ? 'star-active' : ''}}"
+          >★</text>
+        </view>
+      </view>
+      <view class="row detail-action-row">
+        <view class="subtitle detail-action-meta">{{wine.rating_count}} 人评分 · {{wine.comment_count}} 人留言</view>
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-2">
+      <view class="section-title">评分留言</view>
+      <view class="subtitle">可以选择星级评分，也可以写下你的体验感受。</view>
+      <view class="stars selectable-stars">
+        <text
+          wx:for="{{ratingOptions}}"
+          wx:key="value"
+          class="star selectable-star {{item.active ? 'star-active' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="chooseRating"
+        >★</text>
+      </view>
+      <textarea
+        class="input-shell textarea comment-textarea"
+        value="{{commentInput}}"
+        bindinput="onCommentInput"
+        maxlength="200"
+        placeholder="写下你的口感体验、搭配建议或整体评价"
+        auto-height
+      ></textarea>
+      <button class="btn comment-submit-btn" type="primary" bindtap="submitComment" loading="{{sending}}">
+        提交评价
+      </button>
+    </view>
+
+    <view class="card reveal-card reveal-delay-3">
+      <view class="section-title">大家的评价</view>
+      <ui-empty-state
+        wx:if="{{!comments.length}}"
+        compact="{{true}}"
+        title="还没有留言"
+        description="来做第一个分享这款酒体验的人。"
+      ></ui-empty-state>
+
+      <view class="comment-item" wx:for="{{comments}}" wx:key="comment_id">
+        <view class="row comment-head">
+          <view class="row comment-user">
+            <image
+              wx:if="{{item.user.avatar_url}}"
+              src="{{item.user.avatar_url}}"
+              mode="aspectFill"
+              class="comment-avatar"
+            />
+            <view wx:else class="comment-avatar comment-avatar-placeholder">评</view>
+            <view class="comment-meta">
+              <view class="comment-author">{{item.user.nickname || item.user.user_id}}</view>
+              <view class="subtitle">{{item.created_at_text}}</view>
+            </view>
+          </view>
+          <button
+            wx:if="{{item.is_owner}}"
+            size="mini"
+            class="ghost-btn comment-remove-btn tap-btn"
+            hover-class="is-pressed"
+            hover-stay-time="60"
+            data-id="{{item.comment_id}}"
+            loading="{{deletingCommentId === item.comment_id}}"
+            bindtap="removeComment"
+          >
+            删除评价
+          </button>
+        </view>
+        <view class="stars comment-stars">
+          <text
+            wx:for="{{item.ratingStars}}"
+            wx:key="value"
+            class="star {{item.active ? 'star-active' : ''}}"
+          >★</text>
+        </view>
+        <view class="comment-content" wx:if="{{item.content}}">{{item.content}}</view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="card reveal-card">
+    <ui-empty-state
+      title="酒款不存在"
+      description="当前酒款详情不可用，请返回酒重新选择。"
+    ></ui-empty-state>
+  </view>
+</view>

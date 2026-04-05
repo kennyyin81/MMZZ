@@ -1,0 +1,169 @@
+<view class="page">
+  <!-- 加载状态 -->
+  <view class="loading-wrapper" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <block wx:if="{{request && !loading}}">
+    <!-- 待办编辑模式 -->
+    <block wx:if="{{editing && request.request_type === 'todo'}}">
+      <view class="page-header">
+        <view class="page-title">编辑待办</view>
+      </view>
+
+      <view class="edit-form">
+        <view class="form-item">
+          <view class="form-label">标题</view>
+          <input class="form-input" value="{{editTitle}}" bindinput="onTitleInput" placeholder="输入待办标题" />
+        </view>
+
+        <view class="form-item">
+          <view class="form-label">描述（可选）</view>
+          <textarea class="form-textarea" value="{{editDescription}}" bindinput="onDescInput" placeholder="添加描述..." />
+        </view>
+
+        <view class="form-item form-row">
+          <view class="form-label">是否加分</view>
+          <switch checked="{{editIsRewarded}}" bindchange="onRewardSwitch" color="#ff9500" />
+        </view>
+
+        <view class="form-item" wx:if="{{editIsRewarded}}">
+          <view class="form-label">奖励积分</view>
+          <input class="form-input" type="number" value="{{editRewardPoints}}" bindinput="onRewardInput" placeholder="输入积分" />
+        </view>
+      </view>
+
+      <view class="edit-actions">
+        <button class="btn-secondary" bindtap="cancelEdit">取消</button>
+        <button class="btn-primary" loading="{{saving}}" bindtap="saveEdit">保存</button>
+      </view>
+    </block>
+
+    <!-- 查看模式 -->
+    <block wx:else>
+      <!-- 头部 -->
+      <view class="page-header">
+        <view class="header-row">
+          <view class="badge">{{request.request_type_label}}</view>
+          <view class="status-text status-{{request.status}}">{{request.status_label}}</view>
+        </view>
+        <view class="page-title" wx:if="{{request.request_type === 'todo'}}">{{request.title}}</view>
+        <view class="page-title" wx:else>记录详情</view>
+        <view class="meta-text">单号：{{request.request_no}}</view>
+      </view>
+
+      <!-- 内容卡片 -->
+      <view class="content-card">
+        <view class="section-title">基本信息</view>
+
+        <block wx:if="{{request.request_type === 'todo'}}">
+          <view class="info-row">
+            <text class="info-label">描述</text>
+            <text class="info-value">{{request.description || '无'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">类型</text>
+            <text class="info-value">{{request.is_rewarded ? '加分工作' : '普通工作'}}</text>
+          </view>
+          <view class="info-row" wx:if="{{request.is_rewarded}}">
+            <text class="info-label">奖励积分</text>
+            <text class="info-value info-highlight">+{{request.reward_points}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">创建时间</text>
+            <text class="info-value">{{request.submitted_at_text}}</text>
+          </view>
+          <view class="info-row" wx:if="{{request.decided_at_text}}">
+            <text class="info-label">完成时间</text>
+            <text class="info-value">{{request.decided_at_text}}</text>
+          </view>
+        </block>
+
+        <block wx:if="{{request.request_type === 'earn'}}">
+          <view class="info-row">
+            <text class="info-label">行为类型</text>
+            <text class="info-value">{{request.behavior_type}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">说明</text>
+            <text class="info-value">{{request.description || '无'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">申请积分</text>
+            <text class="info-value info-highlight">+{{request.requested_points}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">提交时间</text>
+            <text class="info-value">{{request.submitted_at_text}}</text>
+          </view>
+        </block>
+
+        <block wx:if="{{request.request_type === 'drink'}}">
+          <view class="info-row">
+            <text class="info-label">申请原因</text>
+            <text class="info-value">{{request.reason}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">扣减积分</text>
+            <text class="info-value info-highlight">-{{request.cost_points}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">提交时间</text>
+            <text class="info-value">{{request.submitted_at_text}}</text>
+          </view>
+        </block>
+      </view>
+
+      <!-- 审批记录 -->
+      <view class="content-card" wx:if="{{approval}}">
+        <view class="section-title">审批记录</view>
+        <view class="info-row">
+          <text class="info-label">审批结果</text>
+          <text class="info-value status-{{approval.decision}}">{{approval.decision_label}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">审批意见</text>
+          <text class="info-value">{{approval.comment || '无'}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">审批时间</text>
+          <text class="info-value">{{approval.decided_at_text}}</text>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="action-area">
+        <!-- 待完成操作 -->
+        <block wx:if="{{request.request_type === 'todo' && request.status === 'todo'}}">
+          <button class="btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="completeTodo">
+            {{request.is_rewarded ? '完成并提交审批' : '标记完成'}}
+          </button>
+          <view class="btn-row">
+            <button class="ghost-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="startEdit">编辑</button>
+            <button class="ghost-btn ghost-btn-danger tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="deleteTodo">删除</button>
+          </view>
+        </block>
+
+        <!-- 已完成操作 -->
+        <block wx:if="{{request.request_type === 'todo' && request.status === 'completed'}}">
+          <view class="btn-row">
+            <button class="ghost-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="reopenTodo">重新打开</button>
+            <button class="ghost-btn ghost-btn-danger tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="deleteTodo">删除</button>
+          </view>
+        </block>
+
+        <!-- 撤回按钮 -->
+        <button
+          wx:if="{{request.status === 'pending' && request.user_id === userId}}"
+          class="ghost-btn tap-btn"
+          hover-class="is-pressed"
+          hover-stay-time="60"
+          loading="{{withdrawing}}"
+          bindtap="withdraw"
+        >
+          撤回申请
+        </button>
+      </view>
+    </block>
+  </block>
+</view>

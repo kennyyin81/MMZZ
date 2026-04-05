@@ -1,0 +1,63 @@
+<view class="container">
+  <view class="card hero-card reveal-card">
+    <view class="badge">直接调分</view>
+    <view class="title" style="margin-top: 18rpx;">审批人快捷调分</view>
+    <view class="muted">审批人可直接对当前绑定的被审批对象执行加分或减分，并即时写入积分流水。</view>
+  </view>
+
+  <view class="card reveal-card reveal-delay-1">
+    <view class="section-title">当前对象</view>
+
+    <view wx:if="{{loading}}" class="stack-lg">
+      <ui-skeleton rows="2" media="{{false}}"></ui-skeleton>
+    </view>
+
+    <view wx:elif="{{assignedUser}}" class="surface-panel target-panel">
+      <view class="target-line">被审批对象：{{assignedUser.nickname || assignedUser.user_id}}</view>
+      <view class="target-line">当前积分：{{assignedUser.balance || 0}}</view>
+    </view>
+
+    <view wx:else class="surface-panel warning-panel">
+      <view class="field-label">暂无可操作对象</view>
+      <view class="warning-text">当前审批人还没有绑定被审批对象，暂时无法直接加分或减分。</view>
+    </view>
+  </view>
+
+  <view class="card reveal-card reveal-delay-2">
+    <view class="section-title">调分操作</view>
+
+    <view class="field-block">
+      <view class="field-label">调整类型</view>
+      <view class="type-switch">
+        <view class="type-chip {{adjustType === 'add' ? 'type-chip-active type-chip-add' : ''}}" data-type="add" bindtap="switchAdjustType">加分</view>
+        <view class="type-chip {{adjustType === 'subtract' ? 'type-chip-active type-chip-subtract' : ''}}" data-type="subtract" bindtap="switchAdjustType">减分</view>
+      </view>
+    </view>
+
+    <view class="field-block">
+      <view class="field-label">积分数</view>
+      <input
+        class="input-shell"
+        type="number"
+        placeholder="{{adjustType === 'subtract' ? '请输入负数，例如 -5' : '请输入正数，例如 5'}}"
+        value="{{points}}"
+        bindinput="onPointsInput"
+      />
+    </view>
+
+    <view class="field-block">
+      <view class="field-label">调整说明</view>
+      <textarea
+        class="input-shell textarea"
+        placeholder="请输入加分或减分原因，便于后续追踪"
+        value="{{remark}}"
+        maxlength="100"
+        bindinput="onRemarkInput"
+      />
+    </view>
+
+    <button class="btn submit-btn" type="primary" loading="{{submitting}}" disabled="{{!canSubmit}}" bindtap="submit">
+      {{adjustType === 'add' ? '确认加分' : '确认减分'}}
+    </button>
+  </view>
+</view>

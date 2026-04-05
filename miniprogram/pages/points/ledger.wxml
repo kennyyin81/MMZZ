@@ -1,0 +1,26 @@
+<view class="container">
+  <view class="card hero-card reveal-card">
+    <view class="badge">积分流水</view>
+    <view class="title" style="margin-top: 18rpx;">积分收支明细</view>
+    <view class="muted">查看积分的来源、扣减情况和每次变更后的余额。</view>
+  </view>
+
+  <view class="list-card ledger-card reveal-card reveal-delay-1" wx:for="{{list}}" wx:key="_id">
+    <view class="row">
+      <view>
+        <view class="ledger-title">{{item.source_type_label}}</view>
+        <view class="subtitle" style="margin-top: 8rpx;">{{item.created_at_text}}</view>
+      </view>
+      <view class="ledger-change {{item.change_class}}">{{item.change_text}}</view>
+    </view>
+    <view class="meta-group">
+      <view class="meta-item">余额：{{item.balance_after}}</view>
+      <view class="meta-item">备注：{{item.remark || "-"}}</view>
+    </view>
+  </view>
+
+  <view class="list-end muted">
+    <text wx:if="{{loading}}">加载中...</text>
+    <text wx:elif="{{finished}}">没有更多数据</text>
+  </view>
+</view>

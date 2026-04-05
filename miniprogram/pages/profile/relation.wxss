@@ -1,0 +1,59 @@
+.relation-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18rpx;
+}
+
+.relation-box {
+  padding: 26rpx;
+  border-radius: 26rpx;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border: 1rpx solid rgba(148, 163, 184, 0.16);
+}
+
+.relation-label {
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+.relation-value {
+  margin-top: 14rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.45;
+}
+
+.relation-btn {
+  margin-top: 20rpx;
+  width: auto;
+  min-width: 220rpx;
+  box-sizing: border-box;
+  min-height: 74rpx;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.invite-item {
+  padding-top: 26rpx;
+  padding-bottom: 26rpx;
+  border-top: 1rpx solid rgba(148, 163, 184, 0.14);
+}
+
+.invite-item:first-of-type {
+  border-top: 0;
+  padding-top: 10rpx;
+}
+
+.invite-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10rpx;
+}
+
+.invite-actions {
+  margin-top: 20rpx;
+  justify-content: center;
+}

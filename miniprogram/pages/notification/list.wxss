@@ -1,0 +1,51 @@
+.action-btn {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.action-btn-inline {
+  margin-top: 0;
+  min-width: 156rpx;
+}
+
+.notice-card {
+  position: relative;
+}
+
+.notice-head {
+  align-items: flex-start;
+}
+
+.notice-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 30rpx;
+  line-height: 1.45;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.notice-content {
+  margin-top: 18rpx;
+  color: #374151;
+  line-height: 1.9;
+}
+
+.notice-footer {
+  margin-top: 20rpx;
+  align-items: center;
+}
+
+.notice-time {
+  flex: 1;
+  min-width: 0;
+}
+
+.badge-read {
+  background: #f8fafc;
+}
+
+.badge-unread {
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
+}

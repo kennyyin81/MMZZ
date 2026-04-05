@@ -1,0 +1,24 @@
+.detail-status {
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.detail-line {
+  margin-top: 16rpx;
+  line-height: 1.8;
+  color: #475569;
+}
+
+.approval-textarea {
+  width: 100%;
+  min-height: 220rpx;
+}
+
+.decision-actions {
+  margin-top: 24rpx;
+}
+
+.decision-btn {
+  flex: 1 1 220rpx;
+  min-width: 0;
+}

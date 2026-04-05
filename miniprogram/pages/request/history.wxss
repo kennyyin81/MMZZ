@@ -1,0 +1,46 @@
+.card-title {
+  font-size: 34rpx;
+  margin-bottom: 8rpx;
+}
+
+.picker-label {
+  color: #111827;
+  font-weight: 600;
+}
+
+.request-card {
+  transition: all 0.2s ease;
+}
+
+.request-head {
+  align-items: flex-start;
+}
+
+.request-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #111827;
+}
+
+.request-status {
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.request-no {
+  margin-top: 18rpx;
+  font-size: 24rpx;
+  color: #475569;
+  word-break: break-all;
+}
+
+.request-meta {
+  margin-top: 12rpx;
+  color: #6b7280;
+  line-height: 1.7;
+}
+
+.list-end {
+  text-align: center;
+  padding: 24rpx 0 12rpx;
+}

@@ -1,0 +1,64 @@
+.empty-shell {
+  padding: 34rpx 12rpx 18rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.empty-shell-compact {
+  padding-top: 18rpx;
+}
+
+.empty-illustration {
+  position: relative;
+  width: 164rpx;
+  height: 120rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-orb {
+  position: absolute;
+  border-radius: 999rpx;
+  background: linear-gradient(180deg, rgba(79, 70, 229, 0.12) 0%, rgba(99, 102, 241, 0.04) 100%);
+}
+
+.empty-orb-left {
+  left: 8rpx;
+  top: 26rpx;
+  width: 56rpx;
+  height: 56rpx;
+}
+
+.empty-orb-right {
+  right: 12rpx;
+  top: 10rpx;
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.empty-card {
+  position: absolute;
+  left: 24rpx;
+  right: 24rpx;
+  top: 24rpx;
+  bottom: 12rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1rpx solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 12rpx 28rpx rgba(15, 23, 42, 0.06);
+}
+
+.empty-title {
+  font-size: 30rpx;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.empty-description {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #64748b;
+}

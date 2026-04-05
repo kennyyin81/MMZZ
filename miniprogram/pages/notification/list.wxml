@@ -1,0 +1,50 @@
+<view class="container">
+  <view class="card hero-card reveal-card">
+    <view class="section-head">
+      <view>
+        <view class="title">消息中心</view>
+        <view class="subtitle">查看系统通知、邀请提醒和审批结果。</view>
+      </view>
+      <view class="badge">未读 {{unreadCount}}</view>
+    </view>
+    <button class="ghost-btn action-btn" bindtap="markAllRead" loading="{{marking}}" disabled="{{unreadCount <= 0}}">
+      全部标记已读
+    </button>
+  </view>
+
+  <view class="card reveal-card reveal-delay-1 empty-state" wx:if="{{!list.length && !loading}}">
+    <view class="muted">暂无消息</view>
+  </view>
+
+  <view class="list-card notice-card reveal-card reveal-delay-2" wx:for="{{list}}" wx:key="_id">
+    <view class="row notice-head">
+      <view class="notice-title">{{item.title || "系统消息"}}</view>
+      <view class="badge {{item.read ? 'badge-read' : 'badge-unread'}}">{{item.read ? "已读" : "未读"}}</view>
+    </view>
+    <view class="notice-content">{{item.content || "-"}}</view>
+    <view class="row notice-footer">
+      <view class="notice-time muted">{{item.created_at_text}}</view>
+      <view class="actions">
+        <button
+          wx:if="{{!item.read}}"
+          class="ghost-btn action-btn-inline"
+          size="mini"
+          bindtap="markRead"
+          data-id="{{item._id}}"
+          loading="{{marking}}"
+        >
+          标记已读
+        </button>
+        <button
+          class="ghost-btn action-btn-inline"
+          size="mini"
+          bindtap="removeNotification"
+          data-id="{{item._id}}"
+          loading="{{deletingId === item._id}}"
+        >
+          删除
+        </button>
+      </view>
+    </view>
+  </view>
+</view>

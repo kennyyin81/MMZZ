@@ -1,0 +1,72 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="stack-lg">
+    <ui-skeleton rows="2"></ui-skeleton>
+    <ui-skeleton rows="3" media="{{false}}"></ui-skeleton>
+  </view>
+
+  <block wx:else>
+    <view class="card reveal-card">
+      <view class="section-title">邀请审批人</view>
+      <view class="subtitle">搜索昵称后发起审批邀请。</view>
+      <view class="profile-input-panel">
+        <view class="profile-input-label">搜索审批人</view>
+        <input
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+          maxlength="20"
+          placeholder="请输入昵称关键词"
+          placeholder-class="profile-input-placeholder"
+          class="profile-input"
+        />
+        <button class="ghost-btn relation-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" loading="{{searching}}" bindtap="searchUsers">搜索用户</button>
+      </view>
+
+      <block wx:if="{{searchResults.length}}">
+        <view class="invite-item" wx:for="{{searchResults}}" wx:key="user_id">
+          <view class="invite-info">
+            <view class="invite-title">{{item.nickname || item.user_id}}</view>
+            <view class="muted">用户 ID：{{item.user_id}}</view>
+          </view>
+          <button
+            size="mini"
+            type="primary"
+            class="tap-btn invite-primary-btn"
+            hover-class="is-pressed"
+            hover-stay-time="60"
+            data-user-id="{{item.user_id}}"
+            loading="{{inviting}}"
+            bindtap="inviteApprover"
+          >
+            邀请为审批人
+          </button>
+        </view>
+      </block>
+
+      <view wx:elif="{{searched && !searching}}" class="profile-empty-panel">
+        <ui-empty-state
+          compact="{{true}}"
+          title="没有找到合适的审批人"
+          description="换一个昵称关键词再试一次。"
+        ></ui-empty-state>
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-1" wx:if="{{relation && relation.outgoing_invitation}}">
+      <view class="section-title">当前邀请</view>
+      <view class="invite-item">
+        <view class="invite-title">{{relation.outgoing_invitation.invitee.nickname || relation.outgoing_invitation.invitee.user_id}}</view>
+        <view class="muted">发起时间：{{relation.outgoing_invitation.created_at_text}}</view>
+        <view class="muted">状态：{{relation.outgoing_invitation.status || 'pending'}}</view>
+        <button
+          class="ghost-btn relation-btn tap-btn"
+          hover-class="is-pressed"
+          hover-stay-time="60"
+          loading="{{handlingInvite}}"
+          bindtap="cancelInvitation"
+        >
+          取消邀请
+        </button>
+      </view>
+    </view>
+  </block>
+</view>

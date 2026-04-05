@@ -1,0 +1,60 @@
+<view class="container">
+  <view class="card hero-card reveal-card">
+    <view class="badge">加分申请</view>
+    <view class="title" style="margin-top: 18rpx;">提交表现积分</view>
+    <view class="muted">记录日常行为与表现，经审批通过后入账积分。</view>
+  </view>
+
+  <view class="card reveal-card reveal-delay-1">
+    <view class="section-title">审批信息</view>
+    <view class="surface-panel" wx:if="{{approver}}">
+      <view class="field-label">当前审批人</view>
+      <view class="approver-name">{{approver.nickname || approver.user_id}}</view>
+      <view class="field-hint">该申请将提交给当前绑定审批人处理。</view>
+    </view>
+    <view class="surface-panel warning-panel" wx:else>
+      <view class="field-label">暂未绑定审批人</view>
+      <view class="warning-text">请先前往“我的”页绑定审批人，再提交加分申请。</view>
+    </view>
+  </view>
+
+  <view class="card reveal-card reveal-delay-2">
+    <view class="section-title">申请内容</view>
+
+    <view class="field-block">
+      <view class="field-label">行为类型</view>
+      <input
+        class="input-shell"
+        placeholder="例如：协助同事解决问题"
+        value="{{behaviorType}}"
+        bindinput="onBehaviorInput"
+      />
+      <view class="field-hint">建议简明描述行为场景，方便审批判断。</view>
+    </view>
+
+    <view class="field-block">
+      <view class="field-label">说明</view>
+      <textarea
+        class="input-shell textarea"
+        placeholder="补充说明这次行为的背景、过程和价值"
+        value="{{description}}"
+        bindinput="onDescriptionInput"
+        maxlength="200"
+      />
+    </view>
+
+    <view class="field-block">
+      <view class="field-label">申请积分</view>
+      <input
+        class="input-shell"
+        type="number"
+        value="{{requestedPoints}}"
+        bindinput="onPointsInput"
+      />
+    </view>
+
+    <button class="btn submit-btn" type="primary" loading="{{submitting}}" disabled="{{!canSubmit}}" bindtap="submit">
+      提交申请
+    </button>
+  </view>
+</view>

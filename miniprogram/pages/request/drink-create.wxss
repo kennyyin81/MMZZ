@@ -1,0 +1,27 @@
+.approver-name {
+  margin-top: 10rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.drink-stat-grid {
+  margin-top: 20rpx;
+}
+
+.warning-panel {
+  margin-top: 20rpx;
+  background: rgba(239, 68, 68, 0.04);
+  border-color: rgba(239, 68, 68, 0.12);
+}
+
+.warning-text {
+  margin-top: 10rpx;
+  color: #b91c1c;
+  line-height: 1.7;
+}
+
+.submit-btn {
+  width: 100%;
+  box-sizing: border-box;
+}

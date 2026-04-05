@@ -1,0 +1,62 @@
+<view class="container">
+  <view wx:if="{{loading && !user}}" class="stack-lg">
+    <ui-skeleton rows="2"></ui-skeleton>
+    <ui-skeleton rows="4" media="{{false}}"></ui-skeleton>
+  </view>
+
+  <block wx:elif="{{user}}">
+    <view class="card hero-card reveal-card">
+      <view class="profile-header">
+        <image
+          wx:if="{{user.avatar_url}}"
+          class="avatar"
+          src="{{user.avatar_url}}"
+          mode="aspectFill"
+        />
+        <view wx:else class="avatar avatar-placeholder">我</view>
+        <view class="profile-meta">
+          <view class="badge">{{user.rolesText}}</view>
+          <view class="title profile-name">{{user.nickname || "-"}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-1">
+      <view class="section-title">个人设置</view>
+      <view class="entry-list">
+        <view class="entry-item tap-card" hover-class="is-pressed-soft" hover-stay-time="80" bindtap="goRelationPage">
+          <view class="entry-main">
+            <view class="entry-title">审批关系</view>
+            <view class="subtitle">查看我的审批人和我当前负责审批的人</view>
+          </view>
+          <view class="entry-side">
+            <view class="entry-count" wx:if="{{relation && relation.incoming_invitations.length}}">
+              {{relation.incoming_invitations.length}} 待处理
+            </view>
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+
+        <view class="entry-item tap-card" hover-class="is-pressed-soft" hover-stay-time="80" bindtap="goInvitationPage">
+          <view class="entry-main">
+            <view class="entry-title">邀请审批人</view>
+            <view class="subtitle">搜索用户并发起邀请，可取消已发邀请</view>
+          </view>
+          <view class="entry-side">
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+
+        <view class="entry-item tap-card" hover-class="is-pressed-soft" hover-stay-time="80" bindtap="goEditProfilePage">
+          <view class="entry-main">
+            <view class="entry-title">修改资料</view>
+            <view class="subtitle">修改头像与昵称</view>
+          </view>
+          <view class="entry-side">
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

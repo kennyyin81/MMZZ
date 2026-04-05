@@ -1,0 +1,60 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="stack-lg">
+    <ui-skeleton rows="2"></ui-skeleton>
+    <ui-skeleton rows="3" media="{{false}}"></ui-skeleton>
+  </view>
+
+  <block wx:else>
+    <view class="card reveal-card">
+      <view class="section-title">{{recordId ? '记录信息' : '添加一杯'}}</view>
+
+      <view class="field-block">
+        <view class="field-label">酒的名字</view>
+        <input class="input-shell" value="{{form.drink_name}}" data-field="drink_name" bindinput="onInput" placeholder="如：霞多丽白葡萄酒" />
+      </view>
+
+      <view class="field-block">
+        <view class="field-label">喝酒时间</view>
+        <view class="row field-row datetime-row">
+          <view class="field-half">
+            <picker mode="date" value="{{form.record_date}}" bindchange="onDateChange">
+              <view class="input-shell picker-shell">{{form.record_date}}</view>
+            </picker>
+          </view>
+          <view class="field-half">
+            <picker mode="time" value="{{form.drink_time_hm}}" bindchange="onTimeChange">
+              <view class="input-shell picker-shell">{{form.drink_time_hm}}</view>
+            </picker>
+          </view>
+        </view>
+      </view>
+
+      <view class="field-block">
+        <view class="field-label">价格</view>
+        <input class="input-shell" type="digit" value="{{form.price}}" data-field="price" bindinput="onInput" placeholder="如：88" />
+      </view>
+
+      <view class="field-block">
+        <view class="field-label">备注</view>
+        <textarea class="input-shell textarea" value="{{form.remark}}" data-field="remark" bindinput="onInput" maxlength="500" placeholder="记录一下当时的口感、场景或心情"></textarea>
+      </view>
+
+      <view class="field-block">
+        <view class="row section-head image-head">
+          <view class="field-label image-label">图片</view>
+          <button class="ghost-btn mini-action-btn image-add-btn" bindtap="addImages" loading="{{uploading}}">添加图片</button>
+        </view>
+        <view class="image-grid">
+          <view class="image-item" wx:for="{{form.images}}" wx:key="url" wx:for-index="imgIndex">
+            <image class="image-thumb" src="{{item.thumb || item.url}}" mode="aspectFill" data-index="{{imgIndex}}" bindtap="previewImage"></image>
+            <view class="ghost-btn image-remove-btn" data-index="{{imgIndex}}" bindtap="removeImage" catchtap="removeImage">删除</view>
+          </view>
+        </view>
+      </view>
+      <view class="action-row">
+        <button class="ghost-btn action-btn" bindtap="saveRecord" loading="{{saving}}">{{recordId ? '保存修改' : '保存记录'}}</button>
+        <button wx:if="{{recordId}}" class="ghost-btn action-btn delete-btn" bindtap="removeRecord" loading="{{deleting}}">删除记录</button>
+      </view>
+    </view>
+  </block>
+</view>

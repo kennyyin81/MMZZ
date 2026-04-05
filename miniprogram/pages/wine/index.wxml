@@ -1,0 +1,79 @@
+<view class="container">
+  <view class="card reveal-card">
+    <view class="section-title" style="margin-bottom: 14rpx;">美酒筛选</view>
+    <view class="filter-row">
+      <view class="filter-item">
+        <view class="subtitle">口感</view>
+        <picker mode="selector" range="{{tasteFilterOptions}}" value="{{tasteFilterIndex}}" bindchange="onTasteFilterChange">
+          <view class="input-shell picker-shell">{{tasteFilterOptions[tasteFilterIndex]}}</view>
+        </picker>
+      </view>
+      <view class="filter-item">
+        <view class="subtitle">评分</view>
+        <picker mode="selector" range="{{ratingOrderOptions}}" value="{{ratingOrderIndex}}" bindchange="onRatingOrderChange">
+          <view class="input-shell picker-shell">{{ratingOrderOptions[ratingOrderIndex]}}</view>
+        </picker>
+      </view>
+      <view class="filter-item">
+        <view class="subtitle">度数</view>
+        <picker mode="selector" range="{{alcoholOrderOptions}}" value="{{alcoholOrderIndex}}" bindchange="onAlcoholOrderChange">
+          <view class="input-shell picker-shell">{{alcoholOrderOptions[alcoholOrderIndex]}}</view>
+        </picker>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading && !hasLoaded}}" class="stack-lg">
+    <ui-skeleton rows="2"></ui-skeleton>
+    <ui-skeleton rows="3"></ui-skeleton>
+  </view>
+
+  <block wx:elif="{{list.length}}">
+    <view
+      class="list-card wine-list-card reveal-card reveal-delay-1 tap-card"
+      hover-class="is-pressed-soft"
+      hover-stay-time="80"
+      wx:for="{{list}}"
+      wx:key="wine_id"
+    >
+      <view class="media-frame wine-list-media" data-id="{{item.wine_id}}" bindtap="goDetail">
+        <image class="wine-cover" src="{{item.image}}" mode="aspectFit"></image>
+      </view>
+
+      <view class="wine-card-body">
+        <view class="row wine-card-head">
+          <view>
+            <view class="row wine-name-row">
+              <view class="wine-card-name">{{item.name}}</view>
+              <view class="subtitle wine-card-alcohol">{{item.alcohol}}</view>
+            </view>
+            <view class="subtitle wine-card-meta">{{item.category}}</view>
+          </view>
+          <view class="chip" wx:if="{{item.flavor}}">{{item.flavor}}</view>
+        </view>
+
+        <view class="muted wine-card-summary">{{item.summary}}</view>
+
+        <view class="row wine-taste-score-row">
+          <view class="chip-row wine-card-tags wine-taste-row">
+            <view class="chip" wx:if="{{item.acidityText}}">{{item.acidityText}}</view>
+            <view class="chip" wx:if="{{item.sweetnessText}}">{{item.sweetnessText}}</view>
+            <view class="chip" wx:if="{{item.bitternessText}}">{{item.bitternessText}}</view>
+            <view class="chip" wx:if="{{item.spicinessText}}">{{item.spicinessText}}</view>
+          </view>
+          <view class="wine-inline-score">
+            <view class="subtitle">评分</view>
+            <view class="wine-inline-score-value">{{item.averageRatingText}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="card reveal-card reveal-delay-1">
+    <ui-empty-state
+      title="暂时还没有酒款"
+      description="品酒师录入酒款后，这里会显示可浏览的内容。"
+    ></ui-empty-state>
+  </view>
+</view>

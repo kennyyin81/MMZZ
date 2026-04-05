@@ -1,0 +1,65 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/drink-calendar/detail",
+    "pages/wine/index",
+    "pages/request/my-list",
+    "pages/profile/index",
+    "pages/profile/relation",
+    "pages/profile/invitation",
+    "pages/profile/edit",
+    "pages/wine/detail",
+    "pages/points/ledger",
+    "pages/points/adjust",
+    "pages/request/earn-create",
+    "pages/request/drink-create",
+    "pages/todo/create",
+    "pages/request/detail",
+    "pages/request/history",
+    "pages/notification/list",
+    "pages/approval/pending-list",
+    "pages/approval/history-list",
+    "pages/approval/detail",
+    "pages/admin/user-role",
+    "pages/admin/wine-topic"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#f5f6f8",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "\u9996\u9875",
+    "backgroundColor": "#f5f6f8",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#64748b",
+    "selectedColor": "#4f46e5",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "\u9996\u9875"
+      },
+      {
+        "pagePath": "pages/wine/index",
+        "text": "\u9152\u767e\u79d1"
+      },
+      {
+        "pagePath": "pages/request/my-list",
+        "text": "\u8bb0\u5f55"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "\u6211\u7684"
+      }
+    ]
+  },
+  "usingComponents": {
+    "ui-empty-state": "/components/ui-empty-state/index",
+    "ui-skeleton": "/components/ui-skeleton/index"
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="card hero-card reveal-card">
+    <view class="badge">待办工作</view>
+    <view class="title" style="margin-top: 18rpx;">新建待办</view>
+    <view class="muted">支持创建加分工作和不加分工作。加分工作提交后需要审批人同意才会获得积分。</view>
+  </view>
+
+  <view class="card reveal-card reveal-delay-1">
+    <view class="section-title">工作内容</view>
+    <input class="input-shell" value="{{title}}" bindinput="onTitleInput" maxlength="50" placeholder="输入工作标题" />
+    <textarea class="input-shell textarea" value="{{description}}" bindinput="onDescriptionInput" maxlength="200" placeholder="输入工作描述" auto-height></textarea>
+  </view>
+
+  <view class="card reveal-card reveal-delay-2">
+    <view class="section-title">加分设置</view>
+    <view class="row" style="justify-content: space-between; align-items: center;">
+      <view>
+        <view class="subtitle">是否为加分工作</view>
+        <view class="muted">开启后审批通过才会加分</view>
+      </view>
+      <switch checked="{{isRewarded}}" color="#8f2332" bindchange="onRewardSwitch" />
+    </view>
+
+    <view wx:if="{{isRewarded}}" style="margin-top: 24rpx;">
+      <view class="subtitle">奖励积分</view>
+      <input class="input-shell" type="number" value="{{rewardPoints}}" bindinput="onRewardPointsInput" placeholder="输入奖励积分" />
+      <view class="muted" style="margin-top: 12rpx;">审批人：{{approver ? approver.nickname : "未绑定审批人"}}</view>
+    </view>
+  </view>
+
+  <button class="btn" type="primary" bindtap="submit" loading="{{submitting}}">提交待办</button>
+</view>

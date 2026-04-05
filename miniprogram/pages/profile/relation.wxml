@@ -1,0 +1,102 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="stack-lg">
+    <ui-skeleton rows="2"></ui-skeleton>
+    <ui-skeleton rows="3" media="{{false}}"></ui-skeleton>
+  </view>
+
+  <block wx:else>
+    <view class="card reveal-card">
+      <view class="section-head">
+        <view>
+          <view class="section-title">审批关系</view>
+          <view class="subtitle">查看我的审批人以及我当前负责审批的人。</view>
+        </view>
+      </view>
+      <view class="relation-grid">
+        <view class="relation-box">
+          <view class="relation-label">我的审批人</view>
+          <view class="relation-value" wx:if="{{relation && relation.my_approver}}">
+            {{relation.my_approver.nickname || relation.my_approver.user_id}}
+          </view>
+          <view class="relation-value" wx:elif="{{relation && relation.outgoing_invitation}}">
+            邀请中：{{relation.outgoing_invitation.invitee.nickname || relation.outgoing_invitation.invitee.user_id}}
+          </view>
+          <view class="muted" wx:else>未绑定</view>
+          <button
+            class="ghost-btn relation-btn tap-btn"
+            hover-class="is-pressed"
+            hover-stay-time="60"
+            wx:if="{{relation && relation.my_approver}}"
+            loading="{{unbinding}}"
+            bindtap="unbindApprover"
+          >
+            解绑审批人
+          </button>
+          <button
+            class="ghost-btn relation-btn tap-btn"
+            hover-class="is-pressed"
+            hover-stay-time="60"
+            wx:if="{{relation && relation.outgoing_invitation}}"
+            loading="{{handlingInvite}}"
+            bindtap="cancelInvitation"
+          >
+            取消邀请
+          </button>
+        </view>
+
+        <view class="relation-box">
+          <view class="relation-label">我审批的人</view>
+          <view class="relation-value" wx:if="{{relation && relation.assigned_user}}">
+            {{relation.assigned_user.nickname || relation.assigned_user.user_id}}
+          </view>
+          <view class="muted" wx:else>暂无</view>
+          <button
+            class="ghost-btn relation-btn tap-btn"
+            hover-class="is-pressed"
+            hover-stay-time="60"
+            wx:if="{{relation && relation.assigned_user}}"
+            loading="{{unbinding}}"
+            bindtap="unbindAssignedUser"
+          >
+            解除关系
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-1" wx:if="{{relation && relation.incoming_invitations.length}}">
+      <view class="section-title">待处理邀请</view>
+      <view class="invite-item" wx:for="{{relation.incoming_invitations}}" wx:key="invitation_id">
+        <view class="invite-title">{{item.inviter.nickname || item.inviter.user_id}}</view>
+        <view class="muted">发起时间：{{item.created_at_text}}</view>
+        <view class="actions invite-actions">
+          <button
+            size="mini"
+            type="primary"
+            class="tap-btn"
+            hover-class="is-pressed"
+            hover-stay-time="60"
+            data-invitation-id="{{item.invitation_id}}"
+            data-decision="accepted"
+            loading="{{handlingInvite}}"
+            bindtap="handleInvitation"
+          >
+            接受
+          </button>
+          <button
+            size="mini"
+            class="ghost-btn tap-btn"
+            hover-class="is-pressed"
+            hover-stay-time="60"
+            data-invitation-id="{{item.invitation_id}}"
+            data-decision="rejected"
+            loading="{{handlingInvite}}"
+            bindtap="handleInvitation"
+          >
+            拒绝
+          </button>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

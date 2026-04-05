@@ -1,0 +1,23 @@
+.ledger-card {
+  margin-bottom: 20rpx;
+}
+
+.ledger-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ledger-change {
+  font-size: 38rpx;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.ledger-positive {
+  color: #047857;
+}
+
+.ledger-negative {
+  color: #b91c1c;
+}

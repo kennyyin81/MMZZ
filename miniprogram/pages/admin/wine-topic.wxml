@@ -1,0 +1,160 @@
+<view class="container">
+  <view class="card editor-card">
+    <view class="section-head">
+      <view>
+        <view class="title" style="margin-bottom: 8rpx;">酒款维护</view>
+      </view>
+    </view>
+
+    <view class="editor-layout">
+      <view class="editor-main">
+        <view class="form-section">
+          <view class="section-title">基础信息</view>
+          <view class="field-grid">
+            <view class="field-block field-block-half">
+              <view class="subtitle">酒名</view>
+              <input class="input-shell" value="{{form.name}}" data-field="name" bindinput="onInput" placeholder="如 黄酒" />
+            </view>
+            <view class="field-block field-block-half">
+              <view class="subtitle">类别</view>
+              <input class="input-shell" value="{{form.category}}" data-field="category" bindinput="onInput" placeholder="如 发酵酒、白酒" />
+            </view>
+            <view class="field-block field-block-half">
+              <view class="subtitle">酒精度</view>
+              <input class="input-shell" value="{{form.alcohol}}" data-field="alcohol" bindinput="onInput" placeholder="如 14%" />
+            </view>
+            <view class="field-block field-block-half">
+              <view class="subtitle">风味标签</view>
+              <input class="input-shell" value="{{form.flavor}}" data-field="flavor" bindinput="onInput" placeholder="如果香、花香、木香" />
+            </view>
+          </view>
+        </view>
+
+        <view class="form-section">
+          <view class="section-title">口感等级</view>
+          <view class="taste-row">
+            <view class="taste-item">
+              <view class="subtitle">酸</view>
+              <picker mode="selector" range="{{tasteLevels.acidity}}" value="{{form.acidity}}" data-field="acidity" bindchange="onTasteChange">
+                <view class="input-shell picker-shell">{{tasteLevels.acidity[form.acidity] || '请选择'}}</view>
+              </picker>
+            </view>
+            <view class="taste-item">
+              <view class="subtitle">甜</view>
+              <picker mode="selector" range="{{tasteLevels.sweetness}}" value="{{form.sweetness}}" data-field="sweetness" bindchange="onTasteChange">
+                <view class="input-shell picker-shell">{{tasteLevels.sweetness[form.sweetness] || '请选择'}}</view>
+              </picker>
+            </view>
+          </view>
+          <view class="taste-row">
+            <view class="taste-item">
+              <view class="subtitle">苦</view>
+              <picker mode="selector" range="{{tasteLevels.bitterness}}" value="{{form.bitterness}}" data-field="bitterness" bindchange="onTasteChange">
+                <view class="input-shell picker-shell">{{tasteLevels.bitterness[form.bitterness] || '请选择'}}</view>
+              </picker>
+            </view>
+            <view class="taste-item">
+              <view class="subtitle">辣</view>
+              <picker mode="selector" range="{{tasteLevels.spiciness}}" value="{{form.spiciness}}" data-field="spiciness" bindchange="onTasteChange">
+                <view class="input-shell picker-shell">{{tasteLevels.spiciness[form.spiciness] || '请选择'}}</view>
+              </picker>
+            </view>
+          </view>
+        </view>
+
+        <view class="form-section">
+          <view class="section-title">一句话介绍</view>
+          <view class="field-grid">
+            <view class="field-block field-block-full">
+              <textarea class="input-shell textarea" value="{{form.summary}}" data-field="summary" bindinput="onInput" maxlength="100" placeholder="简洁介绍这款酒的特色"></textarea>
+            </view>
+          </view>
+        </view>
+
+        <view class="form-section">
+          <view class="section-title">封面图片</view>
+          <view class="field-grid">
+            <view class="field-block field-block-wide">
+              <view class="subtitle">图片地址</view>
+              <input class="input-shell" value="{{form.image_url}}" data-field="image_url" bindinput="onInput" placeholder="可手填，也可上传" />
+            </view>
+            <view class="field-block field-block-action">
+              <view class="subtitle">上传图片</view>
+              <button class="ghost-btn action-btn" loading="{{uploading}}" bindtap="uploadImage">选择图片</button>
+            </view>
+          </view>
+        </view>
+
+        <view class="submit-section">
+          <button class="btn primary-btn" type="primary" bindtap="submitForm" loading="{{saving}}">
+            {{editingWineId ? "保存修改" : "新增酒款"}}
+          </button>
+        </view>
+      </view>
+
+      <view class="preview-panel">
+        <view class="section-title">实时预览</view>
+        <view class="preview-card">
+          <image class="preview-image" src="{{previewWine.image}}" mode="aspectFill"></image>
+          <view class="row" style="margin-top: 16rpx;">
+            <view style="font-size: 32rpx; font-weight: 700;">{{previewWine.name}} {{previewWine.alcohol}}</view>
+            <view class="chip">{{previewWine.category}}</view>
+          </view>
+          <view style="margin-top: 12rpx;">{{previewWine.summary}}</view>
+          <view class="chip-row" style="margin-top: 14rpx;">
+            <view class="chip" wx:if="{{previewWine.flavor}}">{{previewWine.flavor}}</view>
+          </view>
+          <view class="chip-row" style="margin-top: 10rpx;">
+            <view class="chip" wx:if="{{previewWine.acidity}}">{{previewWine.acidity}}</view>
+            <view class="chip" wx:if="{{previewWine.sweetness}}">{{previewWine.sweetness}}</view>
+            <view class="chip" wx:if="{{previewWine.bitterness}}">{{previewWine.bitterness}}</view>
+            <view class="chip" wx:if="{{previewWine.spiciness}}">{{previewWine.spiciness}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-head">
+      <view>
+        <view class="title" style="margin-bottom: 8rpx;">现有酒款</view>
+        <view class="subtitle">点击编辑或删除</view>
+      </view>
+    </view>
+
+    <view class="filter-panel">
+      <view class="field-grid">
+        <view class="field-block field-block-wide">
+          <view class="subtitle">搜索</view>
+          <input class="input-shell" value="{{keyword}}" bindinput="onSearchInput" placeholder="按名称搜索" />
+        </view>
+        <view class="field-block field-block-half">
+          <view class="subtitle">排序</view>
+          <picker mode="selector" range="{{sortOptions}}" bindchange="onSortChange">
+            <view class="input-shell picker-shell">{{selectedSortLabel}}</view>
+          </picker>
+        </view>
+      </view>
+      <button class="ghost-btn filter-btn" bindtap="loadList" loading="{{loading}}">查询</button>
+    </view>
+
+    <view wx:if="{{!list.length}}" class="muted">当前还没有酒款数据，请先新增。</view>
+    <view class="list-card wine-row" wx:for="{{list}}" wx:key="wine_id">
+      <view class="row">
+        <view>
+          <view style="font-size: 32rpx; font-weight: 700;">{{item.name}}</view>
+          <view class="muted" style="margin-top: 8rpx;">{{item.category}} · {{item.alcohol}}</view>
+        </view>
+        <view class="actions">
+          <button size="mini" class="ghost-btn compact-btn" data-id="{{item.wine_id}}" bindtap="editItem">编辑</button>
+          <button size="mini" class="ghost-btn compact-btn" data-id="{{item.wine_id}}" bindtap="removeItem">删除</button>
+        </view>
+      </view>
+      <view style="margin-top: 12rpx;">{{item.summary}}</view>
+      <view class="chip-row" style="margin-top: 10rpx;">
+        <view class="chip" wx:if="{{item.flavor}}">{{item.flavor}}</view>
+      </view>
+    </view>
+  </view>
+</view>

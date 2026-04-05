@@ -1,0 +1,52 @@
+<view class="container">
+  <view class="card hero-card reveal-card">
+    <view class="badge">角色管理</view>
+    <view class="title" style="margin-top: 18rpx;">用户角色分配</view>
+    <view class="muted">搜索用户并配置普通用户、审批人、管理员、品酒师角色。</view>
+  </view>
+
+  <view class="card reveal-card reveal-delay-1">
+    <view class="section-title">搜索用户</view>
+    <input
+      value="{{keyword}}"
+      bindinput="onKeywordInput"
+      placeholder="输入昵称关键词"
+      class="input-shell role-input"
+    />
+    <button class="btn role-btn" bindtap="searchUsers" loading="{{searching}}">搜索</button>
+  </view>
+
+  <view class="list-card user-card reveal-card reveal-delay-2" wx:for="{{users}}" wx:key="_id" bindtap="selectUser" data-id="{{item._id}}" data-roles="{{item.roles}}">
+    <view class="row user-head">
+      <view class="user-name">{{item.nickname || item._id}}</view>
+      <view class="chip">选择</view>
+    </view>
+    <view class="user-line">用户 ID：{{item._id}}</view>
+    <view class="user-line">当前角色：{{item.rolesText}}</view>
+  </view>
+
+  <view class="card reveal-card reveal-delay-3">
+    <view class="section-title">设置角色</view>
+    <view class="field-block">
+      <view class="field-label">用户 ID</view>
+      <input
+        value="{{selectedUserId}}"
+        bindinput="onUserIdInput"
+        placeholder="请输入用户 _id"
+        class="input-shell role-input"
+      />
+    </view>
+
+    <view class="field-block">
+      <view class="field-label">角色</view>
+      <checkbox-group bindchange="onRolesChange" class="role-group">
+        <label wx:for="{{roleOptions}}" wx:key="role" class="role-option">
+          <checkbox value="{{item.role}}" checked="{{item.checked}}" />
+          <text class="role-label">{{item.label}}</text>
+        </label>
+      </checkbox-group>
+    </view>
+
+    <button class="btn role-btn" type="primary" loading="{{saving}}" bindtap="saveRoles">保存角色</button>
+  </view>
+</view>

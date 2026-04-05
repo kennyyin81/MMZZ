@@ -1,0 +1,63 @@
+.approver-name {
+  margin-top: 10rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.target-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.target-line {
+  color: #0f172a;
+  font-size: 28rpx;
+  line-height: 1.7;
+}
+
+.type-switch {
+  display: flex;
+  gap: 16rpx;
+}
+
+.type-chip {
+  flex: 1;
+  padding: 22rpx 0;
+  border-radius: 24rpx;
+  border: 2rpx solid rgba(148, 163, 184, 0.25);
+  background: #ffffff;
+  text-align: center;
+  color: #475569;
+  font-weight: 600;
+}
+
+.type-chip-active {
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.type-chip-add.type-chip-active {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.type-chip-subtract.type-chip-active {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+}
+
+.warning-panel {
+  background: rgba(239, 68, 68, 0.04);
+  border-color: rgba(239, 68, 68, 0.12);
+}
+
+.warning-text {
+  margin-top: 10rpx;
+  color: #b91c1c;
+  line-height: 1.7;
+}
+
+.submit-btn {
+  width: 100%;
+  box-sizing: border-box;
+}

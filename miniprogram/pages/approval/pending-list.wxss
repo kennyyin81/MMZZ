@@ -1,0 +1,48 @@
+.picker-shell {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+}
+
+.approval-card {
+  cursor: pointer;
+}
+
+.approval-head {
+  align-items: flex-start;
+}
+
+.approval-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.approval-status {
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.approval-title-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.approval-page-title {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.approval-meta {
+  margin-top: 14rpx;
+  color: #6b7280;
+  line-height: 1.8;
+  word-break: break-all;
+}
+
+.history-btn {
+  margin-left: auto !important;
+  flex: 0 0 auto;
+}

@@ -1,0 +1,166 @@
+<view class="container">
+  <view wx:if="{{loading && !user}}" class="stack-lg">
+    <ui-skeleton rows="2"></ui-skeleton>
+    <ui-skeleton rows="2" media="{{false}}"></ui-skeleton>
+    <ui-skeleton rows="3" media="{{false}}"></ui-skeleton>
+  </view>
+
+  <block wx:elif="{{user}}">
+    <view class="card hero-card reveal-card">
+      <view class="hero-top">
+        <view class="hero-copy">
+          <view class="hero-badges">
+            <view class="badge">{{user.rolesText}}</view>
+          </view>
+          <view class="hero-badges">
+            <view class="badge badge-action" bindtap="goNotifications">未读消息 {{unreadNotificationCount || 0}}</view>
+          </view>
+          <view class="title hero-title">{{user.nickname || '微信用户'}}</view>
+        </view>
+
+        <view class="hero-avatar-shell">
+          <image wx:if="{{user.avatar_url}}" class="hero-avatar" src="{{user.avatar_url}}" mode="aspectFill"></image>
+          <view wx:else class="hero-avatar hero-avatar-placeholder">头像</view>
+        </view>
+      </view>
+
+      <view class="stat-grid hero-stats">
+        <view class="stat-card stat-card-action tap-card" hover-class="is-pressed-soft" hover-stay-time="80" bindtap="goPointsLedger">
+          <view class="subtitle">当前积分</view>
+          <view class="stat-value">{{user.balance || 0}}</view>
+          <view class="stat-link">点击查看积分流水</view>
+        </view>
+
+        <view class="stat-card stat-card-action tap-card" hover-class="is-pressed-soft" hover-stay-time="80" bindtap="goPendingApprovals">
+          <view class="subtitle">待我审批</view>
+          <view class="stat-value">{{pendingCount}}</view>
+          <view class="stat-link">点击查看负责审批单</view>
+        </view>
+
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-1">
+      <view class="section-title">快捷入口</view>
+      <view class="quick-grid home-quick-grid">
+        <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/request/earn-create" bindtap="goTo">
+          <view class="quick-entry-compact">
+            <view class="quick-entry-label">加分申请</view>
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+
+        <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/request/drink-create" bindtap="goTo">
+          <view class="quick-entry-compact">
+            <view class="quick-entry-label">喝酒申请</view>
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+
+        <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/request/history" bindtap="goTo">
+          <view class="quick-entry-compact">
+            <view class="quick-entry-label">历史申请</view>
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+
+        <view wx:if="{{canApprove}}" class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/points/adjust" bindtap="goTo">
+          <view class="quick-entry-compact">
+            <view class="quick-entry-label">直接调分</view>
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+
+        <view wx:if="{{isAdmin}}" class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/admin/user-role" bindtap="goTo">
+          <view class="quick-entry-compact">
+            <view class="quick-entry-label">角色管理</view>
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+
+        <view wx:if="{{isSommelier}}" class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/admin/wine-topic" bindtap="goTo">
+          <view class="quick-entry-compact">
+            <view class="quick-entry-label">酒款维护</view>
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-2">
+      <view class="row month-head">
+        <view class="section-title" style="margin-bottom: 0;">{{calendarMonth}}月喝酒日历</view>
+        <view class="actions">
+          <button class="ghost-btn month-btn" data-step="-1" bindtap="switchCalendarMonth">上月</button>
+          <view class="month-title">{{calendarMonthLabel}}</view>
+          <button class="ghost-btn month-btn" data-step="1" bindtap="switchCalendarMonth">下月</button>
+        </view>
+      </view>
+
+      <view class="week-head">
+        <view class="week-cell" wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="*this">{{item}}</view>
+      </view>
+
+      <view class="calendar-grid">
+        <view class="week-row" wx:for="{{calendarWeeks}}" wx:key="index">
+          <view
+            class="day-cell {{dayItem.inMonth ? '' : 'day-cell-empty'}} {{dayItem.isToday ? 'day-cell-today' : ''}}"
+            wx:for="{{item}}"
+            wx:for-item="dayItem"
+            wx:key="key"
+            data-date="{{dayItem.date}}"
+            bindtap="openCalendarDay"
+          >
+            <view wx:if="{{dayItem.inMonth}}" class="day-inner">
+              <view class="day-num {{dayItem.isToday ? 'day-num-today' : ''}}">{{dayItem.day}}</view>
+              <view class="thumb-row" wx:if="{{dayItem.thumbnails.length}}">
+                <image
+                  wx:for="{{dayItem.thumbnails}}"
+                  wx:key="index"
+                  class="day-thumb"
+                  src="{{item}}"
+                  mode="aspectFill"
+                  data-id="{{dayItem.records[index]._id}}"
+                  catchtap="goDrinkRecordDetail"
+                ></image>
+                <view class="day-extra" wx:if="{{dayItem.extraCount > 0}}">+{{dayItem.extraCount}}</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <button class="btn" type="primary" bindtap="addCalendarCup">添加一杯</button>
+    </view>
+
+    <view wx:if="{{showCalendarDayPanel}}" class="panel-mask" bindtap="closeCalendarDayPanel">
+      <view class="panel-card" catchtap="stopCalendarPanelTap">
+        <view class="row panel-head">
+          <view class="section-title">{{selectedCalendarDate}} 记录</view>
+          <button class="ghost-btn panel-close-btn" bindtap="closeCalendarDayPanel">关闭</button>
+        </view>
+
+        <view wx:if="{{!calendarDayRecords.length}}" class="empty-state">
+          <view class="muted">这一天还没有记录</view>
+        </view>
+
+        <view wx:for="{{calendarDayRecords}}" wx:key="_id" class="record-item" data-id="{{item._id}}" bindtap="goDrinkRecordDetail">
+          <image class="record-thumb" src="{{item.thumbnail_url}}" mode="aspectFill"></image>
+          <view class="record-main">
+            <view class="record-name">{{item.drink_name || '未命名酒款'}}</view>
+            <view class="subtitle">{{item.drink_time_text}}</view>
+            <view class="subtitle" wx:if="{{item.price > 0}}">¥ {{item.price}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="card reveal-card">
+    <ui-empty-state
+      title="首页加载失败"
+      description="{{loadError || '请稍后重试'}}"
+    ></ui-empty-state>
+    <button class="ghost-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="retryLoad">重新加载</button>
+  </view>
+</view>
