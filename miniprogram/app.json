@@ -5,6 +5,7 @@
     "pages/wine/index",
     "pages/request/my-list",
     "pages/profile/index",
+    "pages/profile/favorites",
     "pages/profile/relation",
     "pages/profile/invitation",
     "pages/profile/edit",

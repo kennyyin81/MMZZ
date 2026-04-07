@@ -172,7 +172,14 @@
   "sweetness": 3,
   "bitterness": 1,
   "spiciness": 0,
-  "summary": "绍兴黄酒，历史悠久",
+  "base_spirit": "金酒",
+  "ingredients": "金巴利、甜味美思",
+  "scene": "适合餐前喝,适合夜晚微醺",
+  "target_audience": "适合喜欢苦口风味的人,新手慎入",
+  "taste_note": "入口偏苦，后段有草本回甘",
+  "story": "起源于意大利的经典餐前鸡尾酒",
+  "similar_wine_ids": ["wine_101", "wine_205"],
+  "summary": "红宝石色、苦感鲜明的经典餐前酒",
   "image_url": "cloud://xxx"
 }
 ```
@@ -187,6 +194,13 @@
 - `sweetness`：甜度等级，0-4
 - `bitterness`：苦度等级，0-4
 - `spiciness`：辣度等级，0-4
+- `base_spirit`：基酒
+- `ingredients`：原料
+- `scene`：适合场景，支持逗号或换行分隔的短句
+- `target_audience`：适合人群，支持逗号或换行分隔的短句
+- `taste_note`：口感解读
+- `story`：背景故事
+- `similar_wine_ids`：相似推荐酒款 ID 列表，最多 3 个，后端会按风味相近程度重新排序
 - `summary`：一句话介绍，最长100字
 - `image_url`：封面图片
 
@@ -465,8 +479,40 @@
 
 - `acidity`、`sweetness`、`bitterness`、`spiciness`：口感等级（0-4）
 - `flavor`：风味标签
+- `base_spirit`：基酒
+- `ingredients`：原料
+- `scene`：适合场景
+- `target_audience`：适合人群
+- `taste_note`：口感解读
+- `story`：背景故事
+- `is_favorited`：当前用户是否已收藏
+- `similar_wines`：相似推荐酒款列表，已按风味相近程度排序，最多 3 个
 - `rating_count`：评分人数
 - `comment_count`：留言人数
+
+### `wine.favorite.toggle`
+
+创建或取消当前用户对某款酒的收藏。
+
+入参：
+```json
+{
+  "wine_id": "xxx"
+}
+```
+
+返回字段：
+
+- `is_favorited`：本次操作后的收藏状态
+
+### `wine.favorite.listMine`
+
+查询当前用户的收藏酒款列表。
+
+返回字段：
+
+- `list`：收藏酒款列表
+- `total`：收藏总数
 
 ### `wine.comment.list`
 
@@ -578,3 +624,16 @@
 - `points.adjustByApprover` 支持对被审批对象直接加分 / 减分
 - 直接调分写入 `points_ledger`，其 `source_type` 为 `manual_adjust`
 - 直接调分允许余额为负数
+
+## 2026-04-07 更新
+
+### 酒款内容扩展
+
+- `admin.wine.upsert` 新增 `base_spirit`、`ingredients`、`scene`、`target_audience`、`taste_note`、`story`、`similar_wine_ids`
+- `similar_wine_ids` 最多保留 3 个，保存时会按风味相近程度重新排序
+- `wine.getDetail` 新增返回 `is_favorited` 与 `similar_wines`
+
+### 酒款收藏
+
+- 新增 `wine.favorite.toggle`
+- 新增 `wine.favorite.listMine`

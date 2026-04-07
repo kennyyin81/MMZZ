@@ -3,6 +3,7 @@
     <view class="section-head">
       <view>
         <view class="title" style="margin-bottom: 8rpx;">酒款维护</view>
+        <view class="subtitle">详情页内容已拆成更清晰的结构，右侧会实时预览。</view>
       </view>
     </view>
 
@@ -13,25 +14,30 @@
           <view class="field-grid">
             <view class="field-block field-block-half">
               <view class="subtitle">酒名</view>
-              <input class="input-shell" value="{{form.name}}" data-field="name" bindinput="onInput" placeholder="如 黄酒" />
+              <input class="input-shell" value="{{form.name}}" data-field="name" bindinput="onInput" placeholder="如 Negroni" />
             </view>
             <view class="field-block field-block-half">
               <view class="subtitle">类别</view>
-              <input class="input-shell" value="{{form.category}}" data-field="category" bindinput="onInput" placeholder="如 发酵酒、白酒" />
+              <input class="input-shell" value="{{form.category}}" data-field="category" bindinput="onInput" placeholder="如 鸡尾酒、葡萄酒" />
             </view>
             <view class="field-block field-block-half">
               <view class="subtitle">酒精度</view>
-              <input class="input-shell" value="{{form.alcohol}}" data-field="alcohol" bindinput="onInput" placeholder="如 14%" />
+              <input class="input-shell" value="{{form.alcohol}}" data-field="alcohol" bindinput="onInput" placeholder="如 24%" />
             </view>
             <view class="field-block field-block-half">
               <view class="subtitle">风味标签</view>
-              <input class="input-shell" value="{{form.flavor}}" data-field="flavor" bindinput="onInput" placeholder="如果香、花香、木香" />
+              <input class="input-shell" value="{{form.flavor}}" data-field="flavor" bindinput="onInput" placeholder="如果香、草本、木香" />
             </view>
           </view>
         </view>
 
         <view class="form-section">
-          <view class="section-title">口感等级</view>
+          <view class="section-title">一句话介绍</view>
+          <textarea class="input-shell textarea textarea-compact" value="{{form.summary}}" data-field="summary" bindinput="onInput" maxlength="100" placeholder="简洁介绍这款酒的特色"></textarea>
+        </view>
+
+        <view class="form-section">
+          <view class="section-title">口感刻度</view>
           <view class="taste-row">
             <view class="taste-item">
               <view class="subtitle">酸</view>
@@ -63,10 +69,53 @@
         </view>
 
         <view class="form-section">
-          <view class="section-title">一句话介绍</view>
+          <view class="section-title">基酒与原料</view>
+          <view class="field-grid">
+            <view class="field-block field-block-half">
+              <view class="subtitle">基酒</view>
+              <input class="input-shell" value="{{form.base_spirit}}" data-field="base_spirit" bindinput="onInput" placeholder="如 金酒" />
+            </view>
+            <view class="field-block field-block-full">
+              <view class="subtitle">原料</view>
+              <textarea class="input-shell textarea textarea-compact" value="{{form.ingredients}}" data-field="ingredients" bindinput="onInput" maxlength="150" placeholder="如 金巴利、甜味美思"></textarea>
+            </view>
+          </view>
+        </view>
+
+        <view class="form-section">
+          <view class="section-title">补充介绍</view>
           <view class="field-grid">
             <view class="field-block field-block-full">
-              <textarea class="input-shell textarea" value="{{form.summary}}" data-field="summary" bindinput="onInput" maxlength="100" placeholder="简洁介绍这款酒的特色"></textarea>
+              <view class="subtitle">口感解读</view>
+              <textarea class="input-shell textarea textarea-compact" value="{{form.taste_note}}" data-field="taste_note" bindinput="onInput" maxlength="120" placeholder="如 入口偏苦，后段有草本回甘"></textarea>
+            </view>
+            <view class="field-block field-block-full">
+              <view class="subtitle">适合场景</view>
+              <textarea class="input-shell textarea textarea-compact" value="{{form.scene}}" data-field="scene" bindinput="onInput" maxlength="120" placeholder="如 适合餐前喝、适合夜晚微醺"></textarea>
+            </view>
+            <view class="field-block field-block-full">
+              <view class="subtitle">适合人群</view>
+              <textarea class="input-shell textarea textarea-compact" value="{{form.target_audience}}" data-field="target_audience" bindinput="onInput" maxlength="120" placeholder="如 喜欢苦口风味的人、新手慎入"></textarea>
+            </view>
+            <view class="field-block field-block-full">
+              <view class="subtitle">背景故事</view>
+              <textarea class="input-shell textarea textarea-compact" value="{{form.story}}" data-field="story" bindinput="onInput" maxlength="200" placeholder="写 2~3 行即可"></textarea>
+            </view>
+          </view>
+        </view>
+
+        <view class="form-section">
+          <view class="section-title">相似推荐</view>
+          <view class="subtitle">系统会优先把风味更接近的酒排在前面，最多可选 3 个，详情页会按相近程度依次展示。</view>
+          <view class="similar-select-grid">
+            <view
+              class="similar-select-chip {{item.selected ? 'similar-select-chip-active' : ''}}"
+              wx:for="{{similarWineOptions}}"
+              wx:key="wine_id"
+              data-id="{{item.wine_id}}"
+              bindtap="toggleSimilarWine"
+            >
+              {{item.name}}
             </view>
           </view>
         </view>
@@ -96,19 +145,50 @@
         <view class="section-title">实时预览</view>
         <view class="preview-card">
           <image class="preview-image" src="{{previewWine.image}}" mode="aspectFill"></image>
-          <view class="row" style="margin-top: 16rpx;">
-            <view style="font-size: 32rpx; font-weight: 700;">{{previewWine.name}} {{previewWine.alcohol}}</view>
-            <view class="chip">{{previewWine.category}}</view>
+          <view class="preview-title">{{previewWine.name}}</view>
+          <view class="preview-meta">{{previewWine.category}} · {{previewWine.alcohol}}</view>
+          <view class="preview-copy">{{previewWine.summary}}</view>
+
+          <view class="chip-row" style="margin-top: 14rpx;" wx:if="{{previewWine.flavorTags.length}}">
+            <view class="chip" wx:for="{{previewWine.flavorTags}}" wx:key="*this">{{item}}</view>
           </view>
-          <view style="margin-top: 12rpx;">{{previewWine.summary}}</view>
-          <view class="chip-row" style="margin-top: 14rpx;">
-            <view class="chip" wx:if="{{previewWine.flavor}}">{{previewWine.flavor}}</view>
+
+          <view class="preview-subtitle">口感刻度</view>
+          <view class="preview-taste-list">
+            <view class="preview-taste-item" wx:for="{{previewWine.tasteMetrics}}" wx:key="key">
+              <view class="preview-taste-head">
+                <view>{{item.label}}</view>
+                <view class="subtitle">{{item.text}}</view>
+              </view>
+              <view class="preview-taste-steps">
+                <view class="preview-taste-step {{stepItem.active ? 'preview-taste-step-active' : ''}}" wx:for="{{item.steps}}" wx:for-item="stepItem" wx:key="key"></view>
+              </view>
+            </view>
           </view>
-          <view class="chip-row" style="margin-top: 10rpx;">
-            <view class="chip" wx:if="{{previewWine.acidity}}">{{previewWine.acidity}}</view>
-            <view class="chip" wx:if="{{previewWine.sweetness}}">{{previewWine.sweetness}}</view>
-            <view class="chip" wx:if="{{previewWine.bitterness}}">{{previewWine.bitterness}}</view>
-            <view class="chip" wx:if="{{previewWine.spiciness}}">{{previewWine.spiciness}}</view>
+
+          <view class="preview-subtitle" wx:if="{{previewWine.base_spirit || previewWine.ingredients}}">基酒与原料</view>
+          <view class="preview-copy" wx:if="{{previewWine.base_spirit}}">基酒：{{previewWine.base_spirit}}</view>
+          <view class="preview-copy" wx:if="{{previewWine.ingredients}}">原料：{{previewWine.ingredients}}</view>
+
+          <view class="preview-subtitle" wx:if="{{previewWine.taste_note}}">口感解读</view>
+          <view class="preview-copy" wx:if="{{previewWine.taste_note}}">{{previewWine.taste_note}}</view>
+
+          <view class="preview-subtitle" wx:if="{{previewWine.sceneTags.length}}">适合场景</view>
+          <view class="chip-row" style="margin-top: 10rpx;" wx:if="{{previewWine.sceneTags.length}}">
+            <view class="chip chip-soft" wx:for="{{previewWine.sceneTags}}" wx:key="*this">{{item}}</view>
+          </view>
+
+          <view class="preview-subtitle" wx:if="{{previewWine.audienceTags.length}}">适合人群</view>
+          <view class="chip-row" style="margin-top: 10rpx;" wx:if="{{previewWine.audienceTags.length}}">
+            <view class="chip chip-soft" wx:for="{{previewWine.audienceTags}}" wx:key="*this">{{item}}</view>
+          </view>
+
+          <view class="preview-subtitle" wx:if="{{previewWine.story}}">背景故事</view>
+          <view class="preview-copy preview-story" wx:if="{{previewWine.story}}">{{previewWine.story}}</view>
+
+          <view class="preview-subtitle" wx:if="{{previewWine.similarWines.length}}">相似推荐</view>
+          <view class="chip-row" style="margin-top: 10rpx;" wx:if="{{previewWine.similarWines.length}}">
+            <view class="chip chip-outline" wx:for="{{previewWine.similarWines}}" wx:key="wine_id">{{item.name}}</view>
           </view>
         </view>
       </view>
@@ -152,8 +232,8 @@
         </view>
       </view>
       <view style="margin-top: 12rpx;">{{item.summary}}</view>
-      <view class="chip-row" style="margin-top: 10rpx;">
-        <view class="chip" wx:if="{{item.flavor}}">{{item.flavor}}</view>
+      <view class="muted" style="margin-top: 10rpx;" wx:if="{{item.base_spirit || item.ingredients || item.main_ingredients}}">
+        {{item.base_spirit ? '基酒：' + item.base_spirit : ''}}{{item.base_spirit && (item.ingredients || item.main_ingredients) ? ' · ' : ''}}{{(item.ingredients || item.main_ingredients) ? '原料：' + (item.ingredients || item.main_ingredients) : ''}}
       </view>
     </view>
   </view>

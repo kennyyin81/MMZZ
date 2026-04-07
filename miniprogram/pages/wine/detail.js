@@ -9,6 +9,13 @@ const TASTE_LEVELS = {
   spiciness: ["几乎不辣", "微辣顺口", "辛感适中", "辛辣明显", "烈感强劲"]
 };
 
+const TASTE_META = [
+  { key: "acidity", label: "酸" },
+  { key: "sweetness", label: "甜" },
+  { key: "bitterness", label: "苦" },
+  { key: "spiciness", label: "辣" }
+];
+
 function buildStars(count) {
   return Array.from({ length: 5 }, (_, index) => ({
     value: index + 1,
@@ -16,16 +23,42 @@ function buildStars(count) {
   }));
 }
 
+function buildTasteScale(level) {
+  const safeLevel = Math.max(0, Math.min(4, Number(level || 0)));
+  return Array.from({ length: 5 }, (_, index) => ({
+    key: index,
+    active: index <= safeLevel
+  }));
+}
+
+function splitTags(value) {
+  return String(value || "")
+    .split(/[\r\n、,，/|；;]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function decorateWine(wine) {
   const merged = mergeWineMeta(wine || {});
+  const scene = merged.scene || merged.recommended_scenes || "";
+  const audience = merged.target_audience || "";
   return {
     ...merged,
     averageRatingText: Number(merged.average_rating || 0).toFixed(1),
     ratingStars: buildStars(Math.round(Number(merged.average_rating || 0))),
-    acidityText: TASTE_LEVELS.acidity[merged.acidity] || "",
-    sweetnessText: TASTE_LEVELS.sweetness[merged.sweetness] || "",
-    bitternessText: TASTE_LEVELS.bitterness[merged.bitterness] || "",
-    spicinessText: TASTE_LEVELS.spiciness[merged.spiciness] || ""
+    flavorTags: splitTags(merged.flavor),
+    sceneTags: splitTags(scene),
+    audienceTags: splitTags(audience),
+    similarWines: (Array.isArray(merged.similar_wines) ? merged.similar_wines : []).map((item) => ({
+      ...mergeWineMeta(item),
+      averageRatingText: Number(item.average_rating || 0).toFixed(1)
+    })),
+    hasMiddleSection: !!(merged.base_spirit || merged.ingredients || merged.main_ingredients || merged.taste_note || scene || audience || merged.story || (Array.isArray(merged.similar_wines) && merged.similar_wines.length)),
+    tasteMetrics: TASTE_META.map((item) => ({
+      ...item,
+      valueText: TASTE_LEVELS[item.key][Number(merged[item.key] || 0)] || "",
+      steps: buildTasteScale(merged[item.key])
+    }))
   };
 }
 
@@ -33,6 +66,7 @@ Page({
   data: {
     wineId: "",
     wine: null,
+    favoriteLoading: false,
     comments: [],
     commentInput: "",
     selectedRating: 5,
@@ -136,6 +170,39 @@ Page({
   onCommentInput(e) {
     this.setData({
       commentInput: e.detail.value
+    });
+  },
+
+  async toggleFavorite() {
+    if (!this.data.wineId || this.data.favoriteLoading) return;
+    this.setData({ favoriteLoading: true });
+    try {
+      const data = await callApi("wine.favorite.toggle", {
+        wine_id: this.data.wineId
+      });
+      const wine = this.data.wine
+        ? {
+            ...this.data.wine,
+            is_favorited: !!data.is_favorited
+          }
+        : null;
+      this.setData({ wine });
+      wx.showToast({
+        title: data.is_favorited ? "已收藏" : "已取消收藏",
+        icon: "success"
+      });
+    } catch (err) {
+      showError(err);
+    } finally {
+      this.setData({ favoriteLoading: false });
+    }
+  },
+
+  goSimilarWineDetail(e) {
+    const wineId = e.currentTarget.dataset.id;
+    if (!wineId || wineId === this.data.wineId) return;
+    wx.navigateTo({
+      url: `/pages/wine/detail?wineId=${wineId}`
     });
   },
 

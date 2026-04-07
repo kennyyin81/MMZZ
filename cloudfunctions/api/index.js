@@ -18,6 +18,7 @@ const COLLECTIONS = {
   NOTIFICATION: "notification",
   WINE_TOPIC: "wine_topic",
   WINE_COMMENT: "wine_comment",
+  WINE_FAVORITE: "wine_favorite",
   DRINK_DIARY: "drink_diary"
 };
 
@@ -1377,6 +1378,61 @@ function normalizeWineKnowledge(payload) {
   return [];
 }
 
+function normalizeStringList(value) {
+  const list = Array.isArray(value)
+    ? value
+    : String(value || "").split(/[\r\n、,，/|；;]+/);
+  return Array.from(new Set(list.map((item) => String(item || "").trim()).filter(Boolean)));
+}
+
+function normalizeWineIdList(value, currentWineId) {
+  return normalizeStringList(value)
+    .map((item) => sanitizeWineId(item))
+    .filter((item) => item && item !== currentWineId)
+    .slice(0, 20);
+}
+
+function getWineFlavorTags(value) {
+  return normalizeStringList(value);
+}
+
+function getWineSimilarityScore(baseWine, candidateWine) {
+  if (!candidateWine || !candidateWine.wine_id) return -1;
+  const baseFlavorTags = getWineFlavorTags(baseWine.flavor);
+  const candidateFlavorTags = getWineFlavorTags(candidateWine.flavor);
+  const baseFlavorSet = new Set(baseFlavorTags);
+  const overlapCount = candidateFlavorTags.filter((item) => baseFlavorSet.has(item)).length;
+  const unionCount = new Set(baseFlavorTags.concat(candidateFlavorTags)).size || 1;
+  const flavorScore = overlapCount ? Math.round((overlapCount / unionCount) * 100) : 0;
+  const categoryScore = baseWine.category && candidateWine.category && baseWine.category === candidateWine.category ? 20 : 0;
+  const baseSpiritScore = baseWine.base_spirit && candidateWine.base_spirit && baseWine.base_spirit === candidateWine.base_spirit ? 12 : 0;
+  const tasteScore = ["acidity", "sweetness", "bitterness", "spiciness"].reduce((sum, key) => {
+    const diff = Math.abs(Number(baseWine[key] || 0) - Number(candidateWine[key] || 0));
+    return sum + (4 - diff);
+  }, 0);
+  return flavorScore * 100 + categoryScore * 10 + baseSpiritScore * 10 + tasteScore;
+}
+
+async function sortSimilarWineIdsBySimilarity(baseWine, similarWineIds) {
+  const ids = normalizeWineIdList(similarWineIds, baseWine.wine_id);
+  if (!ids.length) return [];
+  const wineRes = await db.collection(COLLECTIONS.WINE_TOPIC).where({ wine_id: _.in(ids) }).get();
+  const wineMap = unwrapList(wineRes).reduce((acc, item) => {
+    if (item && item.wine_id) acc[item.wine_id] = item;
+    return acc;
+  }, {});
+  return ids
+    .map((id) => wineMap[id])
+    .filter(Boolean)
+    .sort((a, b) => {
+      const scoreDiff = getWineSimilarityScore(baseWine, b) - getWineSimilarityScore(baseWine, a);
+      if (scoreDiff !== 0) return scoreDiff;
+      return String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
+    })
+    .map((item) => item.wine_id)
+    .slice(0, 3);
+}
+
 async function getWineCommentStats(wineId) {
   const commentRes = await db.collection(COLLECTIONS.WINE_COMMENT).where({ wine_id: wineId }).get();
   const list = unwrapList(commentRes);
@@ -1388,6 +1444,29 @@ async function getWineCommentStats(wineId) {
   };
 }
 
+async function getWineStatsMap(wineIds) {
+  const ids = Array.from(new Set((Array.isArray(wineIds) ? wineIds : []).filter(Boolean)));
+  if (!ids.length) return {};
+  const commentRes = await db.collection(COLLECTIONS.WINE_COMMENT).where({ wine_id: _.in(ids) }).get();
+  const statsMap = {};
+  unwrapList(commentRes).forEach((item) => {
+    if (!statsMap[item.wine_id]) {
+      statsMap[item.wine_id] = { rating_count: 0, total_rating: 0, comment_count: 0 };
+    }
+    statsMap[item.wine_id].rating_count += 1;
+    statsMap[item.wine_id].total_rating += Number(item.rating || 0);
+    if (String(item.content || "").trim()) {
+      statsMap[item.wine_id].comment_count += 1;
+    }
+  });
+  Object.keys(statsMap).forEach((wineId) => {
+    const stats = statsMap[wineId];
+    stats.average_rating = stats.rating_count ? Number((stats.total_rating / stats.rating_count).toFixed(1)) : 0;
+    delete stats.total_rating;
+  });
+  return statsMap;
+}
+
 async function listWineTopics(currentUser) {
   const res = await db.collection(COLLECTIONS.WINE_TOPIC).orderBy("created_at", "desc").get();
   const raw = unwrapList(res).filter((item) => item && item.wine_id);
@@ -1397,30 +1476,7 @@ async function listWineTopics(currentUser) {
   }
 
   const wineIds = raw.map((item) => item.wine_id);
-
-  // 获取所有酒款的评论数据
-  const allCommentsRes = await db.collection(COLLECTIONS.WINE_COMMENT).where({ wine_id: _.in(wineIds) }).get();
-
-  // 构建统计映射
-  const statsMap = {};
-  const allComments = unwrapList(allCommentsRes);
-
-  allComments.forEach((item) => {
-    if (!statsMap[item.wine_id]) {
-      statsMap[item.wine_id] = { rating_count: 0, total_rating: 0, comment_count: 0 };
-    }
-    statsMap[item.wine_id].rating_count += 1;
-    statsMap[item.wine_id].total_rating += Number(item.rating || 0);
-    // 有内容的才算留言
-    if (String(item.content || "").trim()) {
-      statsMap[item.wine_id].comment_count += 1;
-    }
-  });
-
-  Object.keys(statsMap).forEach((wineId) => {
-    const s = statsMap[wineId];
-    s.average_rating = s.rating_count ? Number((s.total_rating / s.rating_count).toFixed(1)) : 0;
-  });
+  const statsMap = await getWineStatsMap(wineIds);
 
   // 组装结果
   const list = raw.map((topic) => {
@@ -1449,10 +1505,41 @@ async function getWineTopicDetail(currentUser, payload) {
   const totalRating = comments.reduce((sum, item) => sum + Number(item.rating || 0), 0);
   const averageRating = ratingCount ? Number((totalRating / ratingCount).toFixed(1)) : 0;
   const commentCount = comments.filter((item) => String(item.content || "").trim()).length;
+  const favorite = await db.collection(COLLECTIONS.WINE_FAVORITE).where({ user_id: currentUser._id, wine_id: wineId }).limit(1).get().then(unwrapDoc);
+  let similarWines = [];
+
+  const similarWineIds = normalizeWineIdList(topic.similar_wine_ids, wineId);
+  if (similarWineIds.length) {
+    const [similarRes, similarStatsMap] = await Promise.all([
+      db.collection(COLLECTIONS.WINE_TOPIC).where({ wine_id: _.in(similarWineIds) }).get(),
+      getWineStatsMap(similarWineIds)
+    ]);
+    const similarMap = unwrapList(similarRes).reduce((acc, item) => {
+      if (item && item.wine_id) acc[item.wine_id] = item;
+      return acc;
+    }, {});
+    similarWines = similarWineIds
+      .map((item) => similarMap[item])
+      .filter(Boolean)
+      .map((item) => {
+        const stats = similarStatsMap[item.wine_id] || { average_rating: 0, rating_count: 0, comment_count: 0 };
+        return {
+          wine_id: item.wine_id,
+          name: item.name || "",
+          category: item.category || "",
+          alcohol: item.alcohol || "",
+          image_url: item.image_url || "",
+          average_rating: stats.average_rating,
+          rating_count: stats.rating_count
+        };
+      });
+  }
 
   return {
     wine: {
       ...topic,
+      is_favorited: !!favorite,
+      similar_wines: similarWines,
       average_rating: averageRating,
       rating_count: ratingCount,
       comment_count: commentCount
@@ -1524,6 +1611,82 @@ async function removeWineComment(currentUser, payload) {
   return { success: true };
 }
 
+async function toggleWineFavorite(currentUser, payload) {
+  const wineId = sanitizeWineId(payload.wine_id);
+  const wine = await db.collection(COLLECTIONS.WINE_TOPIC).where({ wine_id: wineId }).limit(1).get().then(unwrapDoc);
+  assert(wine, 3001, "酒款不存在");
+
+  const existing = await db.collection(COLLECTIONS.WINE_FAVORITE)
+    .where({ user_id: currentUser._id, wine_id: wineId })
+    .limit(1)
+    .get()
+    .then(unwrapDoc);
+
+  if (existing) {
+    await db.collection(COLLECTIONS.WINE_FAVORITE).doc(existing._id).remove();
+    return { wine_id: wineId, is_favorited: false };
+  }
+
+  await db.collection(COLLECTIONS.WINE_FAVORITE).add({
+    data: {
+      user_id: currentUser._id,
+      wine_id: wineId,
+      created_at: now()
+    }
+  });
+  return { wine_id: wineId, is_favorited: true };
+}
+
+async function listMyFavoriteWines(currentUser, payload) {
+  const pager = buildPagination(payload);
+  const [countRes, listRes] = await Promise.all([
+    db.collection(COLLECTIONS.WINE_FAVORITE).where({ user_id: currentUser._id }).count(),
+    db.collection(COLLECTIONS.WINE_FAVORITE)
+      .where({ user_id: currentUser._id })
+      .orderBy("created_at", "desc")
+      .skip(pager.skip)
+      .limit(pager.limit)
+      .get()
+  ]);
+
+  const favorites = unwrapList(listRes);
+  const wineIds = favorites.map((item) => item.wine_id).filter(Boolean);
+  if (!wineIds.length) {
+    return { total: Number((countRes && countRes.total) || 0), list: [] };
+  }
+
+  const [wineRes, statsMap] = await Promise.all([
+    db.collection(COLLECTIONS.WINE_TOPIC).where({ wine_id: _.in(wineIds) }).get(),
+    getWineStatsMap(wineIds)
+  ]);
+  const wineMap = unwrapList(wineRes).reduce((acc, item) => {
+    if (item && item.wine_id) acc[item.wine_id] = item;
+    return acc;
+  }, {});
+
+  const list = favorites
+    .map((item) => {
+      const wine = wineMap[item.wine_id];
+      if (!wine) return null;
+      const stats = statsMap[item.wine_id] || { rating_count: 0, average_rating: 0, comment_count: 0 };
+      return {
+        ...wine,
+        favorite_id: item._id,
+        favorite_created_at: item.created_at,
+        is_favorited: true,
+        rating_count: stats.rating_count,
+        average_rating: stats.average_rating,
+        comment_count: stats.comment_count
+      };
+    })
+    .filter(Boolean);
+
+  return {
+    total: Number((countRes && countRes.total) || 0),
+    list
+  };
+}
+
 async function listWineComments(currentUser, payload) {
   const wineId = sanitizeWineId(payload.wine_id);
   const pager = buildPagination(payload);
@@ -1575,18 +1738,40 @@ async function adminUpsertWineTopic(currentUser, payload) {
   if (!wineId) {
     wineId = generateWineId(name);
   }
-  const patch = {
+  const baseWine = {
     wine_id: wineId,
     name,
-    category: String(payload.category || "").trim(),
-    alcohol: String(payload.alcohol || "").trim(),
-    flavor: String(payload.flavor || "").trim(),
+    category: assertTextLength(payload.category || "", "类别", 30, false),
+    flavor: assertTextLength(payload.flavor || "", "风味标签", 80, false),
+    base_spirit: assertTextLength(payload.base_spirit || "", "基酒", 30, false),
     acidity: toInt(payload.acidity, 0),
     sweetness: toInt(payload.sweetness, 0),
     bitterness: toInt(payload.bitterness, 0),
-    spiciness: toInt(payload.spiciness, 0),
-    scene: String(payload.scene || "").trim(),
-    summary: String(payload.summary || "").trim(),
+    spiciness: toInt(payload.spiciness, 0)
+  };
+  const sortedSimilarWineIds = await sortSimilarWineIdsBySimilarity(baseWine, payload.similar_wine_ids);
+  const patch = {
+    wine_id: wineId,
+    name,
+    category: baseWine.category,
+    alcohol: assertTextLength(payload.alcohol || "", "酒精度", 20, false),
+    flavor: baseWine.flavor,
+    acidity: baseWine.acidity,
+    sweetness: baseWine.sweetness,
+    bitterness: baseWine.bitterness,
+    spiciness: baseWine.spiciness,
+    base_spirit: baseWine.base_spirit,
+    ingredients: assertTextLength(payload.ingredients || payload.main_ingredients || "", "原料", 150, false),
+    main_ingredients: assertTextLength(payload.ingredients || payload.main_ingredients || "", "原料", 150, false),
+    keywords: "",
+    target_audience: assertTextLength(payload.target_audience || "", "适合人群", 120, false),
+    recommended_scenes: assertTextLength(payload.scene || payload.recommended_scenes || "", "适合场景", 120, false),
+    taste_note: assertTextLength(payload.taste_note || "", "口感解读", 120, false),
+    story: assertTextLength(payload.story || "", "背景故事", 200, false),
+    similar_wine_ids: sortedSimilarWineIds,
+    similar_recommendations: "",
+    scene: assertTextLength(payload.scene || payload.recommended_scenes || "", "适合场景", 120, false),
+    summary: assertTextLength(payload.summary || "", "一句话介绍", 100, false),
     image_url: String(payload.image_url || "").trim(),
     updated_at: now()
   };
@@ -1714,6 +1899,10 @@ async function handleAction(currentUser, action, payload) {
       return ok(await listWineTopics(currentUser));
     case "wine.getDetail":
       return ok(await getWineTopicDetail(currentUser, payload));
+    case "wine.favorite.toggle":
+      return ok(await toggleWineFavorite(currentUser, payload));
+    case "wine.favorite.listMine":
+      return ok(await listMyFavoriteWines(currentUser, payload));
     case "wine.comment.list":
       return ok(await listWineComments(currentUser, payload));
     case "wine.comment.create":

@@ -13,6 +13,53 @@ const SORT_OPTIONS = [
   { label: "更新时间降序", value: "updated_at:desc" }
 ];
 
+function splitTags(value) {
+  return String(value || "")
+    .split(/[\r\n、,，/|；;]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function getWineSimilarityScore(baseWine, candidateWine) {
+  if (!candidateWine || !candidateWine.wine_id) return -1;
+  const baseFlavorTags = splitTags(baseWine.flavor);
+  const candidateFlavorTags = splitTags(candidateWine.flavor);
+  const baseFlavorSet = new Set(baseFlavorTags);
+  const overlapCount = candidateFlavorTags.filter((item) => baseFlavorSet.has(item)).length;
+  const unionCount = new Set(baseFlavorTags.concat(candidateFlavorTags)).size || 1;
+  const flavorScore = overlapCount ? Math.round((overlapCount / unionCount) * 100) : 0;
+
+  const categoryScore = baseWine.category && candidateWine.category && baseWine.category === candidateWine.category ? 20 : 0;
+  const baseSpiritScore = baseWine.base_spirit && candidateWine.base_spirit && baseWine.base_spirit === candidateWine.base_spirit ? 12 : 0;
+  const tasteScore = ["acidity", "sweetness", "bitterness", "spiciness"].reduce((sum, key) => {
+    const diff = Math.abs(Number(baseWine[key] || 0) - Number(candidateWine[key] || 0));
+    return sum + (4 - diff);
+  }, 0);
+
+  return flavorScore * 100 + categoryScore * 10 + baseSpiritScore * 10 + tasteScore;
+}
+
+function sortWineIdsBySimilarity(baseWine, wineIds, wineList) {
+  const idSet = new Set(Array.isArray(wineIds) ? wineIds : []);
+  const candidates = (Array.isArray(wineList) ? wineList : []).filter((item) => item && idSet.has(item.wine_id));
+  return candidates
+    .sort((a, b) => {
+      const scoreDiff = getWineSimilarityScore(baseWine, b) - getWineSimilarityScore(baseWine, a);
+      if (scoreDiff !== 0) return scoreDiff;
+      return String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
+    })
+    .map((item) => item.wine_id)
+    .slice(0, 3);
+}
+
+function buildTasteScale(level) {
+  const safeLevel = Math.max(0, Math.min(4, Number(level || 0)));
+  return Array.from({ length: 5 }, (_, index) => ({
+    key: index,
+    active: index <= safeLevel
+  }));
+}
+
 function getEmptyForm() {
   return {
     name: "",
@@ -23,23 +70,66 @@ function getEmptyForm() {
     sweetness: 0,
     bitterness: 0,
     spiciness: 0,
+    base_spirit: "",
+    ingredients: "",
+    scene: "",
+    target_audience: "",
+    taste_note: "",
+    story: "",
+    similar_wine_ids: [],
     summary: "",
     image_url: ""
   };
 }
 
-function buildPreview(form) {
+function getSimilarWineOptions(baseWine, list, editingWineId, selectedIds) {
+  const picked = new Set(Array.isArray(selectedIds) ? selectedIds : []);
+  return (Array.isArray(list) ? list : [])
+    .filter((item) => item && item.wine_id && item.wine_id !== editingWineId)
+    .sort((a, b) => {
+      const scoreDiff = getWineSimilarityScore(baseWine, b) - getWineSimilarityScore(baseWine, a);
+      if (scoreDiff !== 0) return scoreDiff;
+      return String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
+    })
+    .map((item) => ({
+      wine_id: item.wine_id,
+      name: item.name || "未命名酒款",
+      selected: picked.has(item.wine_id)
+    }));
+}
+
+function buildPreview(form, wineList) {
+  const similarMap = (Array.isArray(wineList) ? wineList : []).reduce((acc, item) => {
+    if (item && item.wine_id) acc[item.wine_id] = item;
+    return acc;
+  }, {});
+
   return {
     name: form.name || "酒名",
     category: form.category || "类别",
     alcohol: form.alcohol || "酒精度",
-    flavor: form.flavor || "",
-    acidity: TASTE_LEVELS.acidity[form.acidity] || "",
-    sweetness: TASTE_LEVELS.sweetness[form.sweetness] || "",
-    bitterness: TASTE_LEVELS.bitterness[form.bitterness] || "",
-    spiciness: TASTE_LEVELS.spiciness[form.spiciness] || "",
+    flavorTags: splitTags(form.flavor),
+    sceneTags: splitTags(form.scene),
+    audienceTags: splitTags(form.target_audience),
     summary: form.summary || "一句话介绍这款酒的特色",
-    image: form.image_url || ""
+    image: form.image_url || "",
+    base_spirit: form.base_spirit || "",
+    ingredients: form.ingredients || "",
+    taste_note: form.taste_note || "",
+    story: form.story || "",
+    similarWines: (Array.isArray(form.similar_wine_ids) ? form.similar_wine_ids : [])
+      .map((wineId) => similarMap[wineId])
+      .filter(Boolean)
+      .map((item) => ({
+        wine_id: item.wine_id,
+        name: item.name || "未命名酒款"
+      })),
+    tasteMetrics: [
+      { key: "acidity", label: "酸", text: TASTE_LEVELS.acidity[form.acidity] || "", steps: buildTasteScale(form.acidity) },
+      { key: "sweetness", label: "甜", text: TASTE_LEVELS.sweetness[form.sweetness] || "", steps: buildTasteScale(form.sweetness) },
+      { key: "bitterness", label: "苦", text: TASTE_LEVELS.bitterness[form.bitterness] || "", steps: buildTasteScale(form.bitterness) },
+      { key: "spiciness", label: "辣", text: TASTE_LEVELS.spiciness[form.spiciness] || "", steps: buildTasteScale(form.spiciness) }
+    ]
   };
 }
 
@@ -49,9 +139,11 @@ Page({
     saving: false,
     uploading: false,
     list: [],
+    allWineList: [],
     editingWineId: "",
     form: getEmptyForm(),
-    previewWine: buildPreview(getEmptyForm()),
+    previewWine: buildPreview(getEmptyForm(), []),
+    similarWineOptions: [],
     tasteLevels: TASTE_LEVELS,
     sortOptions: SORT_OPTIONS.map((item) => item.label),
     selectedSortLabel: SORT_OPTIONS[0].label,
@@ -63,9 +155,18 @@ Page({
     this.loadList();
   },
 
-  syncPreview() {
+  syncPreview(extraData) {
+    const form = (extraData && extraData.form) || this.data.form;
+    const editingWineId = typeof (extraData && extraData.editingWineId) === "string" ? extraData.editingWineId : this.data.editingWineId;
+    const allWineList = (extraData && extraData.allWineList) || this.data.allWineList;
+    const orderedSimilarWineIds = sortWineIdsBySimilarity(form, form.similar_wine_ids, allWineList);
+    const nextForm = orderedSimilarWineIds.join("|") === (Array.isArray(form.similar_wine_ids) ? form.similar_wine_ids.join("|") : "")
+      ? form
+      : { ...form, similar_wine_ids: orderedSimilarWineIds };
     this.setData({
-      previewWine: buildPreview(this.data.form)
+      form: nextForm,
+      previewWine: buildPreview(nextForm, allWineList),
+      similarWineOptions: getSimilarWineOptions(nextForm, allWineList, editingWineId, nextForm.similar_wine_ids)
     });
   },
 
@@ -73,12 +174,22 @@ Page({
     this.setData({ loading: true });
     try {
       const [orderBy, orderDir] = String(this.data.sortValue || "name:asc").split(":");
-      const data = await callApi("admin.wine.list", {
-        keyword: this.data.keyword,
-        order_by: orderBy,
-        order_dir: orderDir
-      });
-      this.setData({ list: data.list || [] });
+      const [filteredData, allData] = await Promise.all([
+        callApi("admin.wine.list", {
+          keyword: this.data.keyword,
+          order_by: orderBy,
+          order_dir: orderDir
+        }),
+        callApi("admin.wine.list", {
+          keyword: "",
+          order_by: "name",
+          order_dir: "asc"
+        })
+      ]);
+      const list = filteredData.list || [];
+      const allWineList = allData.list || [];
+      this.setData({ list, allWineList });
+      this.syncPreview({ allWineList });
     } catch (err) {
       showError(err);
     } finally {
@@ -88,8 +199,12 @@ Page({
 
   onInput(e) {
     const field = e.currentTarget.dataset.field;
-    this.setData({ [`form.${field}`]: e.detail.value });
-    this.syncPreview();
+    const form = {
+      ...this.data.form,
+      [field]: e.detail.value
+    };
+    this.setData({ form });
+    this.syncPreview({ form });
   },
 
   onSearchInput(e) {
@@ -98,9 +213,27 @@ Page({
 
   onTasteChange(e) {
     const field = e.currentTarget.dataset.field;
-    const index = Number(e.detail.value || 0);
-    this.setData({ [`form.${field}`]: index });
-    this.syncPreview();
+    const form = {
+      ...this.data.form,
+      [field]: Number(e.detail.value || 0)
+    };
+    this.setData({ form });
+    this.syncPreview({ form });
+  },
+
+  toggleSimilarWine(e) {
+    const wineId = e.currentTarget.dataset.id;
+    if (!wineId) return;
+    const current = Array.isArray(this.data.form.similar_wine_ids) ? this.data.form.similar_wine_ids.slice() : [];
+    const next = current.includes(wineId)
+      ? current.filter((item) => item !== wineId)
+      : current.concat(wineId);
+    const form = {
+      ...this.data.form,
+      similar_wine_ids: sortWineIdsBySimilarity(this.data.form, next, this.data.allWineList).slice(0, 3)
+    };
+    this.setData({ form });
+    this.syncPreview({ form });
   },
 
   onSortChange(e) {
@@ -125,23 +258,30 @@ Page({
       sweetness: Number(target.sweetness || 0),
       bitterness: Number(target.bitterness || 0),
       spiciness: Number(target.spiciness || 0),
+      base_spirit: target.base_spirit || "",
+      ingredients: target.ingredients || target.main_ingredients || "",
+      scene: target.scene || target.recommended_scenes || "",
+      target_audience: target.target_audience || "",
+      taste_note: target.taste_note || "",
+      story: target.story || "",
+      similar_wine_ids: Array.isArray(target.similar_wine_ids) ? target.similar_wine_ids.slice() : [],
       summary: target.summary || "",
       image_url: target.image_url || ""
     };
     this.setData({
       editingWineId: wineId,
-      form,
-      previewWine: buildPreview(form)
+      form
     });
+    this.syncPreview({ form, editingWineId: wineId });
   },
 
   resetForm() {
     const form = getEmptyForm();
     this.setData({
       editingWineId: "",
-      form,
-      previewWine: buildPreview(form)
+      form
     });
+    this.syncPreview({ form, editingWineId: "" });
   },
 
   async uploadImage() {
@@ -165,9 +305,12 @@ Page({
         cloudPath,
         filePath: file.tempFilePath
       });
-
-      this.setData({ "form.image_url": uploadRes.fileID });
-      this.syncPreview();
+      const form = {
+        ...this.data.form,
+        image_url: uploadRes.fileID
+      };
+      this.setData({ form });
+      this.syncPreview({ form });
       wx.showToast({ title: "图片已上传", icon: "success" });
     } catch (err) {
       if (err && err.errMsg && err.errMsg.includes("cancel")) return;
@@ -195,10 +338,16 @@ Page({
         sweetness: Number(this.data.form.sweetness || 0),
         bitterness: Number(this.data.form.bitterness || 0),
         spiciness: Number(this.data.form.spiciness || 0),
+        base_spirit: String(this.data.form.base_spirit || "").trim(),
+        ingredients: String(this.data.form.ingredients || "").trim(),
+        scene: String(this.data.form.scene || "").trim(),
+        target_audience: String(this.data.form.target_audience || "").trim(),
+        taste_note: String(this.data.form.taste_note || "").trim(),
+        story: String(this.data.form.story || "").trim(),
+        similar_wine_ids: Array.isArray(this.data.form.similar_wine_ids) ? this.data.form.similar_wine_ids : [],
         summary: String(this.data.form.summary || "").trim(),
         image_url: String(this.data.form.image_url || "").trim()
       };
-      // 编辑时带上 wine_id
       if (this.data.editingWineId) {
         payload.wine_id = this.data.editingWineId;
       }

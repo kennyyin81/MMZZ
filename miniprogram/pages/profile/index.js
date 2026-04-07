@@ -67,5 +67,9 @@ Page({
 
   goEditProfilePage() {
     openPage("/pages/profile/edit");
+  },
+
+  goFavoritesPage() {
+    openPage("/pages/profile/favorites");
   }
 });

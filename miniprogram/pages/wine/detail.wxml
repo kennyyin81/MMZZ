@@ -6,29 +6,117 @@
 
   <block wx:elif="{{wine}}">
     <view class="card hero-card reveal-card">
-      <view class="badge">{{wine.category}}</view>
-      <view class="title" style="margin-top: 18rpx;">{{wine.name}} {{wine.alcohol}}</view>
-      <view class="media-frame detail-media" style="margin-top: 26rpx;">
+      <view class="media-frame detail-media">
         <image src="{{wine.image}}" class="wine-cover" mode="aspectFit"></image>
+      </view>
+
+      <view class="hero-copy">
+        <view class="detail-title-row">
+          <view class="detail-title-main">
+            <view class="title detail-title">{{wine.name}}</view>
+            <view class="detail-meta-line">{{wine.category || '未分类'}}<text wx:if="{{wine.alcohol}}"> · {{wine.alcohol}}</text></view>
+          </view>
+          <view
+            class="favorite-icon-btn {{wine.is_favorited ? 'favorite-icon-active' : ''}} {{favoriteLoading ? 'favorite-icon-loading' : ''}}"
+            bindtap="toggleFavorite"
+          >❤</view>
+        </view>
+        <view class="muted detail-summary">{{wine.summary || '这是一款值得细看风味层次的酒。'}}</view>
+      </view>
+
+      <view class="chip-row detail-tags" wx:if="{{wine.flavorTags.length}}">
+        <view class="chip" wx:for="{{wine.flavorTags}}" wx:key="*this">{{item}}</view>
+      </view>
+
+      <view class="taste-inline" wx:if="{{wine.tasteMetrics.length}}">
+        <view class="taste-inline-item" wx:for="{{wine.tasteMetrics}}" wx:key="key">
+          <view class="taste-inline-head">
+            <view class="taste-inline-label">{{item.label}}</view>
+            <view class="taste-inline-text">{{item.valueText}}</view>
+          </view>
+          <view class="taste-inline-steps">
+            <view
+              class="taste-inline-step {{stepItem.active ? 'taste-inline-step-active' : ''}}"
+              wx:for="{{item.steps}}"
+              wx:for-item="stepItem"
+              wx:key="key"
+            ></view>
+          </view>
+        </view>
       </view>
     </view>
 
-    <view class="card reveal-card reveal-delay-1">
-      <view class="section-title">风味概览</view>
-      <view class="muted">{{wine.summary}}</view>
-      <view class="chip-row detail-tags" wx:if="{{wine.flavor}}">
-        <view class="chip">{{wine.flavor}}</view>
+    <view wx:if="{{wine.hasMiddleSection}}" class="card reveal-card reveal-delay-1">
+      <view wx:if="{{wine.base_spirit || wine.ingredients || wine.main_ingredients}}" class="detail-section">
+        <view class="section-title">基酒与原料</view>
+        <view class="info-pair" wx:if="{{wine.base_spirit}}">
+          <view class="info-label">基酒</view>
+          <view class="info-value">{{wine.base_spirit}}</view>
+        </view>
+        <view class="info-pair" wx:if="{{wine.ingredients || wine.main_ingredients}}">
+          <view class="info-label">原料</view>
+          <view class="info-value">{{wine.ingredients || wine.main_ingredients}}</view>
+        </view>
       </view>
-      <view class="chip-row detail-tags detail-taste-row">
-        <view class="chip" wx:if="{{wine.acidityText}}">{{wine.acidityText}}</view>
-        <view class="chip" wx:if="{{wine.sweetnessText}}">{{wine.sweetnessText}}</view>
-        <view class="chip" wx:if="{{wine.bitternessText}}">{{wine.bitternessText}}</view>
-        <view class="chip" wx:if="{{wine.spicinessText}}">{{wine.spicinessText}}</view>
+
+      <view wx:if="{{wine.taste_note}}" class="detail-section">
+        <view class="section-title">口感解读</view>
+        <view class="detail-copy">{{wine.taste_note}}</view>
       </view>
+
+      <view wx:if="{{wine.sceneTags.length}}" class="detail-section">
+        <view class="section-title">适合场景</view>
+        <view class="chip-row detail-tags compact-gap">
+          <view class="chip chip-soft" wx:for="{{wine.sceneTags}}" wx:key="*this">{{item}}</view>
+        </view>
+      </view>
+
+      <view wx:if="{{wine.audienceTags.length}}" class="detail-section">
+        <view class="section-title">适合人群</view>
+        <view class="chip-row detail-tags compact-gap">
+          <view class="chip chip-soft" wx:for="{{wine.audienceTags}}" wx:key="*this">{{item}}</view>
+        </view>
+      </view>
+
+      <view wx:if="{{wine.story}}" class="detail-section">
+        <view class="section-title">背景故事</view>
+        <view class="detail-copy story-copy">{{wine.story}}</view>
+      </view>
+
+      <view wx:if="{{wine.similarWines.length}}" class="detail-section">
+        <view class="section-title">相似推荐</view>
+        <view class="similar-grid">
+          <view
+            class="similar-card tap-card"
+            hover-class="is-pressed-soft"
+            hover-stay-time="80"
+            wx:for="{{wine.similarWines}}"
+            wx:key="wine_id"
+            data-id="{{item.wine_id}}"
+            bindtap="goSimilarWineDetail"
+          >
+            <view class="similar-main">
+              <view class="similar-row">
+                <view class="similar-name">{{item.name}}</view>
+                <view class="subtitle similar-meta-inline">{{item.category}}<text wx:if="{{item.alcohol}}"> · {{item.alcohol}}</text></view>
+              </view>
+            </view>
+            <view class="similar-score">
+              <view class="subtitle similar-score-label">评分</view>
+              <view class="similar-score-value">{{item.averageRatingText}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-2">
+      <view class="section-title">用户评分</view>
       <view class="score-panel">
         <view>
           <view class="subtitle">综合评分</view>
           <view class="score-value">{{wine.averageRatingText}} / 5</view>
+          <view class="subtitle score-counts">{{wine.rating_count}} 人评分 · {{wine.comment_count}} 人留言</view>
         </view>
         <view class="stars">
           <text
@@ -38,14 +126,8 @@
           >★</text>
         </view>
       </view>
-      <view class="row detail-action-row">
-        <view class="subtitle detail-action-meta">{{wine.rating_count}} 人评分 · {{wine.comment_count}} 人留言</view>
-      </view>
-    </view>
 
-    <view class="card reveal-card reveal-delay-2">
-      <view class="section-title">评分留言</view>
-      <view class="subtitle">可以选择星级评分，也可以写下你的体验感受。</view>
+      <view class="subtitle detail-rate-hint">可以选择星级评分，也可以写下你的体验感受。</view>
       <view class="stars selectable-stars">
         <text
           wx:for="{{ratingOptions}}"
@@ -69,7 +151,7 @@
     </view>
 
     <view class="card reveal-card reveal-delay-3">
-      <view class="section-title">大家的评价</view>
+      <view class="section-title">用户评价</view>
       <ui-empty-state
         wx:if="{{!comments.length}}"
         compact="{{true}}"

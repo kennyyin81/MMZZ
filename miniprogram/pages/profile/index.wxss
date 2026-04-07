@@ -28,6 +28,10 @@
   min-width: 0;
 }
 
+.profile-role-badge {
+  max-width: 100%;
+}
+
 .profile-name {
   margin-top: 14rpx;
   margin-bottom: 12rpx;

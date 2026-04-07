@@ -15,6 +15,7 @@
 - `drink_diary`
 - `wine_topic`
 - `wine_comment`
+- `wine_favorite`
 
 ## 关键说明
 
@@ -226,7 +227,13 @@
 - `sweetness`
 - `bitterness`
 - `spiciness`
+- `base_spirit`
+- `ingredients`
 - `scene`
+- `target_audience`
+- `taste_note`
+- `story`
+- `similar_wine_ids`
 - `summary`
 - `image_url`
 
@@ -250,6 +257,21 @@
 
 - `wine_id + created_at(desc)`
 - `user_id + created_at(desc)`
+
+### `wine_favorite`
+
+用途：用户收藏酒款。
+
+关键字段：
+
+- `user_id`
+- `wine_id`
+- `created_at`
+
+建议索引：
+
+- `idx_favorite_user_wine`：`user_id(asc) + wine_id(asc)`，建议唯一
+- `idx_favorite_user_created`：`user_id(asc) + created_at(desc)`
 
 ## 初始化说明
 
@@ -384,3 +406,30 @@
 - `change_points`
 - `balance_after`
 - `operator_user_id`
+
+## 2026-04-07 酒款收藏与相似推荐
+
+### `wine_topic` 补充
+
+新增内容字段：
+
+- `base_spirit`：基酒
+- `ingredients`：原料
+- `scene`：适合场景
+- `target_audience`：适合人群
+- `taste_note`：口感解读
+- `story`：背景故事
+- `similar_wine_ids`：相似推荐酒款 ID 列表，最多 3 个
+
+补充说明：
+
+- `similar_wine_ids` 从现有酒款中选择
+- 保存时会按风味相近程度重新排序
+- 详情页按排序结果展示相似推荐
+
+### `wine_favorite` 补充
+
+用途：
+
+- 支持酒类详情页收藏 / 取消收藏
+- 支持“我的收藏”列表查询

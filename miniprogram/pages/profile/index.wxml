@@ -15,7 +15,7 @@
         />
         <view wx:else class="avatar avatar-placeholder">我</view>
         <view class="profile-meta">
-          <view class="badge">{{user.rolesText}}</view>
+          <view class="badge profile-role-badge">{{user.rolesText}}</view>
           <view class="title profile-name">{{user.nickname || "-"}}</view>
         </view>
       </view>
@@ -51,6 +51,21 @@
           <view class="entry-main">
             <view class="entry-title">修改资料</view>
             <view class="subtitle">修改头像与昵称</view>
+          </view>
+          <view class="entry-side">
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-2">
+      <view class="section-title">收藏模块</view>
+      <view class="entry-list">
+        <view class="entry-item tap-card" hover-class="is-pressed-soft" hover-stay-time="80" bindtap="goFavoritesPage">
+          <view class="entry-main">
+            <view class="entry-title">我的收藏</view>
+            <view class="subtitle">查看我收藏的酒款并快速进入详情</view>
           </view>
           <view class="entry-side">
             <view class="quick-entry-arrow">进入</view>
