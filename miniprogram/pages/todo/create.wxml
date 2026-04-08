@@ -8,23 +8,22 @@
   <view class="card reveal-card reveal-delay-1">
     <view class="section-title">工作内容</view>
     <input class="input-shell" value="{{title}}" bindinput="onTitleInput" maxlength="50" placeholder="输入工作标题" />
-    <textarea class="input-shell textarea" value="{{description}}" bindinput="onDescriptionInput" maxlength="200" placeholder="输入工作描述" auto-height></textarea>
+    <textarea class="input-shell textarea todo-description-textarea" value="{{description}}" bindinput="onDescriptionInput" maxlength="200" placeholder="输入工作描述" auto-height></textarea>
   </view>
 
   <view class="card reveal-card reveal-delay-2">
-    <view class="section-title">加分设置</view>
-    <view class="row" style="justify-content: space-between; align-items: center;">
+    <view class="section-title">加分工作</view>
+    <view class="reward-switch-panel">
       <view>
-        <view class="subtitle">是否为加分工作</view>
-        <view class="muted">开启后审批通过才会加分</view>
+        <view class="subtitle">开启后审批通过才会加分</view>
       </view>
-      <switch checked="{{isRewarded}}" color="#8f2332" bindchange="onRewardSwitch" />
+      <switch checked="{{isRewarded}}" color="#16a34a" bindchange="onRewardSwitch" />
     </view>
 
     <view wx:if="{{isRewarded}}" style="margin-top: 24rpx;">
       <view class="subtitle">奖励积分</view>
       <input class="input-shell" type="number" value="{{rewardPoints}}" bindinput="onRewardPointsInput" placeholder="输入奖励积分" />
-      <view class="muted" style="margin-top: 12rpx;">审批人：{{approver ? approver.nickname : "未绑定审批人"}}</view>
+      <view class="{{approver ? 'muted' : 'warning-text'}}" style="margin-top: 12rpx;">审批人：{{approver ? approver.nickname : "未绑定审批人"}}</view>
     </view>
   </view>
 

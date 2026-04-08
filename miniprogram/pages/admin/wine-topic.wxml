@@ -90,14 +90,6 @@
               <textarea class="input-shell textarea textarea-compact" value="{{form.taste_note}}" data-field="taste_note" bindinput="onInput" maxlength="120" placeholder="如 入口偏苦，后段有草本回甘"></textarea>
             </view>
             <view class="field-block field-block-full">
-              <view class="subtitle">适合场景</view>
-              <textarea class="input-shell textarea textarea-compact" value="{{form.scene}}" data-field="scene" bindinput="onInput" maxlength="120" placeholder="如 适合餐前喝、适合夜晚微醺"></textarea>
-            </view>
-            <view class="field-block field-block-full">
-              <view class="subtitle">适合人群</view>
-              <textarea class="input-shell textarea textarea-compact" value="{{form.target_audience}}" data-field="target_audience" bindinput="onInput" maxlength="120" placeholder="如 喜欢苦口风味的人、新手慎入"></textarea>
-            </view>
-            <view class="field-block field-block-full">
               <view class="subtitle">背景故事</view>
               <textarea class="input-shell textarea textarea-compact" value="{{form.story}}" data-field="story" bindinput="onInput" maxlength="200" placeholder="写 2~3 行即可"></textarea>
             </view>
@@ -172,16 +164,6 @@
 
           <view class="preview-subtitle" wx:if="{{previewWine.taste_note}}">口感解读</view>
           <view class="preview-copy" wx:if="{{previewWine.taste_note}}">{{previewWine.taste_note}}</view>
-
-          <view class="preview-subtitle" wx:if="{{previewWine.sceneTags.length}}">适合场景</view>
-          <view class="chip-row" style="margin-top: 10rpx;" wx:if="{{previewWine.sceneTags.length}}">
-            <view class="chip chip-soft" wx:for="{{previewWine.sceneTags}}" wx:key="*this">{{item}}</view>
-          </view>
-
-          <view class="preview-subtitle" wx:if="{{previewWine.audienceTags.length}}">适合人群</view>
-          <view class="chip-row" style="margin-top: 10rpx;" wx:if="{{previewWine.audienceTags.length}}">
-            <view class="chip chip-soft" wx:for="{{previewWine.audienceTags}}" wx:key="*this">{{item}}</view>
-          </view>
 
           <view class="preview-subtitle" wx:if="{{previewWine.story}}">背景故事</view>
           <view class="preview-copy preview-story" wx:if="{{previewWine.story}}">{{previewWine.story}}</view>

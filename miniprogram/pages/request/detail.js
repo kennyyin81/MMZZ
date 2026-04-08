@@ -13,6 +13,7 @@ Page({
     request: null,
     approval: null,
     userId: "",
+    approver: null,
     loading: false,
     withdrawing: false,
     // 编辑模式
@@ -64,6 +65,7 @@ Page({
 
       this.setData({
         userId: user.user_id,
+        approver: user.my_approver || null,
         request,
         approval,
         editTitle: request.title || "",
@@ -109,7 +111,16 @@ Page({
   },
 
   onRewardSwitch(e) {
-    this.setData({ editIsRewarded: !!e.detail.value });
+    const checked = !!e.detail.value;
+    if (checked && !this.data.approver) {
+      wx.showToast({
+        title: "请先绑定审批人",
+        icon: "none"
+      });
+      this.setData({ editIsRewarded: false });
+      return;
+    }
+    this.setData({ editIsRewarded: checked });
   },
 
   onRewardInput(e) {
@@ -122,6 +133,10 @@ Page({
     const title = String(this.data.editTitle || "").trim();
     if (!title) {
       wx.showToast({ title: "请输入标题", icon: "none" });
+      return;
+    }
+    if (this.data.editIsRewarded && !this.data.approver) {
+      wx.showToast({ title: "请先绑定审批人", icon: "none" });
       return;
     }
 

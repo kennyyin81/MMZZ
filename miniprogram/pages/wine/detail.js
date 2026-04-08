@@ -40,20 +40,16 @@ function splitTags(value) {
 
 function decorateWine(wine) {
   const merged = mergeWineMeta(wine || {});
-  const scene = merged.scene || merged.recommended_scenes || "";
-  const audience = merged.target_audience || "";
   return {
     ...merged,
     averageRatingText: Number(merged.average_rating || 0).toFixed(1),
     ratingStars: buildStars(Math.round(Number(merged.average_rating || 0))),
     flavorTags: splitTags(merged.flavor),
-    sceneTags: splitTags(scene),
-    audienceTags: splitTags(audience),
     similarWines: (Array.isArray(merged.similar_wines) ? merged.similar_wines : []).map((item) => ({
       ...mergeWineMeta(item),
       averageRatingText: Number(item.average_rating || 0).toFixed(1)
     })),
-    hasMiddleSection: !!(merged.base_spirit || merged.ingredients || merged.main_ingredients || merged.taste_note || scene || audience || merged.story || (Array.isArray(merged.similar_wines) && merged.similar_wines.length)),
+    hasMiddleSection: !!(merged.base_spirit || merged.ingredients || merged.main_ingredients || merged.taste_note || merged.story || (Array.isArray(merged.similar_wines) && merged.similar_wines.length)),
     tasteMetrics: TASTE_META.map((item) => ({
       ...item,
       valueText: TASTE_LEVELS[item.key][Number(merged[item.key] || 0)] || "",

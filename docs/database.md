@@ -1,4 +1,4 @@
-﻿# 数据库设计
+# 数据库设计
 
 ## 集合清单
 
@@ -17,17 +17,17 @@
 - `wine_comment`
 - `wine_favorite`
 
-## 关键说明
+## 通用说明
 
-- 微信云开发是文档型数据库，不需要预先建字段
-- 只需创建集合和索引，字段会由云函数写入时自动生成
-- 所有集合建议使用 `ADMINONLY`，前端统一走云函数
+- 微信云开发为文档型数据库，不需要预先建字段
+- 当前项目建议所有集合使用 `ADMINONLY`
+- 前端统一通过云函数访问数据库
 
 ## 主要集合
 
 ### `user_profile`
 
-用途：用户基础资料、角色与审批关系。
+用途：用户资料、角色、审批关系。
 
 关键字段：
 
@@ -36,12 +36,11 @@
 - `avatar_url`
 - `roles`
 - `approver_user_id`
-- `approver_assigned_at`
 
 索引：
 
 - `openid` 唯一
-- `approver_user_id` 普通索引
+- `approver_user_id`
 
 ### `points_account`
 
@@ -75,11 +74,10 @@
 - `user_id + created_at(desc)`
 - `source_type + source_id`
 
-补充说明：
+补充：
 
 - `source_type=manual_adjust` 表示审批人直接调分
-- 该场景下 `change_points` 可为正数或负数
-- 该场景下 `balance_after` 允许为负数
+- 该场景允许正负分和负余额
 
 ### `earn_request`
 
@@ -90,8 +88,6 @@
 - `request_no`
 - `user_id`
 - `approver_user_id`
-- `behavior_type`
-- `description`
 - `requested_points`
 - `status`
 
@@ -114,11 +110,6 @@
 - `cost_points`
 - `status`
 
-说明：
-
-- `cost_points` 由申请人提交时填写
-- 提交时保存为快照，审批扣分按该值执行
-
 索引：
 
 - `request_no` 唯一
@@ -126,9 +117,39 @@
 - `status + submitted_at(desc)`
 - `user_id + status`
 
-注意：
+### `todo_work`
 
-- `user_id + status` 不能建成唯一索引
+用途：待办工作与加分工作。
+
+关键字段：
+
+- `request_no`
+- `user_id`
+- `approver_user_id`
+- `title`
+- `description`
+- `is_rewarded`
+- `reward_points`
+- `status`
+- `submitted_at`
+- `completed_at`
+- `decided_at`
+- `updated_at`
+
+索引：
+
+- `request_no` 唯一
+- `user_id + submitted_at(desc)`
+- `approver_user_id + status`
+- `status + submitted_at(desc)`
+
+状态：
+
+- `todo`
+- `completed`
+- `pending`
+- `approved`
+- `rejected`
 
 ### `approval_record`
 
@@ -182,13 +203,13 @@
 - `user_id + created_at(desc)`
 - `user_id + read_at`
 
-补充说明：
+补充：
 
 - `type=points_adjusted` 表示审批人直接调分通知
 
 ### `drink_diary`
 
-用途：喝酒日历记录（首页内嵌日历使用）。
+用途：喝酒日历记录。
 
 关键字段：
 
@@ -205,7 +226,7 @@
 - `created_at`
 - `updated_at`
 
-索引（均为非唯一索引）：
+建议索引：
 
 - `idx_diary_user_month_date_created`：`user_id(asc) + record_month(asc) + record_date(asc) + created_at(asc)`
 - `idx_diary_user_date_created`：`user_id(asc) + record_date(asc) + created_at(desc)`
@@ -214,7 +235,7 @@
 
 ### `wine_topic`
 
-用途：酒百科内容。
+用途：酒款内容。
 
 关键字段：
 
@@ -229,8 +250,6 @@
 - `spiciness`
 - `base_spirit`
 - `ingredients`
-- `scene`
-- `target_audience`
 - `taste_note`
 - `story`
 - `similar_wine_ids`
@@ -272,164 +291,3 @@
 
 - `idx_favorite_user_wine`：`user_id(asc) + wine_id(asc)`，建议唯一
 - `idx_favorite_user_created`：`user_id(asc) + created_at(desc)`
-
-## 初始化说明
-
-- 当前版本不需要初始化喝酒扣分配置
-- `drink_request.cost_points` 由申请人提交时填写，并以申请单快照保存
-
-## 2026-03-01 补充
-
-### `approval_record`
-
-新增软删除字段：
-
-- `is_deleted_by_approver`
-- `deleted_at`
-
-### `notification`
-
-新增软删除字段：
-
-- `is_deleted`
-- `deleted_at`
-
-## 2026-03-02 待办工作
-
-新增集合：
-
-- `todo_work`
-
-建议字段：
-
-- `request_no`
-- `user_id`
-- `approver_user_id`
-- `title`
-- `description`
-- `is_rewarded`
-- `reward_points`
-- `status`
-- `approval_id`
-- `submitted_at`
-- `completed_at`
-- `decided_at`
-- `updated_at`
-
-建议索引：
-
-- `request_no` 唯一
-- `user_id + submitted_at(desc)`
-- `approver_user_id + status`
-- `status + submitted_at(desc)`
-
-## 2026-03-04 待办工作更新
-
-### `todo_work` 状态说明
-
-| 状态 | 说明 |
-|------|------|
-| `todo` | 待完成（默认状态） |
-| `completed` | 已完成（普通工作） |
-| `pending` | 待审批（加分工作完成后提交） |
-| `approved` | 审批通过（加分已入账） |
-| `rejected` | 审批拒绝 |
-
-### 状态流转
-
-```
-普通工作: todo → completed（用户手动标记完成）
-加分工作: todo → pending → approved/rejected
-```
-
-- 普通工作：用户点击完成即标记为 `completed`
-- 加分工作：用户点击完成后状态变为 `pending`，提交审批人审批
-- `completed` 状态可重新打开变为 `todo`
-- `todo` 或 `completed` 状态可删除
-
-### `todo_work` 字段更新
-
-新增字段：
-
-- `completed_at`：完成时间（用户标记完成的时间）
-
-字段说明：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `request_no` | string | 单号，格式 TD + 时间戳 + 随机数 |
-| `user_id` | string | 创建者 ID |
-| `approver_user_id` | string | 审批人 ID（加分工作必填） |
-| `title` | string | 待办标题 |
-| `description` | string | 待办描述 |
-| `is_rewarded` | boolean | 是否加分工作 |
-| `reward_points` | number | 奖励积分（加分工作必填） |
-| `status` | string | 状态 |
-| `approval_id` | string | 审批记录 ID |
-| `submitted_at` | date | 创建时间 |
-| `completed_at` | date | 完成时间 |
-| `decided_at` | date | 审批时间 |
-| `updated_at` | date | 更新时间 |
-
-## 2026-04-05 审批人直接调分
-
-### 涉及集合
-
-- `points_ledger`
-- `notification`
-- `operation_log`
-
-### `points_ledger` 补充
-
-新增来源类型：
-
-- `manual_adjust`：审批人直接调分
-
-字段说明补充：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `change_points` | number | 本次调整积分，可正可负 |
-| `balance_after` | number | 调整后余额，可为负数 |
-| `operator_user_id` | string | 执行直接调分的审批人 ID |
-| `remark` | string | 调分说明 |
-
-### `notification` 补充
-
-新增通知类型：
-
-- `points_adjusted`
-
-建议 `extra` 字段：
-
-- `adjust_type`
-- `change_points`
-- `balance_after`
-- `operator_user_id`
-
-## 2026-04-07 酒款收藏与相似推荐
-
-### `wine_topic` 补充
-
-新增内容字段：
-
-- `base_spirit`：基酒
-- `ingredients`：原料
-- `scene`：适合场景
-- `target_audience`：适合人群
-- `taste_note`：口感解读
-- `story`：背景故事
-- `similar_wine_ids`：相似推荐酒款 ID 列表，最多 3 个
-
-补充说明：
-
-- `similar_wine_ids` 从现有酒款中选择
-- 保存时会按风味相近程度重新排序
-- 详情页按排序结果展示相似推荐
-
-### `wine_favorite` 补充
-
-用途：
-
-- 支持酒类详情页收藏 / 取消收藏
-- 支持“我的收藏”列表查询

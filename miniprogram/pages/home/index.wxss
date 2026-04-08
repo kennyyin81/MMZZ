@@ -12,7 +12,7 @@
 
 .hero-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 28rpx;
 }
@@ -20,6 +20,9 @@
 .hero-copy {
   flex: 1;
   min-width: 0;
+  min-height: 108rpx;
+  display: flex;
+  align-items: center;
 }
 
 .hero-badges {
@@ -29,14 +32,23 @@
   margin-bottom: 12rpx;
 }
 
+.hero-name-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  min-width: 0;
+}
+
 .hero-title {
-  margin-top: 6rpx;
+  margin-top: 0;
   margin-bottom: 0;
   font-size: 54rpx;
   line-height: 1.12;
   font-weight: 900;
   color: #111827;
   letter-spacing: -0.03em;
+  flex: 1;
+  min-width: 0;
 }
 
 .hero-avatar-shell {
@@ -73,8 +85,21 @@
   border-color: rgba(17, 24, 39, 0.08);
 }
 
+.hero-notice-badge {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
 .stat-card-action {
   position: relative;
+}
+
+.stat-inline-text {
+  font-size: 34rpx;
+  line-height: 1.35;
+  font-weight: 800;
+  color: #111827;
 }
 
 .stat-link {
@@ -193,7 +218,7 @@
 
 .month-head {
   align-items: center;
-  margin-bottom: 10rpx;
+  margin-bottom: 22rpx;
 }
 
 .month-title {
@@ -206,18 +231,20 @@
 
 .month-btn {
   width: auto !important;
-  min-width: 92rpx;
-  height: 44rpx;
-  min-height: 44rpx;
-  line-height: 44rpx;
-  padding: 0 16rpx !important;
+  min-width: 96rpx;
+  height: 56rpx;
+  min-height: 56rpx;
+  line-height: 56rpx;
+  padding: 0 22rpx !important;
   border-radius: 999rpx !important;
-  background: #eef2f6 !important;
-  border: 1rpx solid rgba(71, 85, 105, 0.12) !important;
+  background: #ffffff !important;
+  border: 1rpx solid rgba(226, 232, 240, 0.95) !important;
   color: #475569 !important;
-  font-size: 18rpx;
+  font-size: 24rpx;
   font-weight: 700;
-  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.7) !important;
+  box-shadow:
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.9),
+    0 8rpx 18rpx rgba(15, 23, 42, 0.05) !important;
 }
 
 .week-head,
@@ -373,4 +400,14 @@
   font-weight: 700;
   color: #0f172a;
   line-height: 1.35;
+}
+
+.calendar-add-btn {
+  width: auto !important;
+  min-width: 220rpx;
+  height: 76rpx;
+  min-height: 76rpx;
+  line-height: 76rpx;
+  padding: 0 34rpx !important;
+  margin-top: 8rpx;
 }

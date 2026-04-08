@@ -115,7 +115,7 @@
 
 .todo-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   padding: 32rpx;
   background: #fff;
   border-radius: 16rpx;
@@ -147,7 +147,6 @@
 /* 左侧勾选 */
 .todo-left {
   margin-right: 24rpx;
-  padding-top: 4rpx;
 }
 
 .check-box {
@@ -191,7 +190,6 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
-  margin-bottom: 12rpx;
 }
 
 .todo-title {
@@ -220,53 +218,9 @@
   color: #ff9500;
 }
 
-.todo-info {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  margin-bottom: 8rpx;
-}
-
-.status-text {
-  font-size: 24rpx;
-  font-weight: 500;
-}
-
-.status-text.status-todo {
-  color: #8e8e93;
-}
-
-.status-text.status-completed {
-  color: #34c759;
-}
-
-.status-text.status-pending {
-  color: #ff9500;
-}
-
-.status-text.status-approved {
-  color: #34c759;
-}
-
-.status-text.status-rejected {
-  color: #ff3b30;
-}
-
-.time-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.time-text {
-  font-size: 24rpx;
-  color: #c7c7cc;
-}
-
 /* 右侧操作 */
 .todo-right {
   margin-left: 16rpx;
-  padding-top: 2rpx;
 }
 
 .action-icon {

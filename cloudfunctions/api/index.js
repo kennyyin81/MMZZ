@@ -1760,20 +1760,17 @@ async function adminUpsertWineTopic(currentUser, payload) {
     sweetness: baseWine.sweetness,
     bitterness: baseWine.bitterness,
     spiciness: baseWine.spiciness,
-    base_spirit: baseWine.base_spirit,
-    ingredients: assertTextLength(payload.ingredients || payload.main_ingredients || "", "原料", 150, false),
-    main_ingredients: assertTextLength(payload.ingredients || payload.main_ingredients || "", "原料", 150, false),
-    keywords: "",
-    target_audience: assertTextLength(payload.target_audience || "", "适合人群", 120, false),
-    recommended_scenes: assertTextLength(payload.scene || payload.recommended_scenes || "", "适合场景", 120, false),
-    taste_note: assertTextLength(payload.taste_note || "", "口感解读", 120, false),
-    story: assertTextLength(payload.story || "", "背景故事", 200, false),
-    similar_wine_ids: sortedSimilarWineIds,
-    similar_recommendations: "",
-    scene: assertTextLength(payload.scene || payload.recommended_scenes || "", "适合场景", 120, false),
-    summary: assertTextLength(payload.summary || "", "一句话介绍", 100, false),
-    image_url: String(payload.image_url || "").trim(),
-    updated_at: now()
+      base_spirit: baseWine.base_spirit,
+      ingredients: assertTextLength(payload.ingredients || payload.main_ingredients || "", "原料", 150, false),
+      main_ingredients: assertTextLength(payload.ingredients || payload.main_ingredients || "", "原料", 150, false),
+      keywords: "",
+      taste_note: assertTextLength(payload.taste_note || "", "口感解读", 120, false),
+      story: assertTextLength(payload.story || "", "背景故事", 200, false),
+      similar_wine_ids: sortedSimilarWineIds,
+      similar_recommendations: "",
+      summary: assertTextLength(payload.summary || "", "一句话介绍", 100, false),
+      image_url: String(payload.image_url || "").trim(),
+      updated_at: now()
   };
   const existingRes = await db.collection(COLLECTIONS.WINE_TOPIC).where({ wine_id: wineId }).limit(1).get();
   const existing = unwrapDoc(existingRes);

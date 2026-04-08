@@ -56,13 +56,6 @@
             <text class="todo-title">{{item.title}}</text>
             <text class="todo-tag {{item.is_rewarded ? 'tag-points' : ''}}">{{item.is_rewarded ? '+' + item.reward_points : '普通'}}</text>
           </view>
-          <view class="todo-info">
-            <text class="status-text status-{{item.status}}">{{item.status_text}}</text>
-          </view>
-          <view class="time-row">
-            <text class="time-text">{{item.date_text}} {{item.submitted_at_text}}</text>
-            <text class="time-text" wx:if="{{item.status === 'completed' || item.status === 'approved'}}"> · 完成 {{item.completed_at_text}}</text>
-          </view>
         </view>
 
         <!-- 右侧操作 -->

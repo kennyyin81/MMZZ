@@ -24,7 +24,7 @@
 
         <view class="form-item form-row">
           <view class="form-label">是否加分</view>
-          <switch checked="{{editIsRewarded}}" bindchange="onRewardSwitch" color="#ff9500" />
+          <switch checked="{{editIsRewarded}}" bindchange="onRewardSwitch" color="#16a34a" />
         </view>
 
         <view class="form-item" wx:if="{{editIsRewarded}}">
@@ -49,7 +49,6 @@
         </view>
         <view class="page-title" wx:if="{{request.request_type === 'todo'}}">{{request.title}}</view>
         <view class="page-title" wx:else>记录详情</view>
-        <view class="meta-text">单号：{{request.request_no}}</view>
       </view>
 
       <!-- 内容卡片 -->
@@ -135,27 +134,27 @@
       <view class="action-area">
         <!-- 待完成操作 -->
         <block wx:if="{{request.request_type === 'todo' && request.status === 'todo'}}">
-          <button class="btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="completeTodo">
-            {{request.is_rewarded ? '完成并提交审批' : '标记完成'}}
-          </button>
-          <view class="btn-row">
-            <button class="ghost-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="startEdit">编辑</button>
-            <button class="ghost-btn ghost-btn-danger tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="deleteTodo">删除</button>
+          <view class="action-grid action-grid-3">
+            <button class="action-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="completeTodo">
+              {{request.is_rewarded ? '提交审批' : '标记完成'}}
+            </button>
+            <button class="action-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="startEdit">编辑</button>
+            <button class="action-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="deleteTodo">删除</button>
           </view>
         </block>
 
         <!-- 已完成操作 -->
         <block wx:if="{{request.request_type === 'todo' && request.status === 'completed'}}">
-          <view class="btn-row">
-            <button class="ghost-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="reopenTodo">重新打开</button>
-            <button class="ghost-btn ghost-btn-danger tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="deleteTodo">删除</button>
+          <view class="action-grid action-grid-2">
+            <button class="action-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="reopenTodo">重新打开</button>
+            <button class="action-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="deleteTodo">删除</button>
           </view>
         </block>
 
         <!-- 撤回按钮 -->
         <button
           wx:if="{{request.status === 'pending' && request.user_id === userId}}"
-          class="ghost-btn tap-btn"
+          class="action-btn action-btn-full tap-btn"
           hover-class="is-pressed"
           hover-stay-time="60"
           loading="{{withdrawing}}"

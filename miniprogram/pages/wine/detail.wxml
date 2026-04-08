@@ -64,20 +64,6 @@
         <view class="detail-copy">{{wine.taste_note}}</view>
       </view>
 
-      <view wx:if="{{wine.sceneTags.length}}" class="detail-section">
-        <view class="section-title">适合场景</view>
-        <view class="chip-row detail-tags compact-gap">
-          <view class="chip chip-soft" wx:for="{{wine.sceneTags}}" wx:key="*this">{{item}}</view>
-        </view>
-      </view>
-
-      <view wx:if="{{wine.audienceTags.length}}" class="detail-section">
-        <view class="section-title">适合人群</view>
-        <view class="chip-row detail-tags compact-gap">
-          <view class="chip chip-soft" wx:for="{{wine.audienceTags}}" wx:key="*this">{{item}}</view>
-        </view>
-      </view>
-
       <view wx:if="{{wine.story}}" class="detail-section">
         <view class="section-title">背景故事</view>
         <view class="detail-copy story-copy">{{wine.story}}</view>

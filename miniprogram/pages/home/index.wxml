@@ -9,13 +9,10 @@
     <view class="card hero-card reveal-card">
       <view class="hero-top">
         <view class="hero-copy">
-          <view class="hero-badges">
-            <view class="badge">{{user.rolesText}}</view>
+          <view class="hero-name-row">
+            <view class="title hero-title">{{user.nickname || '微信用户'}}</view>
+            <view class="badge badge-action hero-notice-badge" bindtap="goNotifications">未读消息 {{unreadNotificationCount || 0}}</view>
           </view>
-          <view class="hero-badges">
-            <view class="badge badge-action" bindtap="goNotifications">未读消息 {{unreadNotificationCount || 0}}</view>
-          </view>
-          <view class="title hero-title">{{user.nickname || '微信用户'}}</view>
         </view>
 
         <view class="hero-avatar-shell">
@@ -26,14 +23,12 @@
 
       <view class="stat-grid hero-stats">
         <view class="stat-card stat-card-action tap-card" hover-class="is-pressed-soft" hover-stay-time="80" bindtap="goPointsLedger">
-          <view class="subtitle">当前积分</view>
-          <view class="stat-value">{{user.balance || 0}}</view>
+          <view class="stat-inline-text">当前积分：{{user.balance || 0}}</view>
           <view class="stat-link">点击查看积分流水</view>
         </view>
 
         <view class="stat-card stat-card-action tap-card" hover-class="is-pressed-soft" hover-stay-time="80" bindtap="goPendingApprovals">
-          <view class="subtitle">待我审批</view>
-          <view class="stat-value">{{pendingCount}}</view>
+          <view class="stat-inline-text">待我审批：{{pendingCount}}</view>
           <view class="stat-link">点击查看负责审批单</view>
         </view>
 
@@ -130,7 +125,7 @@
         </view>
       </view>
 
-      <button class="btn" type="primary" bindtap="addCalendarCup">添加一杯</button>
+      <button class="btn calendar-add-btn" type="primary" bindtap="addCalendarCup">添加一杯</button>
     </view>
 
     <view wx:if="{{showCalendarDayPanel}}" class="panel-mask" bindtap="closeCalendarDayPanel">
