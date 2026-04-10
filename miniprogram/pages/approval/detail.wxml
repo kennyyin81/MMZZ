@@ -7,7 +7,6 @@
     <view class="title" style="margin-top: 18rpx;">审批详情</view>
     <view class="meta-group">
       <view class="meta-item">申请人：{{request.applicant_nickname || request.user_id}}</view>
-      <view class="meta-item">单号：{{request.request_no}}</view>
     </view>
   </view>
 

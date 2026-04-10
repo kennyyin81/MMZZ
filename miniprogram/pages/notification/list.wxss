@@ -5,7 +5,33 @@
 
 .action-btn-inline {
   margin-top: 0;
-  min-width: 156rpx;
+  min-width: 112rpx;
+  height: 54rpx;
+  min-height: 54rpx;
+  line-height: 54rpx;
+  padding: 0 14rpx !important;
+  border-radius: 14rpx !important;
+  font-size: 22rpx !important;
+}
+
+.message-toolbar {
+  margin-top: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.toolbar-btn {
+  flex: 1;
+  min-width: 0;
+  height: 68rpx;
+  min-height: 68rpx;
+  line-height: 68rpx;
+  padding: 0 12rpx !important;
+  margin-top: 0 !important;
+  border-radius: 16rpx !important;
+  font-size: 24rpx !important;
+  font-weight: 700;
 }
 
 .notice-card {
@@ -14,6 +40,43 @@
 
 .notice-head {
   align-items: flex-start;
+  gap: 14rpx;
+}
+
+.select-hitbox {
+  width: 52rpx;
+  height: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-top: -6rpx;
+}
+
+.select-dot {
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  border: 2rpx solid #cbd5e1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.select-dot-active {
+  background: #0f172a;
+  border-color: #0f172a;
+  transform: scale(1.04);
+  box-shadow: 0 4rpx 10rpx rgba(15, 23, 42, 0.16);
+}
+
+.select-dot-icon {
+  font-size: 20rpx;
+  line-height: 1;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .notice-title {

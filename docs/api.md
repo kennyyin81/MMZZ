@@ -34,6 +34,10 @@
 - `can_approve`
 - `unread_notification_count`
 
+补充：
+
+- `unread_notification_count` 当前不包含 `approval_pending` 类型，避免与“待我审批”重复提醒
+
 ### `points.listLedger`
 
 查询当前用户积分流水。
@@ -109,9 +113,18 @@
 
 审批通过或拒绝申请。
 
+补充规则：
+
+- `earn` 与加分 `todo` 在审批通过时允许当前余额和结果余额为负数
+- `drink` 仍会在余额不足时自动拒绝
+
 ### `approval.removeHistory`
 
 删除当前审批人的历史审批记录，仅做前台隐藏。
+
+### `approval.removeHistoryBatch`
+
+批量删除当前审批人的历史审批记录，仅做前台隐藏。
 
 ## 待办工作
 
@@ -209,10 +222,12 @@
 - `notification.markRead`
 - `notification.markAllRead`
 - `notification.remove`
+- `notification.removeBatch`
 
 补充：
 
 - `points_adjusted` 表示审批人直接调分通知
+- 通知中心中的 `approval_pending`、`approval_result`、`points_adjusted` 等消息，前端会按类型跳转到对应页面
 
 ## 喝酒日历记录
 

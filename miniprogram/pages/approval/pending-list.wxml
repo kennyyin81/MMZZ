@@ -33,7 +33,6 @@
       <view class="{{item.status_class}} approval-status">{{item.status_label}}</view>
     </view>
     <view class="approval-meta">申请人：{{item.applicant_nickname || item.user_id}}</view>
-    <view class="approval-meta">单号：{{item.request_no}}</view>
     <view class="approval-meta">提交时间：{{item.submitted_at_text}}</view>
   </view>
 

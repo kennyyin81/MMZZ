@@ -273,7 +273,12 @@ async function changePoints(userId, changePoints, sourceType, sourceId, remark, 
 }
 
 async function countUnreadNotifications(userId) {
-  const result = await db.collection(COLLECTIONS.NOTIFICATION).where({ user_id: userId, read_at: null, is_deleted: _.neq(true) }).count();
+  const result = await db.collection(COLLECTIONS.NOTIFICATION).where({
+    user_id: userId,
+    read_at: null,
+    is_deleted: _.neq(true),
+    type: _.neq("approval_pending")
+  }).count();
   return Number((result && result.total) || 0);
 }
 
@@ -1005,6 +1010,24 @@ async function removeApprovalHistory(currentUser, payload) {
   return { success: true };
 }
 
+async function removeApprovalHistoryBatch(currentUser, payload) {
+  const approvalIds = Array.isArray(payload.approval_ids) ? payload.approval_ids : [];
+  const ids = approvalIds.map((item) => String(item || "").trim()).filter(Boolean);
+  assert(ids.length > 0, 2001, "approval_ids 不能为空");
+  const uniqueIds = Array.from(new Set(ids)).slice(0, 100);
+  const result = await db.collection(COLLECTIONS.APPROVAL_RECORD).where({
+    _id: _.in(uniqueIds),
+    approver_user_id: currentUser._id,
+    is_deleted_by_approver: _.neq(true)
+  }).update({
+    data: {
+      is_deleted_by_approver: true,
+      deleted_at: now()
+    }
+  });
+  return { success: true, updated: Number((result && result.stats && result.stats.updated) || 0) };
+}
+
 async function adjustPointsByApprover(currentUser, payload) {
   const assignedUser = await getAssignedApplicantForApprover(currentUser._id);
   assert(assignedUser, 3002, "当前没有被审批人");
@@ -1084,7 +1107,8 @@ async function decideRequest(currentUser, payload) {
         meta.pointsSourceType,
         requestId,
         request.behavior_type || "加分申请通过",
-        currentUser._id
+        currentUser._id,
+        { allowNegativeBalance: true }
       );
     } else if (payload.request_type === "drink") {
       currentBalance = await getBalanceByUserId(request.user_id);
@@ -1109,7 +1133,8 @@ async function decideRequest(currentUser, payload) {
         meta.pointsSourceType,
         requestId,
         request.title || "待办工作加分通过",
-        currentUser._id
+        currentUser._id,
+        { allowNegativeBalance: true }
       );
     }
   }
@@ -1357,6 +1382,24 @@ async function removeDrinkDiaryRecord(currentUser, payload) {
     }
   });
   return { success: true };
+}
+
+async function removeNotificationBatch(currentUser, payload) {
+  const notificationIds = Array.isArray(payload.notification_ids) ? payload.notification_ids : [];
+  const ids = notificationIds.map((item) => String(item || "").trim()).filter(Boolean);
+  assert(ids.length > 0, 2001, "notification_ids 不能为空");
+  const uniqueIds = Array.from(new Set(ids)).slice(0, 100);
+  const result = await db.collection(COLLECTIONS.NOTIFICATION).where({
+    _id: _.in(uniqueIds),
+    user_id: currentUser._id,
+    is_deleted: _.neq(true)
+  }).update({
+    data: {
+      is_deleted: true,
+      deleted_at: now()
+    }
+  });
+  return { success: true, updated: Number((result && result.stats && result.stats.updated) || 0) };
 }
 
 function sanitizeWineId(value) {
@@ -1870,6 +1913,8 @@ async function handleAction(currentUser, action, payload) {
       return ok(await listApprovalHistory(currentUser, payload));
     case "approval.removeHistory":
       return ok(await removeApprovalHistory(currentUser, payload));
+    case "approval.removeHistoryBatch":
+      return ok(await removeApprovalHistoryBatch(currentUser, payload));
     case "approval.decide":
       return ok(await decideRequest(currentUser, payload));
     case "notification.listMine":
@@ -1880,6 +1925,8 @@ async function handleAction(currentUser, action, payload) {
       return ok(await markAllNotificationsRead(currentUser));
     case "notification.remove":
       return ok(await removeNotification(currentUser, payload));
+    case "notification.removeBatch":
+      return ok(await removeNotificationBatch(currentUser, payload));
     case "drinkDiary.create":
       return ok(await createDrinkDiaryRecord(currentUser, payload));
     case "drinkDiary.listByMonth":

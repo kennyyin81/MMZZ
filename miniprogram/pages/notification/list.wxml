@@ -7,17 +7,30 @@
       </view>
       <view class="badge">未读 {{unreadCount}}</view>
     </view>
-    <button class="ghost-btn action-btn" bindtap="markAllRead" loading="{{marking}}" disabled="{{unreadCount <= 0}}">
-      全部标记已读
-    </button>
+    <view class="message-toolbar">
+      <button class="ghost-btn toolbar-btn" size="mini" bindtap="markAllRead" loading="{{marking}}" disabled="{{unreadCount <= 0}}">
+        一键已读
+      </button>
+      <button class="ghost-btn toolbar-btn" size="mini" bindtap="toggleSelectAll">
+        {{allSelected ? '取消全选' : '全选'}}
+      </button>
+      <button class="ghost-btn toolbar-btn" size="mini" bindtap="removeSelectedNotifications" loading="{{batchDeleting}}">
+        删除
+      </button>
+    </view>
   </view>
 
   <view class="card reveal-card reveal-delay-1 empty-state" wx:if="{{!list.length && !loading}}">
     <view class="muted">暂无消息</view>
   </view>
 
-  <view class="list-card notice-card reveal-card reveal-delay-2" wx:for="{{list}}" wx:key="_id">
+  <view class="list-card notice-card reveal-card reveal-delay-2" wx:for="{{list}}" wx:key="_id" bindtap="openNotification" data-id="{{item._id}}" data-type="{{item.type}}" data-request-type="{{item.extra.request_type}}" data-request-id="{{item.extra.request_id}}">
     <view class="row notice-head">
+      <view class="select-hitbox" catchtap="toggleSelectOne" data-id="{{item._id}}">
+        <view class="select-dot {{item.selected ? 'select-dot-active' : ''}}">
+          <text wx:if="{{item.selected}}" class="select-dot-icon">✓</text>
+        </view>
+      </view>
       <view class="notice-title">{{item.title || "系统消息"}}</view>
       <view class="badge {{item.read ? 'badge-read' : 'badge-unread'}}">{{item.read ? "已读" : "未读"}}</view>
     </view>
@@ -29,7 +42,7 @@
           wx:if="{{!item.read}}"
           class="ghost-btn action-btn-inline"
           size="mini"
-          bindtap="markRead"
+          catchtap="markRead"
           data-id="{{item._id}}"
           loading="{{marking}}"
         >
@@ -38,7 +51,7 @@
         <button
           class="ghost-btn action-btn-inline"
           size="mini"
-          bindtap="removeNotification"
+          catchtap="removeNotification"
           data-id="{{item._id}}"
           loading="{{deletingId === item._id}}"
         >

@@ -4,18 +4,44 @@
   align-items: center;
 }
 
+.batch-toolbar {
+  margin-top: 18rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.action-btn-inline {
+  margin-top: 0;
+  min-width: 156rpx;
+}
+
 .history-card {
   cursor: pointer;
 }
 
 .history-head {
   align-items: flex-start;
+  gap: 14rpx;
+}
+
+.select-hitbox {
+  width: 52rpx;
+  height: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-top: -6rpx;
 }
 
 .history-title {
+  flex: 1;
+  min-width: 0;
   font-size: 32rpx;
   font-weight: 800;
   color: #0f172a;
+  text-align: left;
 }
 
 .history-status {
@@ -29,4 +55,30 @@
   color: #6b7280;
   line-height: 1.8;
   word-break: break-all;
+}
+
+.select-dot {
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  border: 2rpx solid #cbd5e1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.select-dot-active {
+  background: #0f172a;
+  border-color: #0f172a;
+  transform: scale(1.04);
+  box-shadow: 0 4rpx 10rpx rgba(15, 23, 42, 0.16);
+}
+
+.select-dot-icon {
+  font-size: 20rpx;
+  line-height: 1;
+  color: #ffffff;
+  font-weight: 700;
 }

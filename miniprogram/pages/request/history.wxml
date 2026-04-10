@@ -34,7 +34,6 @@
       <view class="request-title">{{item.request_type_label}}</view>
       <view class="{{item.status_class}} request-status">{{item.status_label}}</view>
     </view>
-    <view class="request-no">单号：{{item.request_no}}</view>
     <view class="request-meta" wx:if="{{item.request_type === 'earn'}}">申请积分：{{item.requested_points}}</view>
     <view class="request-meta" wx:if="{{item.request_type === 'drink'}}">扣减积分：{{item.cost_points}}</view>
     <view class="request-meta">提交时间：{{item.submitted_at_text}}</view>

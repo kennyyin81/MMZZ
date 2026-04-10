@@ -3,6 +3,14 @@
     <view class="badge">审批历史</view>
     <view class="title" style="margin-top: 18rpx;">我的审批记录</view>
     <view class="muted">查看自己已经处理过的加分与喝酒审批记录，支持手动隐藏单条历史。</view>
+    <view class="batch-toolbar">
+      <button class="ghost-btn action-btn-inline" size="mini" bindtap="toggleSelectAll">
+        {{allSelected ? '取消全选' : '全选'}}
+      </button>
+      <button class="ghost-btn action-btn-inline" size="mini" bindtap="removeSelectedHistories" loading="{{batchDeleting}}">
+        删除
+      </button>
+    </view>
   </view>
 
   <view class="card reveal-card reveal-delay-1">
@@ -22,13 +30,17 @@
     wx:for="{{list}}"
     wx:key="_id"
   >
-    <view bindtap="goDetail" data-type="{{item.request_type}}" data-id="{{item.request_id}}">
+      <view bindtap="goDetail" data-type="{{item.request_type}}" data-id="{{item.request_id}}">
       <view class="row history-head">
+        <view class="select-hitbox" catchtap="toggleSelectOne" data-id="{{item._id}}">
+          <view class="select-dot {{item.selected ? 'select-dot-active' : ''}}">
+            <text wx:if="{{item.selected}}" class="select-dot-icon">✓</text>
+          </view>
+        </view>
         <view class="history-title">{{item.request_type_label}}</view>
         <view class="{{item.decision_class}} history-status">{{item.decision_label}}</view>
       </view>
       <view class="history-meta">申请人：{{item.applicant_nickname || item.applicant_user_id}}</view>
-      <view class="history-meta">单号：{{item.request_no}}</view>
       <view class="history-meta">审批时间：{{item.decided_at_text}}</view>
       <view class="history-comment">审批意见：{{item.comment || "-"}}</view>
     </view>
@@ -38,7 +50,7 @@
         class="ghost-btn action-btn-inline"
         data-id="{{item._id}}"
         loading="{{deletingId === item._id}}"
-        bindtap="removeHistory"
+        catchtap="removeHistory"
       >
         删除记录
       </button>
