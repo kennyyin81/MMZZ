@@ -82,6 +82,60 @@ function getWineSimilarityScore(baseWine, candidateWine) {
   return flavorScore * 100 + categoryScore * 10 + baseSpiritScore * 10 + tasteScore;
 }
 
+function chunkList(list, size) {
+  const result = [];
+  for (let i = 0; i < list.length; i += size) {
+    result.push(list.slice(i, i + size));
+  }
+  return result;
+}
+
+async function fetchAllWineTopics() {
+  const limit = 100;
+  let skip = 0;
+  let list = [];
+
+  while (true) {
+    const res = await db.collection(COLLECTIONS.WINE_TOPIC)
+      .orderBy("created_at", "desc")
+      .skip(skip)
+      .limit(limit)
+      .get();
+    const batch = unwrapList(res);
+    list = list.concat(batch);
+    if (batch.length < limit) break;
+    skip += limit;
+  }
+
+  return list;
+}
+
+async function fetchCommentsByWineIds(wineIds) {
+  const ids = Array.from(new Set((Array.isArray(wineIds) ? wineIds : []).filter(Boolean)));
+  if (!ids.length) return [];
+
+  const chunks = chunkList(ids, 20);
+  let comments = [];
+
+  for (const chunk of chunks) {
+    const limit = 100;
+    let skip = 0;
+    while (true) {
+      const res = await db.collection(COLLECTIONS.WINE_COMMENT)
+        .where({ wine_id: _.in(chunk) })
+        .skip(skip)
+        .limit(limit)
+        .get();
+      const batch = unwrapList(res);
+      comments = comments.concat(batch);
+      if (batch.length < limit) break;
+      skip += limit;
+    }
+  }
+
+  return comments;
+}
+
 async function sortSimilarWineIdsBySimilarity(baseWine, similarWineIds) {
   const ids = normalizeWineIdList(similarWineIds, baseWine.wine_id);
   if (!ids.length) return [];
@@ -116,9 +170,9 @@ async function getWineCommentStats(wineId) {
 async function getWineStatsMap(wineIds) {
   const ids = Array.from(new Set((Array.isArray(wineIds) ? wineIds : []).filter(Boolean)));
   if (!ids.length) return {};
-  const commentRes = await db.collection(COLLECTIONS.WINE_COMMENT).where({ wine_id: _.in(ids) }).get();
+  const comments = await fetchCommentsByWineIds(ids);
   const statsMap = {};
-  unwrapList(commentRes).forEach((item) => {
+  comments.forEach((item) => {
     if (!statsMap[item.wine_id]) {
       statsMap[item.wine_id] = { rating_count: 0, total_rating: 0, comment_count: 0 };
     }
@@ -136,19 +190,62 @@ async function getWineStatsMap(wineIds) {
   return statsMap;
 }
 
-async function listWineTopics(currentUser) {
-  const res = await db.collection(COLLECTIONS.WINE_TOPIC).orderBy("created_at", "desc").get();
-  const raw = unwrapList(res).filter((item) => item && item.wine_id);
+function parseAlcoholValue(alcohol) {
+  const text = String(alcohol || "");
+  const match = text.match(/(\d+(\.\d+)?)/);
+  return match ? Number(match[1]) : 0;
+}
+
+function filterAndSortWineTopics(list, payload, statsMap) {
+  const tasteFilterInput = String(payload.taste_filter || "all").trim();
+  const ratingOrderInput = String(payload.rating_order || "none").trim();
+  const alcoholOrderInput = String(payload.alcohol_order || "none").trim();
+  const tasteFilter = ["all", "acidity", "sweetness", "bitterness", "spiciness"].includes(tasteFilterInput) ? tasteFilterInput : "all";
+  const ratingOrder = ["none", "asc", "desc"].includes(ratingOrderInput) ? ratingOrderInput : "none";
+  const alcoholOrder = ["none", "asc", "desc"].includes(alcoholOrderInput) ? alcoholOrderInput : "none";
+  let result = Array.isArray(list) ? list.slice() : [];
+
+  if (tasteFilter && tasteFilter !== "all") {
+    result = result.filter((item) => Number(item[tasteFilter] || 0) >= 3);
+  }
+
+  if (ratingOrder !== "none" || alcoholOrder !== "none") {
+    result.sort((a, b) => {
+      if (ratingOrder !== "none") {
+        const aStats = statsMap[a.wine_id] || {};
+        const bStats = statsMap[b.wine_id] || {};
+        const ratingDiff = Number(aStats.average_rating || 0) - Number(bStats.average_rating || 0);
+        if (ratingDiff !== 0) {
+          return ratingOrder === "asc" ? ratingDiff : -ratingDiff;
+        }
+      }
+      if (alcoholOrder !== "none") {
+        const alcoholDiff = parseAlcoholValue(a.alcohol) - parseAlcoholValue(b.alcohol);
+        if (alcoholDiff !== 0) {
+          return alcoholOrder === "asc" ? alcoholDiff : -alcoholDiff;
+        }
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }
+
+  return result;
+}
+
+async function listWineTopics(currentUser, payload) {
+  const pager = buildPagination(payload || {});
+  const raw = (await fetchAllWineTopics()).filter((item) => item && item.wine_id);
   
   if (!raw.length) {
-    return { total: 0, list: [] };
+    return { total: 0, page_no: pager.pageNo, page_size: pager.pageSize, has_more: false, list: [] };
   }
 
   const wineIds = raw.map((item) => item.wine_id);
   const statsMap = await getWineStatsMap(wineIds);
+  const filtered = filterAndSortWineTopics(raw, payload || {}, statsMap);
+  const pageList = filtered.slice(pager.skip, pager.skip + pager.limit);
 
-  // 组装结果
-  const list = raw.map((topic) => {
+  const list = pageList.map((topic) => {
     const stats = statsMap[topic.wine_id] || { rating_count: 0, average_rating: 0, comment_count: 0 };
     return {
       ...topic,
@@ -158,7 +255,13 @@ async function listWineTopics(currentUser) {
     };
   });
 
-  return { total: list.length, list };
+  return {
+    total: filtered.length,
+    page_no: pager.pageNo,
+    page_size: pager.pageSize,
+    has_more: pager.skip + pager.limit < filtered.length,
+    list
+  };
 }
 
 async function getWineTopicDetail(currentUser, payload) {
@@ -392,9 +495,14 @@ module.exports = {
   normalizeWineIdList,
   getWineFlavorTags,
   getWineSimilarityScore,
+  chunkList,
+  fetchAllWineTopics,
+  fetchCommentsByWineIds,
   sortSimilarWineIdsBySimilarity,
   getWineCommentStats,
   getWineStatsMap,
+  parseAlcoholValue,
+  filterAndSortWineTopics,
   listWineTopics,
   getWineTopicDetail,
   createWineComment,

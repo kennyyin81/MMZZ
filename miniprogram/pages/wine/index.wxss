@@ -95,3 +95,22 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+.wine-taste-row .chip,
+.wine-flavor-chip {
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-all;
+}
+
+.wine-flavor-chip {
+  flex-shrink: 0;
+}
+
+.load-more {
+  padding: 26rpx 0 16rpx;
+  text-align: center;
+  font-size: 24rpx;
+  line-height: 1.4;
+  color: #94a3b8;
+}

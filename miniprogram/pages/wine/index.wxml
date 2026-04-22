@@ -35,8 +35,10 @@
       hover-stay-time="80"
       wx:for="{{list}}"
       wx:key="wine_id"
+      data-id="{{item.wine_id}}"
+      bindtap="goDetail"
     >
-      <view class="media-frame wine-list-media" data-id="{{item.wine_id}}" bindtap="goDetail">
+      <view class="media-frame wine-list-media">
         <image class="wine-cover" src="{{item.image}}" mode="aspectFit"></image>
       </view>
 
@@ -45,11 +47,11 @@
           <view>
             <view class="row wine-name-row">
               <view class="wine-card-name">{{item.name}}</view>
-              <view class="subtitle wine-card-alcohol">{{item.alcohol}}</view>
+              <view class="subtitle wine-card-alcohol" wx:if="{{item.alcohol}}">{{item.alcohol}}</view>
             </view>
             <view class="subtitle wine-card-meta">{{item.category}}</view>
           </view>
-          <view class="chip" wx:if="{{item.flavor}}">{{item.flavor}}</view>
+          <view class="chip wine-flavor-chip" wx:if="{{item.flavor}}">{{item.flavor}}</view>
         </view>
 
         <view class="muted wine-card-summary">{{item.summary}}</view>
@@ -68,6 +70,9 @@
         </view>
       </view>
     </view>
+
+    <view class="load-more" wx:if="{{loadingMore}}">加载中...</view>
+    <view class="load-more" wx:elif="{{!hasMore}}">已展示全部 {{total}} 款</view>
   </block>
 
   <view wx:else class="card reveal-card reveal-delay-1">

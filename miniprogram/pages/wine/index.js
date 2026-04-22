@@ -23,6 +23,8 @@ const ORDER_OPTIONS = [
   { label: "降序", value: "desc" }
 ];
 
+const PAGE_SIZE = 20;
+
 function decorateWine(item) {
   const wine = mergeWineMeta(item);
   return {
@@ -35,48 +37,15 @@ function decorateWine(item) {
   };
 }
 
-function parseAlcoholValue(alcohol) {
-  const text = String(alcohol || "");
-  const match = text.match(/(\d+(\.\d+)?)/);
-  return match ? Number(match[1]) : 0;
-}
-
-function applyFiltersAndSort(rawList, tasteFilter, ratingOrder, alcoholOrder) {
-  let list = Array.isArray(rawList) ? rawList.slice() : [];
-
-  if (tasteFilter && tasteFilter !== "all") {
-    list = list.filter((item) => Number(item[tasteFilter] || 0) >= 3);
-  }
-
-  if (ratingOrder !== "none" || alcoholOrder !== "none") {
-    list.sort((a, b) => {
-      if (ratingOrder !== "none") {
-        const ra = Number(a.average_rating || 0);
-        const rb = Number(b.average_rating || 0);
-        if (ra !== rb) {
-          return ratingOrder === "asc" ? ra - rb : rb - ra;
-        }
-      }
-      if (alcoholOrder !== "none") {
-        const aa = parseAlcoholValue(a.alcohol);
-        const ab = parseAlcoholValue(b.alcohol);
-        if (aa !== ab) {
-          return alcoholOrder === "asc" ? aa - ab : ab - aa;
-        }
-      }
-      return 0;
-    });
-  }
-
-  return list;
-}
-
 Page({
   data: {
-    rawList: [],
     list: [],
     loading: false,
+    loadingMore: false,
     hasLoaded: false,
+    hasMore: true,
+    pageNo: 1,
+    total: 0,
     tasteFilterOptions: TASTE_FILTER_OPTIONS.map((item) => item.label),
     tasteFilterIndex: 0,
     ratingOrderOptions: ORDER_OPTIONS.map((item) => item.label),
@@ -87,21 +56,50 @@ Page({
 
   onShow() {
     syncTabBar("/pages/wine/index");
-    this.loadList();
+    if (!this.data.hasLoaded) {
+      this.refreshList();
+    }
   },
 
-  async loadList() {
-    this.setData({ loading: true });
+  onPullDownRefresh() {
+    this.refreshList().finally(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
+  onReachBottom() {
+    this.loadNextPage();
+  },
+
+  getFilterPayload(pageNo) {
+    return {
+      page_no: pageNo,
+      page_size: PAGE_SIZE,
+      taste_filter: TASTE_FILTER_OPTIONS[this.data.tasteFilterIndex].value,
+      rating_order: ORDER_OPTIONS[this.data.ratingOrderIndex].value,
+      alcohol_order: ORDER_OPTIONS[this.data.alcoholOrderIndex].value
+    };
+  },
+
+  async refreshList() {
+    this.setData({
+      loading: true,
+      hasMore: true,
+      pageNo: 1,
+      list: []
+    });
     try {
-      const data = await callApi("wine.list");
-      const rawList = (data.list || [])
+      const data = await callApi("wine.list", this.getFilterPayload(1));
+      const list = (data.list || [])
         .filter((item) => item && item.wine_id)
         .map(decorateWine);
       this.setData({
-        rawList,
-        hasLoaded: true
+        list,
+        hasLoaded: true,
+        hasMore: !!data.has_more,
+        pageNo: 1,
+        total: Number(data.total || 0)
       });
-      this.applyCurrentFilters();
     } catch (err) {
       showError(err);
       this.setData({ hasLoaded: true });
@@ -110,28 +108,41 @@ Page({
     }
   },
 
-  applyCurrentFilters() {
-    const tasteFilter = TASTE_FILTER_OPTIONS[this.data.tasteFilterIndex].value;
-    const ratingOrder = ORDER_OPTIONS[this.data.ratingOrderIndex].value;
-    const alcoholOrder = ORDER_OPTIONS[this.data.alcoholOrderIndex].value;
-    this.setData({
-      list: applyFiltersAndSort(this.data.rawList, tasteFilter, ratingOrder, alcoholOrder)
-    });
+  async loadNextPage() {
+    if (this.data.loading || this.data.loadingMore || !this.data.hasMore) return;
+    const nextPage = this.data.pageNo + 1;
+    this.setData({ loadingMore: true });
+    try {
+      const data = await callApi("wine.list", this.getFilterPayload(nextPage));
+      const list = (data.list || [])
+        .filter((item) => item && item.wine_id)
+        .map(decorateWine);
+      this.setData({
+        list: this.data.list.concat(list),
+        hasMore: !!data.has_more,
+        pageNo: nextPage,
+        total: Number(data.total || this.data.total || 0)
+      });
+    } catch (err) {
+      showError(err);
+    } finally {
+      this.setData({ loadingMore: false });
+    }
   },
 
   onTasteFilterChange(e) {
     this.setData({ tasteFilterIndex: Number(e.detail.value || 0) });
-    this.applyCurrentFilters();
+    this.refreshList();
   },
 
   onRatingOrderChange(e) {
     this.setData({ ratingOrderIndex: Number(e.detail.value || 0) });
-    this.applyCurrentFilters();
+    this.refreshList();
   },
 
   onAlcoholOrderChange(e) {
     this.setData({ alcoholOrderIndex: Number(e.detail.value || 0) });
-    this.applyCurrentFilters();
+    this.refreshList();
   },
 
   goDetail(e) {

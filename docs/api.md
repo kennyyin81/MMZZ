@@ -266,12 +266,34 @@
 
 ### `wine.list`
 
-查询前台可见酒款列表。
+分页查询前台可见酒款列表。
+
+入参：
+
+```json
+{
+  "page_no": 1,
+  "page_size": 20,
+  "taste_filter": "all",
+  "rating_order": "none",
+  "alcohol_order": "none"
+}
+```
+
+说明：
+
+- `taste_filter` 支持 `all`、`acidity`、`sweetness`、`bitterness`、`spiciness`
+- `rating_order` 支持 `none`、`asc`、`desc`
+- `alcohol_order` 支持 `none`、`asc`、`desc`
 
 返回字段：
 
 - `rating_count`
 - `comment_count`
+- `total`
+- `page_no`
+- `page_size`
+- `has_more`
 
 ### `wine.getDetail`
 
