@@ -2,6 +2,13 @@
 
 所有接口统一通过云函数 `api` 调用。
 
+后端实现结构：
+
+- `cloudfunctions/api/index.js`：云函数入口，负责统一鉴权、错误处理和调用路由
+- `cloudfunctions/api/src/router.js`：维护 `action` 到处理函数的映射
+- `cloudfunctions/api/src/context.js`：云开发初始化、数据库实例、常量和公共工具
+- `cloudfunctions/api/src/handlers/`：按业务域拆分具体处理逻辑
+
 统一请求格式：
 
 ```json
