@@ -40,19 +40,15 @@
     "list": [
       {
         "pagePath": "pages/home/index",
-        "text": "\u9996\u9875"
+        "text": "首页"
       },
       {
         "pagePath": "pages/wine/index",
-        "text": "\u9152\u767e\u79d1"
-      },
-      {
-        "pagePath": "pages/request/my-list",
-        "text": "\u8bb0\u5f55"
+        "text": "酒百科"
       },
       {
         "pagePath": "pages/profile/index",
-        "text": "\u6211\u7684"
+        "text": "我的"
       }
     ]
   },

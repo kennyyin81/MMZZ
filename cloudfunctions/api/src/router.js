@@ -58,6 +58,7 @@ const handlers = {
   "wine.comment.create": wine.createWineComment,
   "wine.rating.upsert": wine.upsertWineRating,
   "wine.comment.remove": wine.removeWineComment,
+  "admin.wine.recommendSimilar": wine.computeAndSaveSimilarWines,
   "admin.wine.list": admin.adminListWineTopics,
   "admin.wine.upsert": admin.adminUpsertWineTopic,
   "admin.wine.remove": admin.adminRemoveWineTopic,

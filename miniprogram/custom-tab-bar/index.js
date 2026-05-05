@@ -15,12 +15,6 @@ Component({
         activeIcon: "/assets/tab/wine-active.svg"
       },
       {
-        pagePath: "/pages/request/my-list",
-        text: "记录",
-        icon: "/assets/tab/request.svg",
-        activeIcon: "/assets/tab/request-active.svg"
-      },
-      {
         pagePath: "/pages/profile/index",
         text: "我的",
         icon: "/assets/tab/profile.svg",

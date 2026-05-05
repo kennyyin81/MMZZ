@@ -45,11 +45,8 @@
       <view class="wine-card-body">
         <view class="row wine-card-head">
           <view>
-            <view class="row wine-name-row">
-              <view class="wine-card-name">{{item.name}}</view>
-              <view class="subtitle wine-card-alcohol" wx:if="{{item.alcohol}}">{{item.alcohol}}</view>
-            </view>
-            <view class="subtitle wine-card-meta">{{item.category}}</view>
+            <view class="wine-card-name">{{item.name}}</view>
+            <view class="subtitle wine-card-meta">{{item.category}}<text wx:if="{{item.alcohol}}"> · {{item.alcohol}}</text></view>
           </view>
           <view class="chip wine-flavor-chip" wx:if="{{item.flavor}}">{{item.flavor}}</view>
         </view>
@@ -81,4 +78,8 @@
       description="品酒师录入酒款后，这里会显示可浏览的内容。"
     ></ui-empty-state>
   </view>
+</view>
+
+<view class="back-top" wx:if="{{showBackTop}}" hover-class="back-top-pressed" hover-stay-time="80" bindtap="onBackTop">
+  <view class="back-top-arrow"></view>
 </view>

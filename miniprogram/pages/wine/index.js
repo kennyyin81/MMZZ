@@ -46,6 +46,7 @@ Page({
     hasMore: true,
     pageNo: 1,
     total: 0,
+    showBackTop: false,
     tasteFilterOptions: TASTE_FILTER_OPTIONS.map((item) => item.label),
     tasteFilterIndex: 0,
     ratingOrderOptions: ORDER_OPTIONS.map((item) => item.label),
@@ -69,6 +70,17 @@ Page({
 
   onReachBottom() {
     this.loadNextPage();
+  },
+
+  onPageScroll(e) {
+    const show = e.scrollTop > 300;
+    if (show !== this.data.showBackTop) {
+      this.setData({ showBackTop: show });
+    }
+  },
+
+  onBackTop() {
+    wx.pageScrollTo({ scrollTop: 0, duration: 300 });
   },
 
   getFilterPayload(pageNo) {

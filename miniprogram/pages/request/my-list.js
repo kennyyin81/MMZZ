@@ -1,5 +1,4 @@
 const { callApi, showError } = require("../../utils/api");
-const { syncTabBar } = require("../../utils/const");
 
 function formatTime(date) {
   if (!date) return "";
@@ -37,7 +36,6 @@ Page({
   },
 
   onShow() {
-    syncTabBar("/pages/request/my-list");
     this.loadList();
   },
 

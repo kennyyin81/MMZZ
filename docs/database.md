@@ -252,7 +252,7 @@
 - `ingredients`
 - `taste_note`
 - `story`
-- `similar_wine_ids`
+- `similar_wine_ids`：由相似推荐算法自动计算，最多 3 个，每周一凌晨定时更新，也可在后台手动触发
 - `summary`
 - `image_url`
 

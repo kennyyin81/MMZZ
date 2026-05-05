@@ -97,22 +97,6 @@
         </view>
 
         <view class="form-section">
-          <view class="section-title">相似推荐</view>
-          <view class="subtitle">系统会优先把风味更接近的酒排在前面，最多可选 3 个，详情页会按相近程度依次展示。</view>
-          <view class="similar-select-grid">
-            <view
-              class="similar-select-chip {{item.selected ? 'similar-select-chip-active' : ''}}"
-              wx:for="{{similarWineOptions}}"
-              wx:key="wine_id"
-              data-id="{{item.wine_id}}"
-              bindtap="toggleSimilarWine"
-            >
-              {{item.name}}
-            </view>
-          </view>
-        </view>
-
-        <view class="form-section">
           <view class="section-title">封面图片</view>
           <view class="field-grid">
             <view class="field-block field-block-wide">
@@ -127,9 +111,17 @@
         </view>
 
         <view class="submit-section">
-          <button class="btn primary-btn" type="primary" bindtap="submitForm" loading="{{saving}}">
-            {{editingWineId ? "保存修改" : "新增酒款"}}
-          </button>
+          <view class="field-grid">
+            <view class="field-block field-block-wide">
+              <button class="btn primary-btn" type="primary" bindtap="submitForm" loading="{{saving}}">
+                {{editingWineId ? "保存修改" : "新增酒款"}}
+              </button>
+            </view>
+            <view class="field-block field-block-action">
+              <view class="subtitle">相似推荐</view>
+              <button class="ghost-btn action-btn" bindtap="generateSimilar" loading="{{generatingSimilar}}">更新</button>
+            </view>
+          </view>
         </view>
       </view>
 
@@ -167,11 +159,6 @@
 
           <view class="preview-subtitle" wx:if="{{previewWine.story}}">背景故事</view>
           <view class="preview-copy preview-story" wx:if="{{previewWine.story}}">{{previewWine.story}}</view>
-
-          <view class="preview-subtitle" wx:if="{{previewWine.similarWines.length}}">相似推荐</view>
-          <view class="chip-row" style="margin-top: 10rpx;" wx:if="{{previewWine.similarWines.length}}">
-            <view class="chip chip-outline" wx:for="{{previewWine.similarWines}}" wx:key="wine_id">{{item.name}}</view>
-          </view>
         </view>
       </view>
     </view>
@@ -189,19 +176,12 @@
       <view class="field-grid">
         <view class="field-block field-block-wide">
           <view class="subtitle">搜索</view>
-          <input class="input-shell" value="{{keyword}}" bindinput="onSearchInput" placeholder="按名称搜索" />
-        </view>
-        <view class="field-block field-block-half">
-          <view class="subtitle">排序</view>
-          <picker mode="selector" range="{{sortOptions}}" bindchange="onSortChange">
-            <view class="input-shell picker-shell">{{selectedSortLabel}}</view>
-          </picker>
+          <input class="input-shell" value="{{keyword}}" bindinput="onSearchInput" placeholder="输入酒名搜索" />
         </view>
       </view>
-      <button class="ghost-btn filter-btn" bindtap="loadList" loading="{{loading}}">查询</button>
     </view>
 
-    <view wx:if="{{!list.length}}" class="muted">当前还没有酒款数据，请先新增。</view>
+    <view wx:if="{{keyword && !list.length}}" class="muted">未找到匹配的酒款。</view>
     <view class="list-card wine-row" wx:for="{{list}}" wx:key="wine_id">
       <view class="row">
         <view>
