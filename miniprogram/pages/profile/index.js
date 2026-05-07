@@ -71,5 +71,9 @@ Page({
 
   goFavoritesPage() {
     openPage("/pages/profile/favorites");
+  },
+
+  goMyPostsPage() {
+    openPage("/pages/profile/my-posts");
   }
 });

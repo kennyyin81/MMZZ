@@ -19,7 +19,11 @@ const COLLECTIONS = {
   WINE_TOPIC: "wine_topic",
   WINE_COMMENT: "wine_comment",
   WINE_FAVORITE: "wine_favorite",
-  DRINK_DIARY: "drink_diary"
+  DRINK_DIARY: "drink_diary",
+  SQUARE_POST: "square_post",
+  SQUARE_LIKE: "square_like",
+  SQUARE_COMMENT: "square_comment",
+  SQUARE_FAVORITE: "square_favorite"
 };
 
 const ROLE = {

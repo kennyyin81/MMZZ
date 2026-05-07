@@ -117,6 +117,7 @@ Page({
     this.initCalendarBase();
     this.loadPage();
     this.loadHomeCalendarRecords();
+    this.checkSquareNavigate();
   },
 
   initCalendarBase() {
@@ -264,5 +265,14 @@ Page({
 
   goNotifications() {
     openPage("/pages/notification/list");
+  },
+
+  checkSquareNavigate() {
+    const postId = wx.getStorageSync("square_navigate_detail");
+    if (!postId) return;
+    wx.removeStorageSync("square_navigate_detail");
+    setTimeout(() => {
+      wx.navigateTo({ url: `/pages/square/detail?postId=${postId}` });
+    }, 300);
   }
 });

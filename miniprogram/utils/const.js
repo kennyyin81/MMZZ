@@ -34,6 +34,7 @@ const LEDGER_SOURCE_LABEL = {
 const TAB_PAGES = [
   "/pages/home/index",
   "/pages/wine/index",
+  "/pages/square/index",
   "/pages/profile/index"
 ];
 

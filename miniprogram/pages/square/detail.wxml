@@ -1,0 +1,107 @@
+<view class="container">
+  <view wx:if="{{loading && !post}}" class="stack-lg">
+    <ui-skeleton rows="3"></ui-skeleton>
+    <ui-skeleton rows="2" media="{{false}}"></ui-skeleton>
+  </view>
+
+  <block wx:elif="{{post}}">
+    <view class="card reveal-card">
+      <view class="sq-detail-header">
+        <image wx:if="{{post.avatar_url}}" class="sq-detail-avatar" src="{{post.avatar_url}}" mode="aspectFill"></image>
+        <view wx:else class="sq-detail-avatar sq-detail-avatar-placeholder">友</view>
+        <view class="sq-detail-user-info">
+          <view class="sq-detail-nickname">{{post.nickname || '微信用户'}}</view>
+          <view class="subtitle">{{post.created_at_text}}</view>
+        </view>
+        <button wx:if="{{post.is_owner}}" class="ghost-btn sq-detail-delete-btn" bindtap="removePost" loading="{{deleting}}">删除</button>
+      </view>
+
+      <view class="sq-detail-cover-frame" wx:if="{{post.images.length > 1}}">
+        <scroll-view scroll-x class="sq-detail-scroll">
+          <image class="sq-detail-img" wx:for="{{post.images}}" wx:key="url" src="{{item.thumb || item.url}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage"></image>
+        </scroll-view>
+      </view>
+      <view class="sq-detail-cover-frame" wx:elif="{{post.cover_url}}">
+        <image class="sq-detail-single-img" src="{{post.cover_url}}" mode="aspectFill" data-index="0" bindtap="previewImage"></image>
+      </view>
+
+      <view class="sq-detail-body">
+        <view class="sq-detail-drink-name">{{post.drink_name}}</view>
+        <view class="sq-detail-recommendation" wx:if="{{post.recommendation}}">{{post.recommendation}}</view>
+
+        <view class="sq-detail-meta">
+          <view class="sq-detail-meta-item" wx:if="{{post.taste_note}}">口感：{{post.taste_note}}</view>
+          <view class="sq-detail-meta-item" wx:if="{{post.environment_note}}">环境：{{post.environment_note}}</view>
+          <view class="sq-detail-meta-item" wx:if="{{post.show_other_note && post.other_note}}">其他：{{post.other_note}}</view>
+          <view class="sq-detail-meta-item" wx:if="{{post.location_text}}">📍 {{post.location_text}}</view>
+          <view class="sq-detail-meta-item" wx:if="{{post.price > 0}}">¥{{post.price}}</view>
+        </view>
+      </view>
+
+      <view class="sq-detail-actions">
+        <view class="sq-detail-action" bindtap="toggleLike">
+          <text class="sq-action-icon {{post.is_liked ? 'sq-action-active' : ''}}">{{post.is_liked ? '❤' : '♡'}}</text>
+          <text class="sq-action-num">{{post.like_count || 0}}</text>
+        </view>
+        <view class="sq-detail-action">
+          <text class="sq-action-icon">💬</text>
+          <text class="sq-action-num">{{post.comment_count || 0}}</text>
+        </view>
+        <view class="sq-detail-action" bindtap="toggleFavorite">
+          <text class="sq-action-icon {{post.is_favorited ? 'sq-action-active-star' : ''}}">{{post.is_favorited ? '★' : '☆'}}</text>
+          <text class="sq-action-num">{{post.favorite_count || 0}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-1">
+      <view class="section-title">评论</view>
+      <ui-empty-state
+        wx:if="{{!comments.length}}"
+        compact="{{true}}"
+        title="还没有评论"
+        description="来说点什么吧。"
+      ></ui-empty-state>
+
+      <view class="sq-comment-item" wx:for="{{comments}}" wx:key="comment_id">
+        <view class="row sq-comment-head">
+          <view class="row sq-comment-user">
+            <image wx:if="{{item.avatar_url}}" class="sq-comment-avatar" src="{{item.avatar_url}}" mode="aspectFill"></image>
+            <view wx:else class="sq-comment-avatar sq-comment-avatar-placeholder">评</view>
+            <view class="sq-comment-meta">
+              <view class="sq-comment-author">{{item.nickname || '微信用户'}}</view>
+              <view class="subtitle">{{item.created_at_text}}</view>
+            </view>
+          </view>
+          <button
+            wx:if="{{item.is_owner}}"
+            size="mini"
+            class="ghost-btn sq-comment-remove-btn"
+            data-id="{{item.comment_id}}"
+            bindtap="removeComment"
+          >删除</button>
+        </view>
+        <view class="sq-comment-content" wx:if="{{item.content}}">{{item.content}}</view>
+      </view>
+    </view>
+
+    <view class="card reveal-card reveal-delay-2">
+      <textarea
+        class="input-shell textarea"
+        value="{{commentInput}}"
+        bindinput="onCommentInput"
+        maxlength="200"
+        placeholder="说点什么…"
+        auto-height
+      ></textarea>
+      <button class="btn" type="primary" bindtap="submitComment">发表评论</button>
+    </view>
+  </block>
+
+  <view wx:else class="card reveal-card">
+    <ui-empty-state
+      title="动态不存在"
+      description="该动态可能已被删除。"
+    ></ui-empty-state>
+  </view>
+</view>

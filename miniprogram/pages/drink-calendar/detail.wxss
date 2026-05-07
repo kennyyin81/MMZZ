@@ -171,3 +171,33 @@
   color: #dc2626 !important;
   font-weight: 700;
 }
+
+.share-toggle-row {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.share-label {
+  margin-bottom: 0;
+}
+
+.share-switch {
+  transform: scale(0.8);
+  transform-origin: right center;
+}
+
+.share-action-btn {
+  width: 100% !important;
+  background: #eef2ff !important;
+  border-color: #4f46e5 !important;
+  color: #4f46e5 !important;
+  font-weight: 700;
+}
+
+.share-view-btn {
+  width: 100% !important;
+  background: #f0fdf4 !important;
+  border-color: rgba(34, 197, 94, 0.3) !important;
+  color: #16a34a !important;
+  font-weight: 700;
+}

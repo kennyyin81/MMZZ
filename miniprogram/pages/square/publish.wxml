@@ -1,0 +1,77 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="stack-lg">
+    <ui-skeleton rows="3"></ui-skeleton>
+  </view>
+
+  <block wx:elif="{{record}}">
+    <view class="card reveal-card">
+      <view class="section-title">发布预览</view>
+
+      <view class="field-block">
+        <view class="field-label">酒名</view>
+        <view class="pub-preview-value">{{record.drink_name}}</view>
+      </view>
+
+      <view class="field-block" wx:if="{{record.images.length}}">
+        <view class="field-label">选择封面图</view>
+        <view class="pub-cover-grid">
+          <view
+            class="pub-cover-item {{coverIndex === index ? 'pub-cover-selected' : ''}}"
+            wx:for="{{record.images}}"
+            wx:key="url"
+            wx:for-index="index"
+            data-index="{{index}}"
+            bindtap="onCoverSelect"
+          >
+            <image class="pub-cover-img" src="{{item.thumb || item.url}}" mode="aspectFill" data-index="{{index}}" catchtap="previewImage"></image>
+            <view class="pub-cover-check" wx:if="{{coverIndex === index}}">✓</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="field-block" wx:if="{{record.price > 0}}">
+        <view class="field-label">价格</view>
+        <view class="pub-preview-value">¥{{record.price}}</view>
+      </view>
+
+      <view class="field-block" wx:if="{{record.taste_note}}">
+        <view class="field-label">口感</view>
+        <view class="pub-preview-value">{{record.taste_note}}</view>
+      </view>
+
+      <view class="field-block" wx:if="{{record.environment_note}}">
+        <view class="field-label">环境</view>
+        <view class="pub-preview-value">{{record.environment_note}}</view>
+      </view>
+
+      <view class="field-block" wx:if="{{record.other_note || record.remark}}">
+        <view class="row pub-toggle-row">
+          <view class="field-label">其他</view>
+          <switch class="pub-toggle-switch" checked="{{showOtherNote}}" bindchange="onShowOtherNoteChange" color="#4f46e5" />
+        </view>
+        <view class="pub-preview-value" wx:if="{{showOtherNote}}">{{record.other_note || record.remark}}</view>
+      </view>
+
+      <view class="field-block" wx:if="{{record.location_name}}">
+        <view class="field-label">地点</view>
+        <view class="pub-preview-value">{{record.location_name}}</view>
+      </view>
+
+      <view class="field-block" wx:if="{{record.location_name}}">
+        <view class="field-label">地点公开范围</view>
+        <view class="pub-visibility-options">
+          <view
+            class="pub-visibility-item {{locationVisibility === item.value ? 'pub-visibility-active' : ''}}"
+            wx:for="{{visibilityOptions}}"
+            wx:key="value"
+            wx:for-item="item"
+            data-value="{{item.value}}"
+            bindtap="onVisibilityChange"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <button class="btn" type="primary" bindtap="publishToSquare" loading="{{publishing}}">发布到酒友广场</button>
+    </view>
+  </block>
+</view>

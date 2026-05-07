@@ -15,6 +15,12 @@ Component({
         activeIcon: "/assets/tab/wine-active.svg"
       },
       {
+        pagePath: "/pages/square/index",
+        text: "广场",
+        icon: "/assets/tab/square.svg",
+        activeIcon: "/assets/tab/square-active.svg"
+      },
+      {
         pagePath: "/pages/profile/index",
         text: "我的",
         icon: "/assets/tab/profile.svg",

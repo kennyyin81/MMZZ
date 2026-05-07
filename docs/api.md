@@ -417,3 +417,124 @@
 - 算法从风味标签（Jaccard 相似度 ×100）、类别（×10）、基酒（×10）、原料（×50）、口感（差值累加）五个维度加权评分
 - 每款酒取得分最高的 3 款作为相似推荐
 - 也可通过定时云函数 `wine-scheduler` 每周一凌晨 3 点自动执行
+
+## 酒友广场
+
+### `square.create`
+
+创建广场动态，从喝酒记录分享。
+
+入参：
+
+- `record_id`（必填）
+- `cover_index`：封面图索引，默认 0
+- `location_visibility`：地点公开范围，`name` / `area` / `hidden`，默认 `name`
+- `show_other_note`：是否展示"其他"笔记，默认 true
+
+规则：
+
+- 同一条喝酒记录不能重复发布广场动态
+- 发布后会在 drink_diary 记录上写入 `is_shared_to_square=true` 和 `square_post_id`
+
+### `square.list`
+
+分页查询广场动态列表。
+
+入参：
+
+- `page_no`
+- `page_size`
+
+返回字段：
+
+- 每条动态包含 `nickname`、`avatar_url`、`is_liked`、`is_favorited`、`location_text`
+
+### `square.listMine`
+
+查询当前用户发布的广场动态列表。
+
+入参：
+
+- `page_no`
+- `page_size`
+
+返回字段：
+
+- 与 `square.list` 格式一致
+
+### `square.favorite.listMine`
+
+查询当前用户收藏的广场动态列表。
+
+入参：
+
+- `page_no`
+- `page_size`
+
+返回字段：
+
+- 每条动态额外包含 `favorite_created_at`（收藏时间）
+
+### `square.getDetail`
+
+查询广场动态详情。
+
+入参：
+
+- `post_id`
+
+### `square.like.toggle`
+
+点赞或取消点赞。
+
+入参：
+
+- `post_id`
+
+### `square.favorite.toggle`
+
+收藏或取消收藏。
+
+入参：
+
+- `post_id`
+
+### `square.comment.create`
+
+创建评论。
+
+入参：
+
+- `post_id`
+- `content`（必填，最长 200）
+
+### `square.comment.list`
+
+查询评论列表。
+
+入参：
+
+- `post_id`
+- `page_no`
+- `page_size`
+
+### `square.comment.remove`
+
+删除自己的评论。
+
+入参：
+
+- `comment_id`
+
+### `square.remove`
+
+删除自己的广场动态。
+
+入参：
+
+- `post_id`
+
+规则：
+
+- 删除广场动态不会删除原喝酒记录
+- 会清除 drink_diary 上的 `is_shared_to_square` 和 `square_post_id`

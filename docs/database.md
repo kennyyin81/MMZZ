@@ -16,6 +16,10 @@
 - `wine_topic`
 - `wine_comment`
 - `wine_favorite`
+- `square_post`
+- `square_like`
+- `square_comment`
+- `square_favorite`
 
 ## 通用说明
 
@@ -229,6 +233,8 @@
 - `location_address`
 - `location_lat`
 - `location_lng`
+- `is_shared_to_square`
+- `square_post_id`
 - `is_deleted`
 - `created_at`
 - `updated_at`
@@ -298,3 +304,82 @@
 
 - `idx_favorite_user_wine`：`user_id(asc) + wine_id(asc)`，建议唯一
 - `idx_favorite_user_created`：`user_id(asc) + created_at(desc)`
+
+### `square_post`
+
+用途：酒友广场动态。
+
+关键字段：
+
+- `user_id`
+- `record_id`：关联的喝酒记录 ID
+- `drink_name`
+- `price`
+- `taste_note`
+- `environment_note`
+- `other_note`
+- `images`
+- `cover_url`
+- `cover_index`
+- `location_name`
+- `location_address`
+- `location_visibility`：`name` / `area` / `hidden`
+- `location_text`：根据 visibility 计算后的展示文本
+- `recommendation`：一句话推荐文案
+- `like_count`
+- `comment_count`
+- `favorite_count`
+- `is_deleted`
+- `created_at`
+- `updated_at`
+
+建议索引：
+
+- `idx_square_created`：`is_deleted(neq) + created_at(desc)`
+- `idx_square_user_created`：`user_id(asc) + created_at(desc)`
+- `idx_square_record`：`record_id(asc)`，建议唯一
+
+### `square_like`
+
+用途：广场动态点赞。
+
+关键字段：
+
+- `user_id`
+- `post_id`
+- `created_at`
+
+建议索引：
+
+- `idx_square_like_user_post`：`user_id(asc) + post_id(asc)`，建议唯一
+
+### `square_comment`
+
+用途：广场动态评论。
+
+关键字段：
+
+- `user_id`
+- `post_id`
+- `content`
+- `is_deleted`
+- `created_at`
+
+建议索引：
+
+- `idx_square_comment_post`：`post_id(asc) + created_at(desc)`
+
+### `square_favorite`
+
+用途：广场动态收藏。
+
+关键字段：
+
+- `user_id`
+- `post_id`
+- `created_at`
+
+建议索引：
+
+- `idx_square_fav_user_post`：`user_id(asc) + post_id(asc)`，建议唯一
+- `idx_square_fav_user_created`：`user_id(asc) + created_at(desc)`

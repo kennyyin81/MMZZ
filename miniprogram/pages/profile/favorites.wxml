@@ -1,52 +1,110 @@
 <view class="container">
-  <view class="card hero-card reveal-card">
-    <view class="badge">我的收藏</view>
-    <view class="title" style="margin-top: 18rpx;">收藏的酒款</view>
-    <view class="muted">这里会显示你在酒类详情页收藏过的酒，支持直接进入详情再次查看。</view>
+  <!-- Tab 切换 -->
+  <view class="fav-tabs reveal-card">
+    <view class="fav-tab {{activeTab === 'wine' ? 'fav-tab-active' : ''}}" data-tab="wine" bindtap="switchTab">收藏酒款</view>
+    <view class="fav-tab {{activeTab === 'post' ? 'fav-tab-active' : ''}}" data-tab="post" bindtap="switchTab">收藏动态</view>
   </view>
 
-  <view wx:if="{{!list.length && !loading}}" class="card reveal-card reveal-delay-1">
-    <ui-empty-state
-      title="还没有收藏"
-      description="去选酒里逛逛，看到喜欢的酒再点收藏。"
-    ></ui-empty-state>
-  </view>
-
-  <view
-    wx:for="{{list}}"
-    wx:key="favorite_id"
-    class="list-card wine-list-card reveal-card reveal-delay-1 tap-card"
-    hover-class="is-pressed-soft"
-    hover-stay-time="80"
-    data-id="{{item.wine_id}}"
-    bindtap="goDetail"
-  >
-    <view class="media-frame wine-list-media">
-      <image class="wine-cover" src="{{item.image}}" mode="aspectFit"></image>
+  <!-- 酒款列表 -->
+  <block wx:if="{{activeTab === 'wine'}}">
+    <view wx:if="{{!wineList.length && !wineLoading}}" class="card reveal-card reveal-delay-1">
+      <ui-empty-state
+        title="还没有收藏酒款"
+        description="去选酒里逛逛，看到喜欢的酒再点收藏。"
+      ></ui-empty-state>
     </view>
 
-    <view class="wine-card-body">
-      <view class="row wine-card-head">
-        <view>
-          <view class="row wine-name-row">
-            <view class="wine-card-name">{{item.name}}</view>
-            <view class="subtitle wine-card-alcohol">{{item.alcohol}}</view>
+    <view
+      wx:for="{{wineList}}"
+      wx:key="favorite_id"
+      class="list-card wine-list-card reveal-card reveal-delay-1 tap-card"
+      hover-class="is-pressed-soft"
+      hover-stay-time="80"
+      data-id="{{item.wine_id}}"
+      bindtap="goWineDetail"
+    >
+      <view class="media-frame wine-list-media">
+        <image class="wine-cover" src="{{item.image}}" mode="aspectFit"></image>
+      </view>
+
+      <view class="wine-card-body">
+        <view class="row wine-card-head">
+          <view>
+            <view class="row wine-name-row">
+              <view class="wine-card-name">{{item.name}}</view>
+              <view class="subtitle wine-card-alcohol">{{item.alcohol}}</view>
+            </view>
+            <view class="subtitle wine-card-meta">{{item.category}}</view>
           </view>
-          <view class="subtitle wine-card-meta">{{item.category}}</view>
+          <view class="wine-inline-score">
+            <view class="subtitle">评分</view>
+            <view class="wine-inline-score-value">{{item.averageRatingText}}</view>
+          </view>
         </view>
-        <view class="wine-inline-score">
-          <view class="subtitle">评分</view>
-          <view class="wine-inline-score-value">{{item.averageRatingText}}</view>
+
+        <view class="muted wine-card-summary">{{item.summary}}</view>
+        <view class="subtitle favorite-meta">收藏时间：{{item.favorite_created_at_text}}</view>
+      </view>
+    </view>
+
+    <view class="list-end muted">
+      <text wx:if="{{wineLoading}}">加载中...</text>
+      <text wx:elif="{{wineFinished && wineList.length}}">没有更多数据</text>
+    </view>
+  </block>
+
+  <!-- 动态列表 -->
+  <block wx:if="{{activeTab === 'post'}}">
+    <view wx:if="{{!postList.length && !postLoading}}" class="card reveal-card reveal-delay-1">
+      <ui-empty-state
+        title="还没有收藏动态"
+        description="在广场看到感兴趣的动态，点收藏即可保存。"
+      ></ui-empty-state>
+    </view>
+
+    <view class="square-card card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" wx:for="{{postList}}" wx:key="_id" data-id="{{item._id}}" bindtap="goPostDetail">
+      <view class="square-header">
+        <image wx:if="{{item.avatar_url}}" class="square-avatar" src="{{item.avatar_url}}" mode="aspectFill"></image>
+        <view wx:else class="square-avatar square-avatar-placeholder">友</view>
+        <view class="square-user-info">
+          <view class="square-nickname">{{item.nickname || '微信用户'}}</view>
+          <view class="square-time subtitle">{{item.created_at_text}}</view>
         </view>
       </view>
 
-      <view class="muted wine-card-summary">{{item.summary}}</view>
+      <view class="square-cover-frame" wx:if="{{item.cover_url}}">
+        <image class="square-cover" src="{{item.cover_url}}" mode="aspectFill"></image>
+      </view>
+
+      <view class="square-body">
+        <view class="square-drink-name">{{item.drink_name}}</view>
+        <view class="square-meta-row">
+          <view class="square-meta-item" wx:if="{{item.taste_note}}">口感：{{item.taste_note}}</view>
+          <view class="square-meta-item" wx:if="{{item.environment_note}}">环境：{{item.environment_note}}</view>
+          <view class="square-meta-item" wx:if="{{item.location_text}}">📍 {{item.location_text}}</view>
+        </view>
+      </view>
+
+      <view class="square-footer">
+        <view class="square-stat">
+          <text class="square-stat-icon {{item.is_liked ? 'square-stat-active' : ''}}">{{item.is_liked ? '❤' : '♡'}}</text>
+          <text class="square-stat-num">{{item.like_count || 0}}</text>
+        </view>
+        <view class="square-stat">
+          <text class="square-stat-icon">💬</text>
+          <text class="square-stat-num">{{item.comment_count || 0}}</text>
+        </view>
+        <view class="square-stat">
+          <text class="square-stat-icon square-stat-active-star">★</text>
+          <text class="square-stat-num">{{item.favorite_count || 0}}</text>
+        </view>
+      </view>
       <view class="subtitle favorite-meta">收藏时间：{{item.favorite_created_at_text}}</view>
     </view>
-  </view>
 
-  <view class="list-end muted">
-    <text wx:if="{{loading}}">加载中...</text>
-    <text wx:elif="{{finished && list.length}}">没有更多数据</text>
-  </view>
+    <view class="list-end muted">
+      <text wx:if="{{postLoading}}">加载中...</text>
+      <text wx:elif="{{postFinished && postList.length}}">没有更多数据</text>
+    </view>
+  </block>
 </view>

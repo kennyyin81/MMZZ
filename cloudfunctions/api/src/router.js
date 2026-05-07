@@ -8,6 +8,7 @@ const notifications = require("./handlers/notifications");
 const drinkDiary = require("./handlers/drink-diary");
 const wine = require("./handlers/wine");
 const admin = require("./handlers/admin");
+const square = require("./handlers/square");
 
 const handlers = {
   "auth.getCurrentUser": async (currentUser) => currentUser,
@@ -63,7 +64,18 @@ const handlers = {
   "admin.wine.upsert": admin.adminUpsertWineTopic,
   "admin.wine.remove": admin.adminRemoveWineTopic,
   "admin.user.search": admin.adminSearchUsers,
-  "admin.user.setRoles": admin.adminSetRoles
+  "admin.user.setRoles": admin.adminSetRoles,
+  "square.create": square.createSquarePost,
+  "square.list": square.listSquarePosts,
+  "square.listMine": square.listMySquarePosts,
+  "square.favorite.listMine": square.listMyFavoritePosts,
+  "square.getDetail": square.getSquarePostDetail,
+  "square.like.toggle": square.toggleSquareLike,
+  "square.favorite.toggle": square.toggleSquareFavorite,
+  "square.comment.create": square.createSquareComment,
+  "square.comment.list": square.listSquareComments,
+  "square.comment.remove": square.removeSquareComment,
+  "square.remove": square.removeSquarePost
 };
 
 async function handleAction(currentUser, action, payload) {

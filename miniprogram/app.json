@@ -3,9 +3,13 @@
     "pages/home/index",
     "pages/drink-calendar/detail",
     "pages/wine/index",
+    "pages/square/index",
+    "pages/square/detail",
+    "pages/square/publish",
     "pages/request/my-list",
     "pages/profile/index",
     "pages/profile/favorites",
+    "pages/profile/my-posts",
     "pages/profile/relation",
     "pages/profile/invitation",
     "pages/profile/edit",
@@ -27,7 +31,7 @@
   "window": {
     "navigationBarBackgroundColor": "#f5f6f8",
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "\u9996\u9875",
+    "navigationBarTitleText": "首页",
     "backgroundColor": "#f5f6f8",
     "backgroundTextStyle": "light"
   },
@@ -45,6 +49,10 @@
       {
         "pagePath": "pages/wine/index",
         "text": "选酒"
+      },
+      {
+        "pagePath": "pages/square/index",
+        "text": "广场"
       },
       {
         "pagePath": "pages/profile/index",

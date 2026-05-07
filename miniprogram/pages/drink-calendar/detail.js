@@ -50,6 +50,9 @@ Page({
     createInitialized: false,
     hasLoaded: false,
     recordId: "",
+    shareToSquareAfterSave: false,
+    isSharedToSquare: false,
+    squarePostId: "",
     form: {
       drink_name: "",
       record_date: "",
@@ -122,6 +125,8 @@ Page({
       const dt = splitDateTime(record.drink_time);
       this.setData({
         hasLoaded: true,
+        isSharedToSquare: !!record.is_shared_to_square,
+        squarePostId: String(record.square_post_id || "").trim(),
         form: {
           drink_name: record.drink_name || "",
           record_date: record.record_date || dt.date,
@@ -192,6 +197,61 @@ Page({
       "form.location_lat": 0,
       "form.location_lng": 0
     });
+  },
+
+  onShareToSquareChange(e) {
+    this.setData({ shareToSquareAfterSave: !!e.detail.value });
+  },
+
+  goToSquarePublish() {
+    if (!this.data.recordId) return;
+    wx.navigateTo({ url: `/pages/square/publish?recordId=${this.data.recordId}` });
+  },
+
+  async saveAndShareToSquare() {
+    if (this.data.saving) return;
+    const form = this.data.form;
+    const drinkName = String(form.drink_name || "").trim();
+    if (!drinkName) {
+      wx.showToast({ title: "请输入酒名", icon: "none" });
+      return;
+    }
+    const price = Number(form.price || 0);
+    if (!Number.isFinite(price) || price < 0) {
+      wx.showToast({ title: "价格格式不正确", icon: "none" });
+      return;
+    }
+
+    this.setData({ saving: true });
+    try {
+      await callApi("drinkDiary.update", {
+        record_id: this.data.recordId,
+        record_date: form.record_date || getToday(),
+        drink_name: drinkName,
+        drink_time: `${form.record_date || getToday()} ${form.drink_time_hm || getCurrentTime()}:00`,
+        price,
+        taste_note: String(form.taste_note || "").trim(),
+        environment_note: String(form.environment_note || "").trim(),
+        other_note: String(form.other_note || "").trim(),
+        images: Array.isArray(form.images) ? form.images : [],
+        thumbnail_url: (form.images && form.images[0] && (form.images[0].thumb || form.images[0].url)) || "",
+        location_name: String(form.location_name || "").trim(),
+        location_address: String(form.location_address || "").trim(),
+        location_lat: Number(form.location_lat || 0),
+        location_lng: Number(form.location_lng || 0)
+      });
+      wx.navigateTo({ url: `/pages/square/publish?recordId=${this.data.recordId}` });
+    } catch (err) {
+      showError(err);
+    } finally {
+      this.setData({ saving: false });
+    }
+  },
+
+  goToSquareDetail() {
+    if (!this.data.squarePostId) return;
+    wx.setStorageSync("square_need_refresh", true);
+    wx.navigateTo({ url: `/pages/square/detail?postId=${this.data.squarePostId}` });
   },
 
   previewImage(e) {
@@ -333,9 +393,16 @@ Page({
           mode: "edit"
         });
         wx.showToast({ title: "已创建", icon: "success" });
-        setTimeout(() => {
-          wx.switchTab({ url: "/pages/home/index" });
-        }, 260);
+        if (this.data.shareToSquareAfterSave) {
+          this.setData({ shareToSquareAfterSave: false, isSharedToSquare: false });
+          setTimeout(() => {
+            wx.navigateTo({ url: `/pages/square/publish?recordId=${newId}` });
+          }, 400);
+        } else {
+          setTimeout(() => {
+            wx.switchTab({ url: "/pages/home/index" });
+          }, 260);
+        }
       }
     } catch (err) {
       showError(err);

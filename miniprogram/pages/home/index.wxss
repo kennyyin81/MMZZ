@@ -320,9 +320,10 @@
 }
 
 .day-extra {
+  width: 100%;
+  text-align: center;
   font-size: 16rpx;
   color: #475569;
-  align-self: center;
 }
 
 .panel-mask {

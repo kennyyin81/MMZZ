@@ -1,0 +1,59 @@
+<view class="container">
+  <view wx:if="{{!list.length && !loading}}" class="card reveal-card">
+    <ui-empty-state
+      title="广场还很安静"
+      description="分享你的喝酒记录，让酒友广场热闹起来。"
+    ></ui-empty-state>
+  </view>
+
+  <block wx:else>
+    <view class="square-card card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" wx:for="{{list}}" wx:key="_id" data-id="{{item._id}}" bindtap="goPostDetail">
+      <view class="square-header">
+        <image wx:if="{{item.avatar_url}}" class="square-avatar" src="{{item.avatar_url}}" mode="aspectFill"></image>
+        <view wx:else class="square-avatar square-avatar-placeholder">友</view>
+        <view class="square-user-info">
+          <view class="square-nickname">{{item.nickname || '微信用户'}}</view>
+          <view class="square-time subtitle">{{item.created_at_text}}</view>
+        </view>
+      </view>
+
+      <view class="square-cover-frame" wx:if="{{item.cover_url}}">
+        <image class="square-cover" src="{{item.cover_url}}" mode="aspectFill"></image>
+      </view>
+
+      <view class="square-body">
+        <view class="square-drink-name">{{item.drink_name}}</view>
+        <view class="square-recommendation" wx:if="{{item.recommendation}}">{{item.recommendation}}</view>
+        <view class="square-meta-row">
+          <view class="square-meta-item" wx:if="{{item.taste_note}}">口感：{{item.taste_note}}</view>
+          <view class="square-meta-item" wx:if="{{item.environment_note}}">环境：{{item.environment_note}}</view>
+          <view class="square-meta-item" wx:if="{{item.location_text}}">📍 {{item.location_text}}</view>
+        </view>
+      </view>
+
+      <view class="square-footer">
+        <view class="square-stat" catchtap="onLikeTap" data-id="{{item._id}}">
+          <text class="square-stat-icon {{item.is_liked ? 'square-stat-active' : ''}}">{{item.is_liked ? '❤' : '♡'}}</text>
+          <text class="square-stat-num">{{item.like_count || 0}}</text>
+        </view>
+        <view class="square-stat">
+          <text class="square-stat-icon">💬</text>
+          <text class="square-stat-num">{{item.comment_count || 0}}</text>
+        </view>
+        <view class="square-stat">
+          <text class="square-stat-icon">{{item.is_favorited ? '★' : '☆'}}</text>
+          <text class="square-stat-num">{{item.favorite_count || 0}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="list-end" wx:if="{{finished && list.length}}">
+      <view class="muted">没有更多了</view>
+    </view>
+  </block>
+
+  <view wx:if="{{loading && !list.length}}" class="stack-lg">
+    <ui-skeleton rows="3"></ui-skeleton>
+    <ui-skeleton rows="2" media="{{false}}"></ui-skeleton>
+  </view>
+</view>

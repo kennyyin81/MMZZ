@@ -73,9 +73,25 @@
           </view>
         </view>
       </view>
+
+      <view class="field-block" wx:if="{{!recordId}}">
+        <view class="row share-toggle-row">
+          <view class="field-label share-label">保存后分享到酒友广场</view>
+          <switch class="share-switch" checked="{{shareToSquareAfterSave}}" bindchange="onShareToSquareChange" color="#4f46e5" />
+        </view>
+      </view>
+
       <view class="action-row">
         <button class="ghost-btn action-btn" bindtap="saveRecord" loading="{{saving}}">{{recordId ? '保存修改' : '保存记录'}}</button>
         <button wx:if="{{recordId}}" class="ghost-btn action-btn delete-btn" bindtap="removeRecord" loading="{{deleting}}">删除记录</button>
+      </view>
+
+      <view class="field-block" wx:if="{{recordId && !isSharedToSquare}}">
+        <button class="ghost-btn share-action-btn" bindtap="saveAndShareToSquare" loading="{{saving}}">分享到酒友广场</button>
+      </view>
+
+      <view class="field-block" wx:if="{{recordId && isSharedToSquare}}">
+        <button class="ghost-btn share-view-btn" bindtap="goToSquareDetail">查看广场动态</button>
       </view>
     </view>
   </block>
