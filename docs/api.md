@@ -236,15 +236,35 @@
 - `points_adjusted` 表示审批人直接调分通知
 - 通知中心中的 `approval_pending`、`approval_result`、`points_adjusted` 等消息，前端会按类型跳转到对应页面
 
-## 喝酒日历记录
+## 微醺日历记录
 
 ### `drinkDiary.create`
 
 创建喝酒记录。
 
+入参核心字段：
+
+- `drink_name`
+- `record_date`
+- `drink_time`
+- `price`
+- `taste_note`
+- `environment_note`
+- `other_note`
+- `images`
+- `location_name`
+- `location_address`
+- `location_lat`
+- `location_lng`
+
+补充：
+
+- `remark` 为旧版备注字段，仍兼容写入；新记录优先使用 `taste_note`、`environment_note`、`other_note`
+- 旧记录若仅有 `remark` 且无新字段，前端会自动将 `remark` 迁移至 `other_note` 显示
+
 ### `drinkDiary.listByMonth`
 
-按月份查询当前用户记录，用于首页喝酒日历。
+按月份查询当前用户记录，用于首页微醺日历。
 
 ### `drinkDiary.listByDate`
 
@@ -257,6 +277,14 @@
 ### `drinkDiary.update`
 
 更新单条喝酒记录。
+
+支持更新的字段：
+
+- `drink_name`、`record_date`、`drink_time`、`price`
+- `taste_note`、`environment_note`、`other_note`
+- `remark`（兼容旧字段）
+- `images`、`thumbnail_url`
+- `location_name`、`location_address`、`location_lat`、`location_lng`
 
 ### `drinkDiary.remove`
 

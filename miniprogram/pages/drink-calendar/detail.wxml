@@ -6,11 +6,11 @@
 
   <block wx:else>
     <view class="card reveal-card">
-      <view class="section-title">{{recordId ? '记录信息' : '添加一杯'}}</view>
+      <view class="section-title" wx:if="{{!recordId}}">添加一杯</view>
 
       <view class="field-block">
-        <view class="field-label">酒的名字</view>
-        <input class="input-shell" value="{{form.drink_name}}" data-field="drink_name" bindinput="onInput" placeholder="如：霞多丽白葡萄酒" />
+        <view class="field-label">酒名</view>
+        <input class="input-shell" value="{{form.drink_name}}" data-field="drink_name" bindinput="onInput" placeholder="如：葡萄酒" />
       </view>
 
       <view class="field-block">
@@ -35,8 +35,30 @@
       </view>
 
       <view class="field-block">
-        <view class="field-label">备注</view>
-        <textarea class="input-shell textarea" value="{{form.remark}}" data-field="remark" bindinput="onInput" maxlength="500" placeholder="记录一下当时的口感、场景或心情"></textarea>
+        <view class="row section-head image-head">
+          <view class="field-label image-label">地点</view>
+          <button class="ghost-btn mini-action-btn image-add-btn" bindtap="chooseLocation">选择地点</button>
+        </view>
+        <view wx:if="{{form.location_name}}" class="location-display">
+          <view class="location-name">{{form.location_name}}</view>
+          <view class="muted location-address" wx:if="{{form.location_address}}">{{form.location_address}}</view>
+          <view class="ghost-btn location-remove-btn" bindtap="removeLocation">移除</view>
+        </view>
+      </view>
+
+      <view class="field-block">
+        <view class="field-label">口感</view>
+        <textarea class="input-shell textarea textarea-sm" value="{{form.taste_note}}" data-field="taste_note" bindinput="onInput" maxlength="200" placeholder="记录一下当时的口感体验"></textarea>
+      </view>
+
+      <view class="field-block">
+        <view class="field-label">环境</view>
+        <textarea class="input-shell textarea textarea-sm" value="{{form.environment_note}}" data-field="environment_note" bindinput="onInput" maxlength="200" placeholder="喝酒的场景、氛围"></textarea>
+      </view>
+
+      <view class="field-block">
+        <view class="field-label">其他</view>
+        <textarea class="input-shell textarea textarea-sm" value="{{form.other_note}}" data-field="other_note" bindinput="onInput" maxlength="200" placeholder="其他想记录的"></textarea>
       </view>
 
       <view class="field-block">

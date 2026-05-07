@@ -72,9 +72,16 @@ async function createDrinkDiaryRecord(currentUser, payload) {
   const price = Number(payload.price || 0);
   assert(Number.isFinite(price) && price >= 0, 2001, "价格必须为非负数");
   const remark = assertTextLength(payload.remark || "", "备注", 500, false);
+  const tasteNote = assertTextLength(payload.taste_note || "", "口感", 200, false);
+  const environmentNote = assertTextLength(payload.environment_note || "", "环境", 200, false);
+  const otherNote = assertTextLength(payload.other_note || "", "其他", 200, false);
   const images = normalizeDrinkImages(payload.images);
   assert(images.length > 0, 2001, "至少上传一张图片");
   const thumbnailUrl = String(payload.thumbnail_url || images[0].thumb || images[0].url || "").trim();
+  const locationName = String(payload.location_name || "").trim();
+  const locationAddress = String(payload.location_address || "").trim();
+  const locationLat = Number(payload.location_lat || 0);
+  const locationLng = Number(payload.location_lng || 0);
   const addRes = await db.collection(COLLECTIONS.DRINK_DIARY).add({
     data: {
       user_id: currentUser._id,
@@ -84,8 +91,15 @@ async function createDrinkDiaryRecord(currentUser, payload) {
       drink_time: drinkTime,
       price,
       remark,
+      taste_note: tasteNote,
+      environment_note: environmentNote,
+      other_note: otherNote,
       images,
       thumbnail_url: thumbnailUrl,
+      location_name: locationName,
+      location_address: locationAddress,
+      location_lat: locationLat,
+      location_lng: locationLng,
       is_deleted: false,
       created_at: now(),
       updated_at: now()
@@ -150,6 +164,15 @@ async function updateDrinkDiaryRecord(currentUser, payload) {
   if (Object.prototype.hasOwnProperty.call(payload, "remark")) {
     patch.remark = assertTextLength(payload.remark || "", "备注", 500, false);
   }
+  if (Object.prototype.hasOwnProperty.call(payload, "taste_note")) {
+    patch.taste_note = assertTextLength(payload.taste_note || "", "口感", 200, false);
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "environment_note")) {
+    patch.environment_note = assertTextLength(payload.environment_note || "", "环境", 200, false);
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "other_note")) {
+    patch.other_note = assertTextLength(payload.other_note || "", "其他", 200, false);
+  }
   if (Object.prototype.hasOwnProperty.call(payload, "images")) {
     const images = normalizeDrinkImages(payload.images);
     assert(images.length > 0, 2001, "至少上传一张图片");
@@ -160,6 +183,18 @@ async function updateDrinkDiaryRecord(currentUser, payload) {
   }
   if (Object.prototype.hasOwnProperty.call(payload, "thumbnail_url")) {
     patch.thumbnail_url = String(payload.thumbnail_url || "").trim();
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "location_name")) {
+    patch.location_name = String(payload.location_name || "").trim();
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "location_address")) {
+    patch.location_address = String(payload.location_address || "").trim();
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "location_lat")) {
+    patch.location_lat = Number(payload.location_lat || 0);
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "location_lng")) {
+    patch.location_lng = Number(payload.location_lng || 0);
   }
 
   await db.collection(COLLECTIONS.DRINK_DIARY).doc(recordId).update({ data: patch });

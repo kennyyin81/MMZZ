@@ -101,7 +101,7 @@
       <view class="score-panel">
         <view>
           <view class="subtitle">综合评分</view>
-          <view class="score-value">{{wine.averageRatingText}} / 5</view>
+          <view class="score-value">{{wine.rating_count > 0 ? wine.averageRatingText + ' / 5' : '暂无'}}</view>
           <view class="subtitle score-counts">{{wine.rating_count}} 人评分 · {{wine.comment_count}} 人留言</view>
         </view>
         <view class="stars">

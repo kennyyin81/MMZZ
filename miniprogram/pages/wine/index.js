@@ -23,13 +23,21 @@ const ORDER_OPTIONS = [
   { label: "降序", value: "desc" }
 ];
 
+const SORT_OPTIONS = [
+  { label: "默认", rating: "none", favorite: "none" },
+  { label: "评分最高", rating: "desc", favorite: "none" },
+  { label: "评分最低", rating: "asc", favorite: "none" },
+  { label: "收藏最多", rating: "none", favorite: "desc" },
+  { label: "收藏最少", rating: "none", favorite: "asc" }
+];
+
 const PAGE_SIZE = 20;
 
 function decorateWine(item) {
   const wine = mergeWineMeta(item);
   return {
     ...wine,
-    averageRatingText: Number(wine.average_rating || 0).toFixed(1),
+    averageRatingText: Number(wine.average_rating || 0) > 0 ? Number(wine.average_rating).toFixed(1) : "暂无",
     acidityText: TASTE_LEVELS.acidity[wine.acidity] || "",
     sweetnessText: TASTE_LEVELS.sweetness[wine.sweetness] || "",
     bitternessText: TASTE_LEVELS.bitterness[wine.bitterness] || "",
@@ -49,10 +57,11 @@ Page({
     showBackTop: false,
     tasteFilterOptions: TASTE_FILTER_OPTIONS.map((item) => item.label),
     tasteFilterIndex: 0,
-    ratingOrderOptions: ORDER_OPTIONS.map((item) => item.label),
-    ratingOrderIndex: 0,
     alcoholOrderOptions: ORDER_OPTIONS.map((item) => item.label),
-    alcoholOrderIndex: 0
+    alcoholOrderIndex: 0,
+    sortOptions: SORT_OPTIONS.map((item) => item.label),
+    sortIndex: 0,
+    keyword: ""
   },
 
   onShow() {
@@ -84,11 +93,14 @@ Page({
   },
 
   getFilterPayload(pageNo) {
+    const sortOption = SORT_OPTIONS[this.data.sortIndex] || SORT_OPTIONS[0];
     return {
       page_no: pageNo,
       page_size: PAGE_SIZE,
+      keyword: String(this.data.keyword || "").trim(),
       taste_filter: TASTE_FILTER_OPTIONS[this.data.tasteFilterIndex].value,
-      rating_order: ORDER_OPTIONS[this.data.ratingOrderIndex].value,
+      rating_order: sortOption.rating,
+      favorite_order: sortOption.favorite,
       alcohol_order: ORDER_OPTIONS[this.data.alcoholOrderIndex].value
     };
   },
@@ -147,13 +159,21 @@ Page({
     this.refreshList();
   },
 
-  onRatingOrderChange(e) {
-    this.setData({ ratingOrderIndex: Number(e.detail.value || 0) });
+  onAlcoholOrderChange(e) {
+    this.setData({ alcoholOrderIndex: Number(e.detail.value || 0) });
     this.refreshList();
   },
 
-  onAlcoholOrderChange(e) {
-    this.setData({ alcoholOrderIndex: Number(e.detail.value || 0) });
+  onSortChange(e) {
+    this.setData({ sortIndex: Number(e.detail.value || 0) });
+    this.refreshList();
+  },
+
+  onKeywordInput(e) {
+    this.setData({ keyword: e.detail.value });
+  },
+
+  onSearchConfirm() {
     this.refreshList();
   },
 

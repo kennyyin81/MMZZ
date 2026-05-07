@@ -1,25 +1,28 @@
 <view class="container">
   <view class="card reveal-card">
-    <view class="section-title" style="margin-bottom: 14rpx;">美酒筛选</view>
+    <view class="section-title" style="margin-bottom: 14rpx;">按口味找酒</view>
     <view class="filter-row">
       <view class="filter-item">
-        <view class="subtitle">口感</view>
+        <view class="subtitle">口味偏好</view>
         <picker mode="selector" range="{{tasteFilterOptions}}" value="{{tasteFilterIndex}}" bindchange="onTasteFilterChange">
           <view class="input-shell picker-shell">{{tasteFilterOptions[tasteFilterIndex]}}</view>
         </picker>
       </view>
       <view class="filter-item">
-        <view class="subtitle">评分</view>
-        <picker mode="selector" range="{{ratingOrderOptions}}" value="{{ratingOrderIndex}}" bindchange="onRatingOrderChange">
-          <view class="input-shell picker-shell">{{ratingOrderOptions[ratingOrderIndex]}}</view>
-        </picker>
-      </view>
-      <view class="filter-item">
-        <view class="subtitle">度数</view>
+        <view class="subtitle">酒精度</view>
         <picker mode="selector" range="{{alcoholOrderOptions}}" value="{{alcoholOrderIndex}}" bindchange="onAlcoholOrderChange">
           <view class="input-shell picker-shell">{{alcoholOrderOptions[alcoholOrderIndex]}}</view>
         </picker>
       </view>
+      <view class="filter-item">
+        <view class="subtitle">排序</view>
+        <picker mode="selector" range="{{sortOptions}}" value="{{sortIndex}}" bindchange="onSortChange">
+          <view class="input-shell picker-shell">{{sortOptions[sortIndex]}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="filter-search">
+      <input class="input-shell search-input" value="{{keyword}}" bindinput="onKeywordInput" bindconfirm="onSearchConfirm" placeholder="搜索酒名" confirm-type="search" />
     </view>
   </view>
 

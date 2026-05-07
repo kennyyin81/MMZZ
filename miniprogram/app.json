@@ -44,7 +44,7 @@
       },
       {
         "pagePath": "pages/wine/index",
-        "text": "酒百科"
+        "text": "选酒"
       },
       {
         "pagePath": "pages/profile/index",
@@ -56,6 +56,14 @@
     "ui-empty-state": "/components/ui-empty-state/index",
     "ui-skeleton": "/components/ui-skeleton/index"
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于记录你喝酒时所在的酒馆位置"
+    }
+  },
+  "requiredPrivateInfos": [
+    "chooseLocation"
+  ],
   "lazyCodeLoading": "requiredComponents",
   "style": "v2",
   "sitemapLocation": "sitemap.json"

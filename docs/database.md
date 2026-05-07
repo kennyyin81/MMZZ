@@ -209,7 +209,7 @@
 
 ### `drink_diary`
 
-用途：喝酒日历记录。
+用途：微醺日历记录。
 
 关键字段：
 
@@ -220,8 +220,15 @@
 - `drink_time`
 - `price`
 - `remark`
+- `taste_note`
+- `environment_note`
+- `other_note`
 - `images`
 - `thumbnail_url`
+- `location_name`
+- `location_address`
+- `location_lat`
+- `location_lng`
 - `is_deleted`
 - `created_at`
 - `updated_at`

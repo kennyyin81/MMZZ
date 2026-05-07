@@ -218,21 +218,36 @@ function parseAlcoholValue(alcohol) {
   return match ? Number(match[1]) : 0;
 }
 
-function filterAndSortWineTopics(list, payload, statsMap) {
+function filterAndSortWineTopics(list, payload, statsMap, favCountMap) {
   const tasteFilterInput = String(payload.taste_filter || "all").trim();
   const ratingOrderInput = String(payload.rating_order || "none").trim();
   const alcoholOrderInput = String(payload.alcohol_order || "none").trim();
+  const favoriteOrderInput = String(payload.favorite_order || "none").trim();
+  const keyword = String(payload.keyword || "").trim().toLowerCase();
   const tasteFilter = ["all", "acidity", "sweetness", "bitterness", "spiciness"].includes(tasteFilterInput) ? tasteFilterInput : "all";
   const ratingOrder = ["none", "asc", "desc"].includes(ratingOrderInput) ? ratingOrderInput : "none";
   const alcoholOrder = ["none", "asc", "desc"].includes(alcoholOrderInput) ? alcoholOrderInput : "none";
+  const favoriteOrder = ["none", "asc", "desc"].includes(favoriteOrderInput) ? favoriteOrderInput : "none";
   let result = Array.isArray(list) ? list.slice() : [];
+
+  if (keyword) {
+    result = result.filter((item) => String(item.name || "").toLowerCase().includes(keyword));
+  }
 
   if (tasteFilter && tasteFilter !== "all") {
     result = result.filter((item) => Number(item[tasteFilter] || 0) >= 3);
   }
 
-  if (ratingOrder !== "none" || alcoholOrder !== "none") {
+  if (ratingOrder !== "none" || alcoholOrder !== "none" || favoriteOrder !== "none") {
     result.sort((a, b) => {
+      if (favoriteOrder !== "none") {
+        const aFav = Number((favCountMap && favCountMap[a.wine_id]) || 0);
+        const bFav = Number((favCountMap && favCountMap[b.wine_id]) || 0);
+        const favDiff = aFav - bFav;
+        if (favDiff !== 0) {
+          return favoriteOrder === "asc" ? favDiff : -favDiff;
+        }
+      }
       if (ratingOrder !== "none") {
         const aStats = statsMap[a.wine_id] || {};
         const bStats = statsMap[b.wine_id] || {};
@@ -264,7 +279,15 @@ async function listWineTopics(currentUser, payload) {
 
   const wineIds = raw.map((item) => item.wine_id);
   const statsMap = await getWineStatsMap(wineIds);
-  const filtered = filterAndSortWineTopics(raw, payload || {}, statsMap);
+
+  // Build favorite count map
+  const favCountMap = {};
+  const favRes = await db.collection(COLLECTIONS.WINE_FAVORITE).where({ wine_id: _.in(wineIds) }).field({ wine_id: true }).get();
+  (unwrapList(favRes) || []).forEach((item) => {
+    favCountMap[item.wine_id] = (favCountMap[item.wine_id] || 0) + 1;
+  });
+
+  const filtered = filterAndSortWineTopics(raw, payload || {}, statsMap, favCountMap);
   const pageList = filtered.slice(pager.skip, pager.skip + pager.limit);
 
   const list = pageList.map((topic) => {
@@ -273,7 +296,8 @@ async function listWineTopics(currentUser, payload) {
       ...topic,
       average_rating: stats.average_rating,
       rating_count: stats.rating_count,
-      comment_count: stats.comment_count
+      comment_count: stats.comment_count,
+      favorite_count: favCountMap[topic.wine_id] || 0
     };
   });
 

@@ -6,7 +6,7 @@ function decorateWine(item) {
   const wine = mergeWineMeta(item || {});
   return {
     ...wine,
-    averageRatingText: Number(wine.average_rating || 0).toFixed(1),
+    averageRatingText: Number(wine.average_rating || 0) > 0 ? Number(wine.average_rating).toFixed(1) : "暂无",
     favorite_created_at_text: formatDateTime(wine.favorite_created_at)
   };
 }

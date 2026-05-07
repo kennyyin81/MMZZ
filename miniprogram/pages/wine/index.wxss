@@ -18,6 +18,15 @@
   flex: 0 0 192rpx;
 }
 
+.filter-search {
+  margin-top: 16rpx;
+}
+
+.search-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .picker-shell {
   display: flex;
   align-items: center;

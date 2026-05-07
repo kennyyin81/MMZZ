@@ -8,7 +8,7 @@
   <view wx:if="{{!list.length && !loading}}" class="card reveal-card reveal-delay-1">
     <ui-empty-state
       title="还没有收藏"
-      description="去酒百科里逛逛，看到喜欢的酒再点收藏。"
+      description="去选酒里逛逛，看到喜欢的酒再点收藏。"
     ></ui-empty-state>
   </view>
 

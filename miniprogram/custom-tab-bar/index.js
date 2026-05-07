@@ -10,7 +10,7 @@ Component({
       },
       {
         pagePath: "/pages/wine/index",
-        text: "酒",
+        text: "酒馆",
         icon: "/assets/tab/wine.svg",
         activeIcon: "/assets/tab/wine-active.svg"
       },

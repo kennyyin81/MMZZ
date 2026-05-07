@@ -42,12 +42,12 @@ function decorateWine(wine) {
   const merged = mergeWineMeta(wine || {});
   return {
     ...merged,
-    averageRatingText: Number(merged.average_rating || 0).toFixed(1),
+    averageRatingText: Number(merged.average_rating || 0) > 0 ? Number(merged.average_rating).toFixed(1) : "暂无",
     ratingStars: buildStars(Math.round(Number(merged.average_rating || 0))),
     flavorTags: splitTags(merged.flavor),
     similarWines: (Array.isArray(merged.similar_wines) ? merged.similar_wines : []).map((item) => ({
       ...mergeWineMeta(item),
-      averageRatingText: Number(item.average_rating || 0).toFixed(1)
+      averageRatingText: Number(item.average_rating || 0) > 0 ? Number(item.average_rating).toFixed(1) : "暂无"
     })),
     hasMiddleSection: !!(merged.base_spirit || merged.ingredients || merged.main_ingredients || merged.taste_note || merged.story || (Array.isArray(merged.similar_wines) && merged.similar_wines.length)),
     tasteMetrics: TASTE_META.map((item) => ({

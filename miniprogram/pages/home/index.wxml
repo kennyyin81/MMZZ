@@ -91,7 +91,7 @@
 
     <view class="card reveal-card reveal-delay-2">
       <view class="row month-head">
-        <view class="section-title" style="margin-bottom: 0;">{{calendarMonth}}月喝酒日历</view>
+        <view class="section-title" style="margin-bottom: 0;">{{calendarMonth}}月微醺日历</view>
         <view class="actions">
           <button class="ghost-btn month-btn" data-step="-1" bindtap="switchCalendarMonth">上月</button>
           <view class="month-title">{{calendarMonthLabel}}</view>
