@@ -39,10 +39,12 @@
 - `drink_diary`
 - `wine_topic`
 - `wine_comment`
+- `wine_comment_like`
 - `wine_favorite`
 - `square_post`
 - `square_like`
 - `square_comment`
+- `square_comment_like`
 - `square_favorite`
 
 ## 建议验证
@@ -59,6 +61,17 @@
 10. "我的 > 我的动态"可查看自己发布到广场的所有动态
 
 ## 最近更新
+
+### 2026-05-08
+
+- 喝酒记录新增"度数"字段，与价格同行输入和展示
+- 广场动态详情页布局调整：口感/环境/其他各自独占一行，价格显示在酒名后
+- 广场动态详情页新增度数展示（酒名后，价格右侧）
+- 首页记录列表新增度数展示
+- 新增"更新广场动态"功能，已分享记录修改后可一键同步到广场
+- 新增 API：`square.updateFromRecord`
+- 记录详情页按钮统一次要操作样式（dc-btn-subtle）
+- 修复 `updateSquarePostFromRecord` 中 `location_visibility` 变量名错误
 
 ### 2026-05-07
 

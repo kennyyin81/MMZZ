@@ -1,100 +1,133 @@
-<view class="container">
+<view class="container sq-detail-page">
   <view wx:if="{{loading && !post}}" class="stack-lg">
     <ui-skeleton rows="3"></ui-skeleton>
     <ui-skeleton rows="2" media="{{false}}"></ui-skeleton>
   </view>
 
   <block wx:elif="{{post}}">
-    <view class="card reveal-card">
-      <view class="sq-detail-header">
-        <image wx:if="{{post.avatar_url}}" class="sq-detail-avatar" src="{{post.avatar_url}}" mode="aspectFill"></image>
-        <view wx:else class="sq-detail-avatar sq-detail-avatar-placeholder">友</view>
-        <view class="sq-detail-user-info">
-          <view class="sq-detail-nickname">{{post.nickname || '微信用户'}}</view>
-          <view class="subtitle">{{post.created_at_text}}</view>
-        </view>
-        <button wx:if="{{post.is_owner}}" class="ghost-btn sq-detail-delete-btn" bindtap="removePost" loading="{{deleting}}">删除</button>
+    <view class="sq-detail-header">
+      <image wx:if="{{post.avatar_url}}" class="sq-detail-avatar" src="{{post.avatar_url}}" mode="aspectFill"></image>
+      <view wx:else class="sq-detail-avatar sq-detail-avatar-placeholder">友</view>
+      <view class="sq-detail-user-info">
+        <view class="sq-detail-nickname">{{post.nickname || '微信用户'}}</view>
+        <view class="subtitle">{{post.created_at_text}}</view>
       </view>
+      <button wx:if="{{post.is_owner}}" class="ghost-btn sq-detail-delete-btn" bindtap="removePost" loading="{{deleting}}">删除</button>
+    </view>
 
-      <view class="sq-detail-cover-frame" wx:if="{{post.images.length > 1}}">
-        <scroll-view scroll-x class="sq-detail-scroll">
-          <image class="sq-detail-img" wx:for="{{post.images}}" wx:key="url" src="{{item.thumb || item.url}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage"></image>
-        </scroll-view>
-      </view>
-      <view class="sq-detail-cover-frame" wx:elif="{{post.cover_url}}">
-        <image class="sq-detail-single-img" src="{{post.cover_url}}" mode="aspectFill" data-index="0" bindtap="previewImage"></image>
-      </view>
+    <view class="sq-detail-images" wx:if="{{post.images.length > 1}}">
+      <image class="sq-detail-auto-img" wx:for="{{post.images}}" wx:key="url" src="{{item.thumb || item.url}}" mode="widthFix" data-index="{{index}}" bindtap="previewImage"></image>
+    </view>
+    <view class="sq-detail-images" wx:elif="{{post.cover_url}}">
+      <image class="sq-detail-auto-img" src="{{post.cover_url}}" mode="widthFix" data-index="0" bindtap="previewImage"></image>
+    </view>
 
-      <view class="sq-detail-body">
-        <view class="sq-detail-drink-name">{{post.drink_name}}</view>
-        <view class="sq-detail-recommendation" wx:if="{{post.recommendation}}">{{post.recommendation}}</view>
+    <view class="sq-detail-body">
+      <view class="sq-detail-drink-name">{{post.drink_name}}<text class="sq-detail-price-info"><text class="sq-detail-price" wx:if="{{post.price > 0}}">¥{{post.price}}</text><text class="sq-detail-alcohol" wx:if="{{post.alcohol > 0}}">{{post.alcohol}}%</text></text></view>
+      <view class="sq-detail-recommendation" wx:if="{{post.recommendation}}">{{post.recommendation}}</view>
 
-        <view class="sq-detail-meta">
-          <view class="sq-detail-meta-item" wx:if="{{post.taste_note}}">口感：{{post.taste_note}}</view>
-          <view class="sq-detail-meta-item" wx:if="{{post.environment_note}}">环境：{{post.environment_note}}</view>
-          <view class="sq-detail-meta-item" wx:if="{{post.show_other_note && post.other_note}}">其他：{{post.other_note}}</view>
-          <view class="sq-detail-meta-item" wx:if="{{post.location_text}}">📍 {{post.location_text}}</view>
-          <view class="sq-detail-meta-item" wx:if="{{post.price > 0}}">¥{{post.price}}</view>
-        </view>
-      </view>
-
-      <view class="sq-detail-actions">
-        <view class="sq-detail-action" bindtap="toggleLike">
-          <text class="sq-action-icon {{post.is_liked ? 'sq-action-active' : ''}}">{{post.is_liked ? '❤' : '♡'}}</text>
-          <text class="sq-action-num">{{post.like_count || 0}}</text>
-        </view>
-        <view class="sq-detail-action">
-          <text class="sq-action-icon">💬</text>
-          <text class="sq-action-num">{{post.comment_count || 0}}</text>
-        </view>
-        <view class="sq-detail-action" bindtap="toggleFavorite">
-          <text class="sq-action-icon {{post.is_favorited ? 'sq-action-active-star' : ''}}">{{post.is_favorited ? '★' : '☆'}}</text>
-          <text class="sq-action-num">{{post.favorite_count || 0}}</text>
-        </view>
+      <view class="sq-detail-meta">
+        <view class="sq-detail-meta-row" wx:if="{{post.taste_note}}"><text class="sq-detail-meta-label">口感</text><text class="sq-detail-meta-value">{{post.taste_note}}</text></view>
+        <view class="sq-detail-meta-row" wx:if="{{post.environment_note}}"><text class="sq-detail-meta-label">环境</text><text class="sq-detail-meta-value">{{post.environment_note}}</text></view>
+        <view class="sq-detail-meta-row" wx:if="{{post.show_other_note && post.other_note}}"><text class="sq-detail-meta-label">其他</text><text class="sq-detail-meta-value">{{post.other_note}}</text></view>
+        <view class="sq-detail-meta-row sq-detail-location-btn" wx:if="{{post.location_text}}" bindtap="goLocation"><text class="sq-detail-meta-label">📍</text><text class="sq-detail-meta-value">{{post.location_text}}</text></view>
       </view>
     </view>
 
-    <view class="card reveal-card reveal-delay-1">
-      <view class="section-title">评论</view>
-      <ui-empty-state
-        wx:if="{{!comments.length}}"
-        compact="{{true}}"
-        title="还没有评论"
-        description="来说点什么吧。"
-      ></ui-empty-state>
-
-      <view class="sq-comment-item" wx:for="{{comments}}" wx:key="comment_id">
-        <view class="row sq-comment-head">
-          <view class="row sq-comment-user">
-            <image wx:if="{{item.avatar_url}}" class="sq-comment-avatar" src="{{item.avatar_url}}" mode="aspectFill"></image>
-            <view wx:else class="sq-comment-avatar sq-comment-avatar-placeholder">评</view>
-            <view class="sq-comment-meta">
-              <view class="sq-comment-author">{{item.nickname || '微信用户'}}</view>
-              <view class="subtitle">{{item.created_at_text}}</view>
+    <!-- 评论列表 -->
+    <view class="sq-comment-section" wx:if="{{comments.length}}">
+      <view class="sq-comment-title">评论 ({{total}})</view>
+      <view class="sq-comment-wrapper" wx:for="{{comments}}" wx:key="comment_id">
+        <view class="sq-comment-item">
+          <image wx:if="{{item.avatar_url}}" class="sq-comment-avatar" src="{{item.avatar_url}}" mode="aspectFill"></image>
+          <view wx:else class="sq-comment-avatar sq-comment-avatar-placeholder">评</view>
+          <view class="sq-comment-body">
+            <view class="sq-comment-name">{{item.nickname || '微信用户'}}</view>
+            <view class="sq-comment-content" wx:if="{{item.content}}">{{item.content}}</view>
+            <view class="sq-comment-footer">
+              <view class="sq-comment-time">{{item.created_at_text}}</view>
+              <view class="sq-comment-reply-btn" data-id="{{item.comment_id}}" data-nickname="{{item.nickname || '微信用户'}}" bindtap="replyToComment">回复</view>
             </view>
           </view>
-          <button
-            wx:if="{{item.is_owner}}"
-            size="mini"
-            class="ghost-btn sq-comment-remove-btn"
-            data-id="{{item.comment_id}}"
-            bindtap="removeComment"
-          >删除</button>
+          <view class="sq-comment-actions">
+            <view class="sq-comment-like" data-id="{{item.comment_id}}" bindtap="toggleCommentLike">
+              <text class="sq-comment-like-icon {{item.is_liked ? 'sq-comment-like-active' : ''}}">{{item.is_liked ? '❤' : '♡'}}</text>
+              <text class="sq-comment-like-num" wx:if="{{item.like_count > 0}}">{{item.like_count}}</text>
+            </view>
+            <view wx:if="{{item.is_owner}}" class="sq-comment-del" data-id="{{item.comment_id}}" bindtap="removeComment">删除</view>
+          </view>
         </view>
-        <view class="sq-comment-content" wx:if="{{item.content}}">{{item.content}}</view>
+
+        <!-- 回复列表 -->
+        <view class="sq-reply-list" wx:if="{{item.replies.length}}">
+          <view class="sq-reply-item" wx:for="{{item.displayReplies}}" wx:for-item="reply" wx:key="comment_id">
+            <image wx:if="{{reply.avatar_url}}" class="sq-comment-avatar" src="{{reply.avatar_url}}" mode="aspectFill"></image>
+            <view wx:else class="sq-comment-avatar sq-comment-avatar-placeholder">评</view>
+            <view class="sq-comment-body">
+              <view class="sq-comment-name">{{reply.nickname || '微信用户'}}</view>
+              <view class="sq-comment-content" wx:if="{{reply.content}}">
+                <text wx:if="{{reply.reply_to_id && reply.reply_to_id !== item.comment_id}}" class="sq-reply-reply-tag">回复 {{reply.reply_to_nickname}}：</text>{{reply.content}}
+              </view>
+              <view class="sq-comment-footer">
+                <view class="sq-comment-time">{{reply.created_at_text}}</view>
+                <view class="sq-comment-reply-btn" data-id="{{reply.comment_id}}" data-nickname="{{reply.nickname || '微信用户'}}" bindtap="replyToComment">回复</view>
+              </view>
+            </view>
+            <view class="sq-comment-actions">
+              <view class="sq-comment-like" data-id="{{reply.comment_id}}" bindtap="toggleCommentLike">
+                <text class="sq-comment-like-icon {{reply.is_liked ? 'sq-comment-like-active' : ''}}">{{reply.is_liked ? '❤' : '♡'}}</text>
+                <text class="sq-comment-like-num" wx:if="{{reply.like_count > 0}}">{{reply.like_count}}</text>
+              </view>
+              <view wx:if="{{reply.is_owner}}" class="sq-comment-del" data-id="{{reply.comment_id}}" bindtap="removeComment">删除</view>
+            </view>
+          </view>
+
+          <!-- 展开/收起回复 -->
+          <view
+            wx:if="{{item.hiddenReplyCount > 0}}"
+            class="sq-reply-expand"
+            data-id="{{item.comment_id}}"
+            bindtap="toggleReplies"
+          >
+            <text>{{item.expanded ? '收起回复' : '展开 ' + item.hiddenReplyCount + ' 条回复'}}</text>
+            <text class="sq-reply-expand-arrow {{item.expanded ? 'sq-reply-expand-up' : ''}}">›</text>
+          </view>
+        </view>
       </view>
     </view>
 
-    <view class="card reveal-card reveal-delay-2">
-      <textarea
-        class="input-shell textarea"
-        value="{{commentInput}}"
-        bindinput="onCommentInput"
-        maxlength="200"
-        placeholder="说点什么…"
-        auto-height
-      ></textarea>
-      <button class="btn" type="primary" bindtap="submitComment">发表评论</button>
+    <!-- 底部占位，防止被固定栏遮挡 -->
+    <view class="sq-bottom-placeholder"></view>
+
+    <!-- 底部固定操作栏 -->
+    <view class="sq-bottom-bar">
+      <view class="sq-bar-input" bindtap="focusCommentInput">
+        <input
+          class="sq-bar-input-field"
+          placeholder="{{replyToNickname ? '回复 ' + replyToNickname + '…' : '说点什么…'}}"
+          value="{{commentInput}}"
+          bindinput="onCommentInput"
+          bindconfirm="submitComment"
+          confirm-type="send"
+          focus="{{commentFocus}}"
+          bindblur="onCommentBlur"
+          maxlength="200"
+          adjust-position="{{true}}"
+        />
+        <view wx:if="{{replyToId}}" class="sq-bar-clear-reply" bindtap="clearReply">✕</view>
+      </view>
+      <view class="sq-bar-action" bindtap="toggleLike">
+        <text class="sq-bar-icon {{post.is_liked ? 'sq-bar-active-heart' : ''}}">{{post.is_liked ? '❤' : '♡'}}</text>
+        <text class="sq-bar-num">{{post.like_count || 0}}</text>
+      </view>
+      <view class="sq-bar-action" bindtap="toggleFavorite">
+        <text class="sq-bar-icon {{post.is_favorited ? 'sq-bar-active-star' : ''}}">{{post.is_favorited ? '★' : '☆'}}</text>
+        <text class="sq-bar-num">{{post.favorite_count || 0}}</text>
+      </view>
+      <view class="sq-bar-action">
+        <text class="sq-bar-icon">💬</text>
+        <text class="sq-bar-num">{{post.comment_count || 0}}</text>
+      </view>
     </view>
   </block>
 

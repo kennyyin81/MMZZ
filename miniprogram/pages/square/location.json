@@ -1,0 +1,5 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "同地点动态",
+  "enablePullDownRefresh": true
+}

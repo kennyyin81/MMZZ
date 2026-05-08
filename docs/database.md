@@ -15,10 +15,12 @@
 - `drink_diary`
 - `wine_topic`
 - `wine_comment`
+- `wine_comment_like`
 - `wine_favorite`
 - `square_post`
 - `square_like`
 - `square_comment`
+- `square_comment_like`
 - `square_favorite`
 
 ## 通用说明
@@ -223,6 +225,7 @@
 - `drink_name`
 - `drink_time`
 - `price`
+- `alcohol`：度数，0-100
 - `remark`
 - `taste_note`
 - `environment_note`
@@ -236,6 +239,7 @@
 - `is_shared_to_square`
 - `square_post_id`
 - `is_deleted`
+- `deleted_at`
 - `created_at`
 - `updated_at`
 
@@ -283,12 +287,27 @@
 - `user_id`
 - `content`
 - `rating`
+- `like_count`
 - `created_at`
 
 索引：
 
 - `wine_id + created_at(desc)`
 - `user_id + created_at(desc)`
+
+### `wine_comment_like`
+
+用途：酒款评论点赞。
+
+关键字段：
+
+- `user_id`
+- `comment_id`
+- `created_at`
+
+建议索引：
+
+- `idx_wine_comment_like_user_comment`：`user_id(asc) + comment_id(asc)`，建议唯一
 
 ### `wine_favorite`
 
@@ -315,9 +334,11 @@
 - `record_id`：关联的喝酒记录 ID
 - `drink_name`
 - `price`
+- `alcohol`：度数
 - `taste_note`
 - `environment_note`
 - `other_note`
+- `show_other_note`：是否展示"其他"笔记
 - `images`
 - `cover_url`
 - `cover_index`
@@ -330,6 +351,7 @@
 - `comment_count`
 - `favorite_count`
 - `is_deleted`
+- `deleted_at`
 - `created_at`
 - `updated_at`
 
@@ -362,12 +384,29 @@
 - `user_id`
 - `post_id`
 - `content`
+- `reply_to_id`：回复的评论 ID
+- `reply_to_nickname`：回复的评论者昵称
+- `like_count`
 - `is_deleted`
 - `created_at`
 
 建议索引：
 
 - `idx_square_comment_post`：`post_id(asc) + created_at(desc)`
+
+### `square_comment_like`
+
+用途：广场评论点赞。
+
+关键字段：
+
+- `user_id`
+- `comment_id`
+- `created_at`
+
+建议索引：
+
+- `idx_square_comment_like_user_comment`：`user_id(asc) + comment_id(asc)`，建议唯一
 
 ### `square_favorite`
 

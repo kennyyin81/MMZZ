@@ -1,5 +1,5 @@
 const { callApi, showError } = require("../../utils/api");
-const { syncTabBar, smartTimeAgo } = require("../../utils/const");
+const { smartTimeAgo } = require("../../utils/const");
 
 function splitColumns(list) {
   const left = [];
@@ -13,6 +13,8 @@ function splitColumns(list) {
 
 Page({
   data: {
+    locationName: "",
+    locationText: "",
     loading: false,
     list: [],
     leftList: [],
@@ -20,20 +22,19 @@ Page({
     pageNo: 1,
     pageSize: 10,
     total: 0,
-    finished: false,
-    needRefresh: false
+    finished: false
   },
 
-  onLoad() {
-    this.loadPosts();
-  },
-
-  onShow() {
-    syncTabBar("/pages/square/index");
-    if (this.data.needRefresh || wx.getStorageSync("square_need_refresh")) {
-      wx.removeStorageSync("square_need_refresh");
-      this.refreshPosts();
+  onLoad(options) {
+    const locationName = decodeURIComponent(String(options.locationName || "")).trim();
+    const locationText = decodeURIComponent(String(options.locationText || "")).trim();
+    if (!locationName) {
+      wx.showToast({ title: "缺少地点信息", icon: "none" });
+      return;
     }
+    this.setData({ locationName, locationText });
+    wx.setNavigationBarTitle({ title: locationText || locationName });
+    this.loadPosts();
   },
 
   onPullDownRefresh() {
@@ -50,7 +51,8 @@ Page({
     if (this.data.loading) return;
     this.setData({ loading: true });
     try {
-      const data = await callApi("square.list", {
+      const data = await callApi("square.listByLocation", {
+        location_name: this.data.locationName,
         page_no: this.data.pageNo,
         page_size: this.data.pageSize
       });
@@ -76,14 +78,13 @@ Page({
   },
 
   async refreshPosts() {
-    this.setData({ needRefresh: false, pageNo: 1, list: [], leftList: [], rightList: [], finished: false });
+    this.setData({ pageNo: 1, list: [], leftList: [], rightList: [], finished: false });
     await this.loadPosts();
   },
 
   goPostDetail(e) {
     const id = e.currentTarget.dataset.id;
     if (!id) return;
-    this.setData({ needRefresh: true });
     wx.navigateTo({ url: `/pages/square/detail?postId=${id}` });
   },
 
@@ -109,8 +110,15 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: "酒友广场 - 发现身边的酒友动态",
-      path: "/pages/square/index"
+      title: `${this.data.locationText || this.data.locationName} - 酒友广场`,
+      path: `/pages/square/location?locationName=${encodeURIComponent(this.data.locationName)}&locationText=${encodeURIComponent(this.data.locationText)}`
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: `${this.data.locationText || this.data.locationName} - 酒友广场`,
+      query: `locationName=${encodeURIComponent(this.data.locationName)}&locationText=${encodeURIComponent(this.data.locationText)}`
     };
   }
 });

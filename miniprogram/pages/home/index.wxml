@@ -151,7 +151,7 @@
           <view class="record-main">
             <view class="record-name">{{item.drink_name || '未命名酒款'}}</view>
             <view class="subtitle">{{item.drink_time_text}}</view>
-            <view class="subtitle" wx:if="{{item.price > 0}}">¥ {{item.price}}</view>
+            <view class="subtitle" wx:if="{{item.price > 0 || item.alcohol > 0}}"><text wx:if="{{item.price > 0}}">¥{{item.price}}</text><text wx:if="{{item.alcohol > 0}}" class="record-alcohol">{{item.alcohol}}%</text></view>
           </view>
         </view>
       </view>

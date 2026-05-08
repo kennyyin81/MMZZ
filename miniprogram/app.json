@@ -5,6 +5,7 @@
     "pages/wine/index",
     "pages/square/index",
     "pages/square/detail",
+    "pages/square/location",
     "pages/square/publish",
     "pages/request/my-list",
     "pages/profile/index",

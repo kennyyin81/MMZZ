@@ -44,6 +44,7 @@ Page({
     saving: false,
     deleting: false,
     uploading: false,
+    updatingSquare: false,
     mode: "edit",
     initialDate: "",
     initialTime: "",
@@ -58,6 +59,7 @@ Page({
       record_date: "",
       drink_time_hm: "",
       price: "0",
+      alcohol: "",
       taste_note: "",
       environment_note: "",
       other_note: "",
@@ -100,6 +102,7 @@ Page({
             record_date: date,
             drink_time_hm: time,
             price: "0",
+            alcohol: "",
             taste_note: "",
             environment_note: "",
             other_note: "",
@@ -132,6 +135,7 @@ Page({
           record_date: record.record_date || dt.date,
           drink_time_hm: dt.time,
           price: String(record.price || 0),
+          alcohol: record.alcohol ? String(record.alcohol) : "",
           taste_note: record.taste_note || "",
           environment_note: record.environment_note || "",
           other_note: record.other_note || (record.remark && !record.taste_note && !record.environment_note && !record.other_note ? record.remark : ""),
@@ -230,6 +234,7 @@ Page({
         drink_name: drinkName,
         drink_time: `${form.record_date || getToday()} ${form.drink_time_hm || getCurrentTime()}:00`,
         price,
+        alcohol: Number(form.alcohol || 0),
         taste_note: String(form.taste_note || "").trim(),
         environment_note: String(form.environment_note || "").trim(),
         other_note: String(form.other_note || "").trim(),
@@ -252,6 +257,20 @@ Page({
     if (!this.data.squarePostId) return;
     wx.setStorageSync("square_need_refresh", true);
     wx.navigateTo({ url: `/pages/square/detail?postId=${this.data.squarePostId}` });
+  },
+
+  async updateSquarePost() {
+    if (!this.data.recordId || this.data.updatingSquare) return;
+    this.setData({ updatingSquare: true });
+    try {
+      await callApi("square.updateFromRecord", { record_id: this.data.recordId });
+      wx.setStorageSync("square_need_refresh", true);
+      wx.showToast({ title: "广场动态已更新", icon: "success" });
+    } catch (err) {
+      showError(err);
+    } finally {
+      this.setData({ updatingSquare: false });
+    }
   },
 
   previewImage(e) {
@@ -349,6 +368,7 @@ Page({
         drink_name: drinkName,
         drink_time: `${form.record_date || getToday()} ${form.drink_time_hm || getCurrentTime()}:00`,
         price,
+        alcohol: Number(form.alcohol || 0),
         taste_note: String(form.taste_note || "").trim(),
         environment_note: String(form.environment_note || "").trim(),
         other_note: String(form.other_note || "").trim(),
@@ -374,6 +394,7 @@ Page({
           drink_name: payload.drink_name,
           drink_time: payload.drink_time,
           price: payload.price,
+          alcohol: payload.alcohol,
           taste_note: payload.taste_note,
           environment_note: payload.environment_note,
           other_note: payload.other_note,

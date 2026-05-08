@@ -30,8 +30,16 @@
       </view>
 
       <view class="field-block">
-        <view class="field-label">价格</view>
-        <input class="input-shell" type="digit" value="{{form.price}}" data-field="price" bindinput="onInput" placeholder="如：88" />
+        <view class="row field-row price-alcohol-row">
+          <view class="field-half">
+            <view class="field-label">价格</view>
+            <input class="input-shell" type="digit" value="{{form.price}}" data-field="price" bindinput="onInput" placeholder="如：88" />
+          </view>
+          <view class="field-half">
+            <view class="field-label">度数</view>
+            <input class="input-shell" type="digit" value="{{form.alcohol}}" data-field="alcohol" bindinput="onInput" placeholder="如：12.5" />
+          </view>
+        </view>
       </view>
 
       <view class="field-block">
@@ -81,17 +89,18 @@
         </view>
       </view>
 
-      <view class="action-row">
-        <button class="ghost-btn action-btn" bindtap="saveRecord" loading="{{saving}}">{{recordId ? '保存修改' : '保存记录'}}</button>
-        <button wx:if="{{recordId}}" class="ghost-btn action-btn delete-btn" bindtap="removeRecord" loading="{{deleting}}">删除记录</button>
+      <view class="dc-action-row">
+        <button class="dc-btn dc-btn-subtle" bindtap="saveRecord" loading="{{saving}}">{{recordId ? '保存' : '保存记录'}}</button>
+        <button wx:if="{{recordId}}" class="dc-btn dc-btn-subtle" bindtap="removeRecord" loading="{{deleting}}">删除</button>
       </view>
 
-      <view class="field-block" wx:if="{{recordId && !isSharedToSquare}}">
-        <button class="ghost-btn share-action-btn" bindtap="saveAndShareToSquare" loading="{{saving}}">分享到酒友广场</button>
+      <view class="dc-action-row dc-action-sub" wx:if="{{recordId && !isSharedToSquare}}">
+        <button class="dc-btn dc-btn-subtle" bindtap="saveAndShareToSquare" loading="{{saving}}">分享到酒友广场</button>
       </view>
 
-      <view class="field-block" wx:if="{{recordId && isSharedToSquare}}">
-        <button class="ghost-btn share-view-btn" bindtap="goToSquareDetail">查看广场动态</button>
+      <view class="dc-action-row dc-action-sub" wx:if="{{recordId && isSharedToSquare}}">
+        <button class="dc-btn dc-btn-subtle" bindtap="updateSquarePost" loading="{{updatingSquare}}">更新动态</button>
+        <button class="dc-btn dc-btn-subtle" bindtap="goToSquareDetail">查看动态</button>
       </view>
     </view>
   </block>

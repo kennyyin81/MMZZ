@@ -1,8 +1,8 @@
 <view class="container">
   <view wx:if="{{!list.length && !loading}}" class="card reveal-card">
     <ui-empty-state
-      title="广场还很安静"
-      description="分享你的喝酒记录，让酒友广场热闹起来。"
+      title="这里还没有动态"
+      description="该地点暂无其他人发布过动态。"
     ></ui-empty-state>
   </view>
 

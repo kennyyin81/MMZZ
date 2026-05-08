@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container wine-detail-page">
   <view wx:if="{{loading && !hasLoaded}}" class="stack-lg">
     <ui-skeleton rows="2"></ui-skeleton>
     <ui-skeleton rows="4" media="{{false}}"></ui-skeleton>
@@ -96,6 +96,7 @@
       </view>
     </view>
 
+    <!-- 用户评分摘要 -->
     <view class="card reveal-card reveal-delay-2">
       <view class="section-title">用户评分</view>
       <view class="score-panel">
@@ -112,75 +113,71 @@
           >★</text>
         </view>
       </view>
+    </view>
 
-      <view class="subtitle detail-rate-hint">可以选择星级评分，也可以写下你的体验感受。</view>
-      <view class="stars selectable-stars">
+    <!-- 评论列表 -->
+    <view class="card reveal-card reveal-delay-3" wx:if="{{comments.length}}">
+      <view class="section-title">用户评价 ({{comments.length}})</view>
+      <view class="wine-comment-item" wx:for="{{comments}}" wx:key="comment_id">
+        <image wx:if="{{item.user.avatar_url}}" class="wine-comment-avatar" src="{{item.user.avatar_url}}" mode="aspectFill"></image>
+        <view wx:else class="wine-comment-avatar wine-comment-avatar-placeholder">评</view>
+        <view class="wine-comment-body">
+          <view class="wine-comment-name">{{item.user.nickname || '微信用户'}}</view>
+          <view class="stars wine-comment-stars">
+            <text
+              wx:for="{{item.ratingStars}}"
+              wx:key="value"
+              class="star {{item.active ? 'star-active' : ''}}"
+            >★</text>
+          </view>
+          <view class="wine-comment-content" wx:if="{{item.content}}">{{item.content}}</view>
+          <view class="wine-comment-time">{{item.created_at_text}}</view>
+        </view>
+        <view class="wine-comment-actions">
+          <view class="wine-comment-like" data-id="{{item.comment_id}}" bindtap="toggleCommentLike">
+            <text class="wine-comment-like-icon {{item.is_liked ? 'wine-comment-like-active' : ''}}">{{item.is_liked ? '❤' : '♡'}}</text>
+            <text class="wine-comment-like-num" wx:if="{{item.like_count > 0}}">{{item.like_count}}</text>
+          </view>
+          <view wx:if="{{item.is_owner}}" class="wine-comment-del" data-id="{{item.comment_id}}" bindtap="removeComment">删除</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部占位 -->
+    <view class="wine-bottom-placeholder"></view>
+
+    <!-- 底部固定操作栏 -->
+    <view class="wine-bottom-bar">
+      <view class="wine-bar-input" bindtap="focusCommentInput">
+        <input
+          class="wine-bar-input-field"
+          placeholder="说点什么…"
+          value="{{commentInput}}"
+          bindinput="onCommentInput"
+          bindconfirm="submitComment"
+          confirm-type="send"
+          focus="{{commentFocus}}"
+          bindblur="onCommentBlur"
+          maxlength="200"
+          adjust-position="{{true}}"
+        />
+      </view>
+      <view class="wine-bar-stars">
         <text
           wx:for="{{ratingOptions}}"
           wx:key="value"
-          class="star selectable-star {{item.active ? 'star-active' : ''}}"
+          class="wine-bar-star {{item.active ? 'wine-bar-star-active' : ''}}"
           data-value="{{item.value}}"
           bindtap="chooseRating"
         >★</text>
       </view>
-      <textarea
-        class="input-shell textarea comment-textarea"
-        value="{{commentInput}}"
-        bindinput="onCommentInput"
-        maxlength="200"
-        placeholder="写下你的口感体验、搭配建议或整体评价"
-        auto-height
-      ></textarea>
-      <button class="btn comment-submit-btn" type="primary" bindtap="submitComment" loading="{{sending}}">
-        提交评价
-      </button>
-    </view>
-
-    <view class="card reveal-card reveal-delay-3">
-      <view class="section-title">用户评价</view>
-      <ui-empty-state
-        wx:if="{{!comments.length}}"
-        compact="{{true}}"
-        title="还没有留言"
-        description="来做第一个分享这款酒体验的人。"
-      ></ui-empty-state>
-
-      <view class="comment-item" wx:for="{{comments}}" wx:key="comment_id">
-        <view class="row comment-head">
-          <view class="row comment-user">
-            <image
-              wx:if="{{item.user.avatar_url}}"
-              src="{{item.user.avatar_url}}"
-              mode="aspectFill"
-              class="comment-avatar"
-            />
-            <view wx:else class="comment-avatar comment-avatar-placeholder">评</view>
-            <view class="comment-meta">
-              <view class="comment-author">{{item.user.nickname || item.user.user_id}}</view>
-              <view class="subtitle">{{item.created_at_text}}</view>
-            </view>
-          </view>
-          <button
-            wx:if="{{item.is_owner}}"
-            size="mini"
-            class="ghost-btn comment-remove-btn tap-btn"
-            hover-class="is-pressed"
-            hover-stay-time="60"
-            data-id="{{item.comment_id}}"
-            loading="{{deletingCommentId === item.comment_id}}"
-            bindtap="removeComment"
-          >
-            删除评价
-          </button>
-        </view>
-        <view class="stars comment-stars">
-          <text
-            wx:for="{{item.ratingStars}}"
-            wx:key="value"
-            class="star {{item.active ? 'star-active' : ''}}"
-          >★</text>
-        </view>
-        <view class="comment-content" wx:if="{{item.content}}">{{item.content}}</view>
+      <view class="wine-bar-action" bindtap="toggleFavorite">
+        <text class="wine-bar-icon {{wine.is_favorited ? 'wine-bar-active-heart' : ''}}">{{wine.is_favorited ? '❤' : '♡'}}</text>
+        <text class="wine-bar-num">{{wine.rating_count || 0}}</text>
+      </view>
+      <view class="wine-bar-action">
+        <text class="wine-bar-icon">💬</text>
+        <text class="wine-bar-num">{{comments.length || 0}}</text>
       </view>
     </view>
   </block>

@@ -43,7 +43,20 @@
 
 补充：
 
-- `unread_notification_count` 当前不包含 `approval_pending` 类型，避免与“待我审批”重复提醒
+- `unread_notification_count` 当前不包含 `approval_pending` 类型，避免与"待我审批"重复提醒
+
+### `profile.update`
+
+更新当前用户资料。
+
+入参：
+
+- `nickname`：昵称，最长 20
+- `avatar_url`：头像地址
+
+说明：
+
+- 两个参数均为可选，仅传入的字段会被更新
 
 ### `points.listLedger`
 
@@ -51,7 +64,7 @@
 
 ### `approver.getAssignedUserSummary`
 
-查询当前审批人绑定的被审批对象摘要，用于“直接调分”页。
+查询当前审批人绑定的被审批对象摘要，用于"直接调分"页。
 
 返回字段：
 
@@ -248,6 +261,7 @@
 - `record_date`
 - `drink_time`
 - `price`
+- `alcohol`：度数，0-100
 - `taste_note`
 - `environment_note`
 - `other_note`
@@ -280,7 +294,7 @@
 
 支持更新的字段：
 
-- `drink_name`、`record_date`、`drink_time`、`price`
+- `drink_name`、`record_date`、`drink_time`、`price`、`alcohol`
 - `taste_note`、`environment_note`、`other_note`
 - `remark`（兼容旧字段）
 - `images`、`thumbnail_url`
@@ -367,6 +381,18 @@
 
 删除当前用户自己的评价。
 
+### `wine.comment.like.toggle`
+
+点赞或取消点赞酒款评论。
+
+入参：
+
+- `comment_id`
+
+返回字段：
+
+- `is_liked`
+
 ## 酒款维护
 
 ### `admin.wine.list`
@@ -418,6 +444,31 @@
 - 每款酒取得分最高的 3 款作为相似推荐
 - 也可通过定时云函数 `wine-scheduler` 每周一凌晨 3 点自动执行
 
+### `admin.user.search`
+
+搜索用户（需 ADMIN 角色）。
+
+入参：
+
+- `keyword`：昵称关键词，为空时返回前 30 个用户
+
+返回字段：
+
+- `list`
+
+### `admin.user.setRoles`
+
+设置用户角色（需 ADMIN 角色）。
+
+入参：
+
+- `user_id`（必填）
+- `roles`：角色数组
+
+说明：
+
+- 无论传入什么角色数组，都会自动包含 `USER` 角色
+
 ## 酒友广场
 
 ### `square.create`
@@ -448,6 +499,20 @@
 返回字段：
 
 - 每条动态包含 `nickname`、`avatar_url`、`is_liked`、`is_favorited`、`location_text`
+
+### `square.listByLocation`
+
+按地点名称查询广场动态列表。
+
+入参：
+
+- `location_name`（必填）
+- `page_no`
+- `page_size`
+
+返回字段：
+
+- 与 `square.list` 格式一致
 
 ### `square.listMine`
 
@@ -507,6 +572,7 @@
 
 - `post_id`
 - `content`（必填，最长 200）
+- `reply_to_id`：回复的评论 ID（可选）
 
 ### `square.comment.list`
 
@@ -525,6 +591,31 @@
 入参：
 
 - `comment_id`
+
+### `square.comment.like.toggle`
+
+点赞或取消点赞广场评论。
+
+入参：
+
+- `comment_id`
+
+返回字段：
+
+- `is_liked`
+
+### `square.updateFromRecord`
+
+从喝酒记录同步更新已发布的广场动态。
+
+入参：
+
+- `record_id`（必填）
+
+规则：
+
+- 仅更新记录相关字段（酒名、价格、度数、口感、环境、其他笔记、图片），保留广场特有字段（推荐语、封面索引、其他笔记展示开关、地点公开范围）
+- 喝酒记录必须已分享到广场
 
 ### `square.remove`
 

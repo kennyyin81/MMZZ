@@ -1,21 +1,15 @@
 const { callApi, showError } = require("../../utils/api");
-const { formatDateTime, openPage } = require("../../utils/const");
+const { formatDateTime, smartTimeAgo, openPage } = require("../../utils/const");
 const { mergeWineMeta } = require("../../utils/wine-data");
 
-function timeAgo(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return formatDateTime(value);
-  const now = Date.now();
-  const diff = now - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "刚刚";
-  if (minutes < 60) return `${minutes}分钟前`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}小时前`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}天前`;
-  return formatDateTime(value);
+function splitColumns(list) {
+  const left = [];
+  const right = [];
+  list.forEach((item, i) => {
+    if (i % 2 === 0) left.push(item);
+    else right.push(item);
+  });
+  return { left, right };
 }
 
 function decorateWine(item) {
@@ -39,6 +33,8 @@ Page({
     wineFinished: false,
     // 动态收藏
     postList: [],
+    postLeftList: [],
+    postRightList: [],
     postPageNo: 1,
     postPageSize: 10,
     postTotal: 0,
@@ -94,6 +90,8 @@ Page({
   resetPostAndLoad() {
     this.setData({
       postList: [],
+      postLeftList: [],
+      postRightList: [],
       postPageNo: 1,
       postTotal: 0,
       postFinished: false
@@ -133,13 +131,16 @@ Page({
       });
       const list = (data.list || []).map((item) => ({
         ...item,
-        created_at_text: timeAgo(item.created_at),
+        created_at_text: smartTimeAgo(item.created_at),
         favorite_created_at_text: formatDateTime(item.favorite_created_at)
       }));
       const nextList = this.data.postList.concat(list);
       const total = Number(data.total || 0);
+      const { left, right } = splitColumns(nextList);
       this.setData({
         postList: nextList,
+        postLeftList: left,
+        postRightList: right,
         postTotal: total,
         postFinished: nextList.length >= total,
         postPageNo: this.data.postPageNo + 1

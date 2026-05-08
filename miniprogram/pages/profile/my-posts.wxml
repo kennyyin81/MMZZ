@@ -6,41 +6,52 @@
     ></ui-empty-state>
   </view>
 
-  <view class="square-card card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" wx:for="{{list}}" wx:key="_id" data-id="{{item._id}}" bindtap="goPostDetail">
-    <view class="square-header">
-      <image wx:if="{{item.avatar_url}}" class="square-avatar" src="{{item.avatar_url}}" mode="aspectFill"></image>
-      <view wx:else class="square-avatar square-avatar-placeholder">我</view>
-      <view class="square-user-info">
-        <view class="square-nickname">{{item.nickname || '微信用户'}}</view>
-        <view class="square-time subtitle">{{item.created_at_text}}</view>
+  <view class="wf-wrap">
+    <view class="wf-col">
+      <view class="wf-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" wx:for="{{leftList}}" wx:key="_id" data-id="{{item._id}}" bindtap="goPostDetail">
+        <view class="wf-cover-frame">
+          <image class="wf-cover" src="{{item.cover_url}}" mode="widthFix" wx:if="{{item.cover_url}}"></image>
+          <view wx:else class="wf-cover-placeholder">🍷</view>
+        </view>
+        <view class="wf-info">
+          <view class="wf-name">{{item.drink_name}}</view>
+          <view class="wf-location" wx:if="{{item.location_text}}">📍 {{item.location_text}}</view>
+        </view>
+        <view class="wf-bottom">
+          <view class="wf-user">
+            <image wx:if="{{item.avatar_url}}" class="wf-avatar" src="{{item.avatar_url}}" mode="aspectFill"></image>
+            <view wx:else class="wf-avatar wf-avatar-placeholder">我</view>
+            <text class="wf-nickname">{{item.nickname || '微信用户'}}</text>
+          </view>
+          <view class="wf-like">
+            <text class="wf-like-icon {{item.is_liked ? 'wf-like-active' : ''}}">{{item.is_liked ? '❤' : '♡'}}</text>
+            <text class="wf-like-num">{{item.like_count || 0}}</text>
+          </view>
+        </view>
       </view>
     </view>
 
-    <view class="square-cover-frame" wx:if="{{item.cover_url}}">
-      <image class="square-cover" src="{{item.cover_url}}" mode="aspectFill"></image>
-    </view>
-
-    <view class="square-body">
-      <view class="square-drink-name">{{item.drink_name}}</view>
-      <view class="square-meta-row">
-        <view class="square-meta-item" wx:if="{{item.taste_note}}">口感：{{item.taste_note}}</view>
-        <view class="square-meta-item" wx:if="{{item.environment_note}}">环境：{{item.environment_note}}</view>
-        <view class="square-meta-item" wx:if="{{item.location_text}}">📍 {{item.location_text}}</view>
-      </view>
-    </view>
-
-    <view class="square-footer">
-      <view class="square-stat">
-        <text class="square-stat-icon {{item.is_liked ? 'square-stat-active' : ''}}">{{item.is_liked ? '❤' : '♡'}}</text>
-        <text class="square-stat-num">{{item.like_count || 0}}</text>
-      </view>
-      <view class="square-stat">
-        <text class="square-stat-icon">💬</text>
-        <text class="square-stat-num">{{item.comment_count || 0}}</text>
-      </view>
-      <view class="square-stat">
-        <text class="square-stat-icon">{{item.is_favorited ? '★' : '☆'}}</text>
-        <text class="square-stat-num">{{item.favorite_count || 0}}</text>
+    <view class="wf-col">
+      <view class="wf-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" wx:for="{{rightList}}" wx:key="_id" data-id="{{item._id}}" bindtap="goPostDetail">
+        <view class="wf-cover-frame">
+          <image class="wf-cover" src="{{item.cover_url}}" mode="widthFix" wx:if="{{item.cover_url}}"></image>
+          <view wx:else class="wf-cover-placeholder">🍷</view>
+        </view>
+        <view class="wf-info">
+          <view class="wf-name">{{item.drink_name}}</view>
+          <view class="wf-location" wx:if="{{item.location_text}}">📍 {{item.location_text}}</view>
+        </view>
+        <view class="wf-bottom">
+          <view class="wf-user">
+            <image wx:if="{{item.avatar_url}}" class="wf-avatar" src="{{item.avatar_url}}" mode="aspectFill"></image>
+            <view wx:else class="wf-avatar wf-avatar-placeholder">我</view>
+            <text class="wf-nickname">{{item.nickname || '微信用户'}}</text>
+          </view>
+          <view class="wf-like">
+            <text class="wf-like-icon {{item.is_liked ? 'wf-like-active' : ''}}">{{item.is_liked ? '❤' : '♡'}}</text>
+            <text class="wf-like-num">{{item.like_count || 0}}</text>
+          </view>
+        </view>
       </view>
     </view>
   </view>

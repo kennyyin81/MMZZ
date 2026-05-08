@@ -528,9 +528,45 @@ async function listWineComments(currentUser, payload) {
       ...item,
       nickname: (userMap[item.user_id] && userMap[item.user_id].nickname) || "微信用户",
       avatar_url: (userMap[item.user_id] && userMap[item.user_id].avatar_url) || "",
-      is_owner: item.user_id === currentUser._id
+      is_owner: item.user_id === currentUser._id,
+      like_count: Number(item.like_count || 0),
+      is_liked: false
     }))
   };
+}
+
+async function toggleWineCommentLike(currentUser, payload) {
+  const commentId = String(payload.comment_id || "").trim();
+  assert(commentId, 2001, "comment_id 不能为空");
+
+  const comment = await db.collection(COLLECTIONS.WINE_COMMENT).doc(commentId).get().then(unwrapDoc);
+  assert(comment, 3001, "评论不存在");
+
+  const existing = await db.collection(COLLECTIONS.WINE_COMMENT_LIKE)
+    .where({ user_id: currentUser._id, comment_id: commentId })
+    .limit(1)
+    .get();
+
+  if (unwrapList(existing).length) {
+    const likeDoc = unwrapList(existing)[0];
+    await db.collection(COLLECTIONS.WINE_COMMENT_LIKE).doc(likeDoc._id).remove();
+    await db.collection(COLLECTIONS.WINE_COMMENT).doc(commentId).update({
+      data: { like_count: _.inc(-1) }
+    });
+    return { is_liked: false };
+  }
+
+  await db.collection(COLLECTIONS.WINE_COMMENT_LIKE).add({
+    data: {
+      user_id: currentUser._id,
+      comment_id: commentId,
+      created_at: now()
+    }
+  });
+  await db.collection(COLLECTIONS.WINE_COMMENT).doc(commentId).update({
+    data: { like_count: _.inc(1) }
+  });
+  return { is_liked: true };
 }
 
 async function computeAndSaveSimilarWines(currentUser, payload) {
@@ -605,6 +641,7 @@ module.exports = {
   createWineComment,
   upsertWineRating,
   removeWineComment,
+  toggleWineCommentLike,
   toggleWineFavorite,
   listMyFavoriteWines,
   listWineComments

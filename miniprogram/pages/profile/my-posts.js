@@ -1,25 +1,21 @@
 const { callApi, showError } = require("../../utils/api");
-const { formatDateTime, openPage } = require("../../utils/const");
+const { smartTimeAgo, openPage } = require("../../utils/const");
 
-function timeAgo(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return formatDateTime(value);
-  const now = Date.now();
-  const diff = now - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "刚刚";
-  if (minutes < 60) return `${minutes}分钟前`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}小时前`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}天前`;
-  return formatDateTime(value);
+function splitColumns(list) {
+  const left = [];
+  const right = [];
+  list.forEach((item, i) => {
+    if (i % 2 === 0) left.push(item);
+    else right.push(item);
+  });
+  return { left, right };
 }
 
 Page({
   data: {
     list: [],
+    leftList: [],
+    rightList: [],
     pageNo: 1,
     pageSize: 10,
     total: 0,
@@ -46,6 +42,8 @@ Page({
   resetAndLoad() {
     this.setData({
       list: [],
+      leftList: [],
+      rightList: [],
       pageNo: 1,
       total: 0,
       finished: false,
@@ -63,11 +61,14 @@ Page({
       });
       const list = (data.list || []).map((item) => ({
         ...item,
-        created_at_text: timeAgo(item.created_at)
+        created_at_text: smartTimeAgo(item.created_at)
       }));
       const nextList = this.data.list.concat(list);
+      const { left, right } = splitColumns(nextList);
       this.setData({
         list: nextList,
+        leftList: left,
+        rightList: right,
         total: Number(data.total || 0),
         finished: nextList.length >= Number(data.total || 0),
         pageNo: this.data.pageNo + 1

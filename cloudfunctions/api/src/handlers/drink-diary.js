@@ -82,6 +82,8 @@ async function createDrinkDiaryRecord(currentUser, payload) {
   const locationAddress = String(payload.location_address || "").trim();
   const locationLat = Number(payload.location_lat || 0);
   const locationLng = Number(payload.location_lng || 0);
+  const alcohol = Number(payload.alcohol || 0);
+  assert(!alcohol || (Number.isFinite(alcohol) && alcohol >= 0 && alcohol <= 100), 2001, "度数必须为0-100之间的数字");
   const addRes = await db.collection(COLLECTIONS.DRINK_DIARY).add({
     data: {
       user_id: currentUser._id,
@@ -90,6 +92,7 @@ async function createDrinkDiaryRecord(currentUser, payload) {
       drink_name: drinkName,
       drink_time: drinkTime,
       price,
+      alcohol,
       remark,
       taste_note: tasteNote,
       environment_note: environmentNote,
@@ -160,6 +163,11 @@ async function updateDrinkDiaryRecord(currentUser, payload) {
     const price = Number(payload.price || 0);
     assert(Number.isFinite(price) && price >= 0, 2001, "价格必须为非负数");
     patch.price = price;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "alcohol")) {
+    const alcohol = Number(payload.alcohol || 0);
+    assert(!alcohol || (Number.isFinite(alcohol) && alcohol >= 0 && alcohol <= 100), 2001, "度数必须为0-100之间的数字");
+    patch.alcohol = alcohol;
   }
   if (Object.prototype.hasOwnProperty.call(payload, "remark")) {
     patch.remark = assertTextLength(payload.remark || "", "备注", 500, false);

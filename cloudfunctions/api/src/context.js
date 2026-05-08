@@ -18,11 +18,13 @@ const COLLECTIONS = {
   NOTIFICATION: "notification",
   WINE_TOPIC: "wine_topic",
   WINE_COMMENT: "wine_comment",
+  WINE_COMMENT_LIKE: "wine_comment_like",
   WINE_FAVORITE: "wine_favorite",
   DRINK_DIARY: "drink_diary",
   SQUARE_POST: "square_post",
   SQUARE_LIKE: "square_like",
   SQUARE_COMMENT: "square_comment",
+  SQUARE_COMMENT_LIKE: "square_comment_like",
   SQUARE_FAVORITE: "square_favorite"
 };
 

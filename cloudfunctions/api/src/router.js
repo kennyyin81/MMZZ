@@ -59,6 +59,7 @@ const handlers = {
   "wine.comment.create": wine.createWineComment,
   "wine.rating.upsert": wine.upsertWineRating,
   "wine.comment.remove": wine.removeWineComment,
+  "wine.comment.like.toggle": wine.toggleWineCommentLike,
   "admin.wine.recommendSimilar": wine.computeAndSaveSimilarWines,
   "admin.wine.list": admin.adminListWineTopics,
   "admin.wine.upsert": admin.adminUpsertWineTopic,
@@ -66,7 +67,9 @@ const handlers = {
   "admin.user.search": admin.adminSearchUsers,
   "admin.user.setRoles": admin.adminSetRoles,
   "square.create": square.createSquarePost,
+  "square.updateFromRecord": square.updateSquarePostFromRecord,
   "square.list": square.listSquarePosts,
+  "square.listByLocation": square.listSquarePostsByLocation,
   "square.listMine": square.listMySquarePosts,
   "square.favorite.listMine": square.listMyFavoritePosts,
   "square.getDetail": square.getSquarePostDetail,
@@ -74,6 +77,7 @@ const handlers = {
   "square.favorite.toggle": square.toggleSquareFavorite,
   "square.comment.create": square.createSquareComment,
   "square.comment.list": square.listSquareComments,
+  "square.comment.like.toggle": square.toggleSquareCommentLike,
   "square.comment.remove": square.removeSquareComment,
   "square.remove": square.removeSquarePost
 };
