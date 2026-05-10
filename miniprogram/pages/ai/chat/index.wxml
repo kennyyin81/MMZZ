@@ -1,0 +1,70 @@
+<view class="chat-container">
+  <!-- 消息列表 -->
+  <scroll-view class="message-list" scroll-y scroll-into-view="{{toView}}" scroll-with-animation>
+    <view 
+      id="msg-{{index}}"
+      class="message-item {{item.role === 'user' ? 'user-message' : 'ai-message'}}"
+      wx:for="{{messages}}"
+      wx:key="index"
+    >
+      <view class="message-avatar">
+        <image wx:if="{{item.role === 'ai'}}" src="/assets/quick/notice.svg" class="avatar-img" />
+        <view wx:else class="user-avatar">{{userAvatar}}</view>
+      </view>
+      <view class="message-content">
+        <view class="message-text">{{item.content}}</view>
+        
+        <!-- 酒馆推荐卡片 -->
+        <view wx:if="{{item.recommended_bars && item.recommended_bars.length > 0}}" class="recommendation">
+          <view 
+            class="bar-card" 
+            wx:for="{{item.recommended_bars}}" 
+            wx:for-item="bar"
+            wx:key="bar_id"
+            bindtap="goToBarDetail"
+            data-bar-id="{{bar.bar_id}}"
+          >
+            <view class="bar-header">
+              <text class="bar-name">{{bar.name}}</text>
+              <text class="bar-rating">⭐ {{bar.rating}}</text>
+            </view>
+            <view class="bar-info">
+              <text class="bar-area">{{bar.area}}</text>
+              <text class="bar-price">人均 ¥{{bar.avg_price}}</text>
+            </view>
+            <view class="bar-highlights">{{bar.highlights}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- Loading 状态 -->
+    <view wx:if="{{loading}}" class="message-item ai-message">
+      <view class="message-avatar">
+        <image src="/assets/quick/notice.svg" class="avatar-img" />
+      </view>
+      <view class="message-content">
+        <view class="loading-dots">
+          <view class="dot"></view>
+          <view class="dot"></view>
+          <view class="dot"></view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 输入框 -->
+  <view class="input-area">
+    <input 
+      class="message-input" 
+      placeholder="问我任何酒馆相关的问题..."
+      value="{{inputText}}"
+      bindinput="onInput"
+      bindconfirm="sendMessage"
+      confirm-type="send"
+    />
+    <button class="send-btn" bindtap="sendMessage" disabled="{{!inputText || loading}}">
+      发送
+    </button>
+  </view>
+</view>

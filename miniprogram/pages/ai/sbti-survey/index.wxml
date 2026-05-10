@@ -1,0 +1,61 @@
+<view class="survey-container">
+  <view class="survey-header">
+    <text class="survey-title">完成问卷，AI 为你推荐更适合的酒馆</text>
+    <text class="survey-subtitle">共 5 道题，预计 1 分钟</text>
+  </view>
+
+  <view class="question-card" wx:if="{{currentQuestion >= 0}}">
+    <view class="question-number">Q{{currentQuestion + 1}}/{{questions.length}}</view>
+    <view class="question-text">{{questions[currentQuestion].question}}</view>
+
+    <view wx:if="{{questions[currentQuestion].inputType === 'number'}}" class="budget-input-wrap">
+      <view class="budget-input-box">
+        <input
+          class="budget-input"
+          type="number"
+          placeholder="{{questions[currentQuestion].placeholder}}"
+          value="{{questions[currentQuestion].value}}"
+          bindinput="onBudgetInput"
+        />
+        <text class="budget-unit">{{questions[currentQuestion].unit}}</text>
+      </view>
+      <text class="budget-hint">请输入人均预算金额，单位为元</text>
+    </view>
+
+    <view wx:else class="options-list">
+      <view
+        class="option-item {{item.selected ? 'selected' : ''}}"
+        wx:for="{{currentQuestionOptions}}"
+        wx:key="value"
+        bindtap="toggleOption"
+        data-option="{{item.value}}"
+      >
+        <view class="option-check">
+          <view wx:if="{{item.selected}}" class="check-icon">✓</view>
+        </view>
+        <text class="option-text">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="survey-footer">
+    <button
+      wx:if="{{currentQuestion > 0}}"
+      class="secondary-btn"
+      hover-class="is-pressed"
+      hover-stay-time="60"
+      bindtap="prevQuestion"
+    >
+      上一题
+    </button>
+    <button
+      class="primary-btn {{currentQuestion === questions.length - 1 ? 'submit-btn' : ''}}"
+      hover-class="is-pressed"
+      hover-stay-time="60"
+      bindtap="nextQuestion"
+      disabled="{{!hasAnswer}}"
+    >
+      {{currentQuestion === questions.length - 1 ? '提交' : '下一题'}}
+    </button>
+  </view>
+</view>
