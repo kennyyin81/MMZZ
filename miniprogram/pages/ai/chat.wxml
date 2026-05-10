@@ -1,14 +1,25 @@
 <view class="chat-page">
+  <view class="chat-topbar">
+    <view class="chat-title">AI 酒馆助手</view>
+    <button class="history-btn" bindtap="openSessions">
+      <view class="history-clock">
+        <view class="clock-hand clock-hour"></view>
+        <view class="clock-hand clock-minute"></view>
+      </view>
+      <text>历史</text>
+    </button>
+  </view>
+
   <scroll-view class="message-scroll" scroll-y scroll-with-animation scroll-into-view="{{scrollIntoView}}">
     <view class="welcome-card" wx:if="{{!messages.length && hasLoaded}}">
       <view class="welcome-title">今晚想喝点什么？</view>
-      <view class="welcome-desc">告诉我预算、区域、氛围或口味，我会结合你的 SBTI 画像推荐合适酒馆。</view>
+      <view class="welcome-desc">告诉我预算、区域、氛围或口味，我来帮你找合适的酒馆。</view>
     </view>
 
     <view wx:for="{{messages}}" wx:key="_view_id" id="{{item._view_id}}" class="message-row {{item.isUser ? 'message-row-user' : 'message-row-ai'}}">
       <view class="message-bubble {{item.isUser ? 'bubble-user' : 'bubble-ai'}}">
-        <view class="message-content">{{item.content}}</view>
-        <view class="follow-question" wx:if="{{item.follow_up_question}}">{{item.follow_up_question}}</view>
+        <rich-text class="message-content" nodes="{{item.content_nodes}}"></rich-text>
+        <rich-text class="follow-question" wx:if="{{item.follow_up_question}}" nodes="{{item.follow_up_nodes}}"></rich-text>
         <view class="bar-card-list" wx:if="{{item.hasRecommendedBars}}">
           <view class="bar-card" wx:for="{{item.recommended_bars}}" wx:for-item="bar" wx:key="bar_id" data-id="{{bar.bar_id}}" bindtap="goBarDetail">
             <image class="bar-cover" wx:if="{{bar.image_url}}" src="{{bar.image_url}}" mode="aspectFill"></image>
@@ -23,16 +34,33 @@
             </view>
           </view>
         </view>
-        <button wx:if="{{item.action_hint === 'open_sbti_profile'}}" class="sbti-btn" bindtap="openSbtiProfile">查看我的画像</button>
+        <view class="wine-card-list" wx:if="{{item.hasRecommendedWines}}">
+          <view class="wine-card" wx:for="{{item.recommended_wines}}" wx:for-item="wine" wx:key="wine_id" data-id="{{wine.wine_id}}" bindtap="goWineDetail">
+            <image class="wine-cover" wx:if="{{wine.image}}" src="{{wine.image}}" mode="aspectFill"></image>
+            <view class="wine-cover placeholder" wx:else>WINE</view>
+            <view class="wine-info">
+              <view class="wine-title-line">
+                <text class="wine-name">{{wine.name}}</text>
+                <text class="wine-rating">⭐ {{wine.averageRatingText}}</text>
+              </view>
+              <view class="wine-meta">{{wine.category || '酒品'}} · {{wine.alcohol || '酒精度未知'}}</view>
+              <view class="wine-highlight">{{wine.summary || wine.sceneText || wine.taste_note}}</view>
+              <view class="wine-tag-row" wx:if="{{wine.flavorTags.length}}">
+                <text class="wine-tag" wx:for="{{wine.flavorTags}}" wx:key="*this">{{item}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        <button wx:if="{{item.action_hint === 'open_sbti_profile'}}" class="sbti-btn" bindtap="openSbtiProfile">完善偏好</button>
         <view class="message-time" wx:if="{{item.time_text}}">{{item.time_text}}</view>
       </view>
     </view>
 
-    <view class="sending-row" wx:if="{{sending}}">AI 正在思考...</view>
+    <view class="sending-row" wx:if="{{sending}}">正在为你查找...</view>
   </scroll-view>
 
   <view class="input-bar">
-    <input class="chat-input" value="{{inputValue}}" placeholder="例如：天河附近，安静一点，预算 150" confirm-type="send" bindinput="onInput" bindconfirm="sendMessage" disabled="{{sending}}" />
+    <input class="chat-input" value="{{inputValue}}" placeholder="说说预算、区域或氛围" confirm-type="send" bindinput="onInput" bindconfirm="sendMessage" disabled="{{sending}}" />
     <button class="send-btn" bindtap="sendMessage" loading="{{sending}}" disabled="{{sending}}">发送</button>
   </view>
 </view>

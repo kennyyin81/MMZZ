@@ -20,7 +20,8 @@ App({
 
     wx.cloud.init({
       env: cloudConfig.env,
-      traceUser: true
+      traceUser: true,
+      timeout: 60000
     });
   },
   globalData: {

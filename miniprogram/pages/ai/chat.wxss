@@ -1,20 +1,93 @@
 page {
   background: #f5f6f8;
-  height: 100%;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .chat-page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #f8fafc 0%, #f5f6f8 100%);
 }
 
+.chat-topbar {
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 20rpx 14rpx 24rpx;
+  box-sizing: border-box;
+  background: #f8fafc;
+}
+
+.chat-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #111827;
+}
+
+.history-btn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  height: 60rpx;
+  line-height: 1;
+  margin: 0 0 0 auto;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  color: #4f46e5;
+  font-size: 25rpx;
+  font-weight: 700;
+  background: #eef2ff;
+}
+
+.history-btn::after {
+  border: none;
+}
+
+.history-clock {
+  position: relative;
+  width: 24rpx;
+  height: 24rpx;
+  border: 3rpx solid currentColor;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.clock-hand {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 3rpx;
+  border-radius: 999rpx;
+  background: currentColor;
+  transform-origin: bottom center;
+}
+
+.clock-hour {
+  height: 7rpx;
+  transform: translateX(-50%) rotate(0deg);
+}
+
+.clock-minute {
+  height: 9rpx;
+  transform: translateX(-50%) rotate(90deg);
+}
+
 .message-scroll {
   flex: 1;
-  height: calc(100vh - 132rpx);
+  min-height: 0;
+  height: 0;
   box-sizing: border-box;
-  padding: 28rpx 24rpx 160rpx;
+  padding: 14rpx 24rpx 160rpx;
 }
 
 .welcome-card {
@@ -88,11 +161,13 @@ page {
   opacity: 0.62;
 }
 
-.bar-card-list {
+.bar-card-list,
+.wine-card-list {
   margin-top: 18rpx;
 }
 
-.bar-card {
+.bar-card,
+.wine-card {
   display: flex;
   gap: 18rpx;
   margin-top: 16rpx;
@@ -101,7 +176,8 @@ page {
   background: #f8fafc;
 }
 
-.bar-cover {
+.bar-cover,
+.wine-cover {
   width: 128rpx;
   height: 128rpx;
   border-radius: 18rpx;
@@ -118,44 +194,67 @@ page {
   letter-spacing: 2rpx;
 }
 
-.bar-info {
+.bar-info,
+.wine-info {
   flex: 1;
   min-width: 0;
 }
 
-.bar-title-line {
+.bar-title-line,
+.wine-title-line {
   display: flex;
   justify-content: space-between;
   gap: 12rpx;
   align-items: center;
 }
 
-.bar-name {
+.bar-name,
+.wine-name {
   font-size: 29rpx;
   font-weight: 800;
   color: #111827;
 }
 
-.bar-rating {
+.bar-rating,
+.wine-rating {
   font-size: 23rpx;
   color: #f59e0b;
   white-space: nowrap;
 }
 
 .bar-meta,
-.bar-highlight {
+.bar-highlight,
+.wine-meta,
+.wine-highlight {
   margin-top: 8rpx;
   font-size: 24rpx;
   color: #64748b;
   line-height: 1.45;
 }
 
-.bar-highlight {
+.bar-highlight,
+.wine-highlight {
   color: #475569;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.wine-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 10rpx;
+}
+
+.wine-tag {
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  color: #4f46e5;
+  background: #eef2ff;
+  font-size: 21rpx;
+  line-height: 1.4;
 }
 
 .sbti-btn {
@@ -181,17 +280,18 @@ page {
   bottom: 0;
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 18rpx 24rpx calc(18rpx + env(safe-area-inset-bottom));
+  gap: 12rpx;
+  padding: 18rpx 20rpx calc(18rpx + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 -12rpx 32rpx rgba(15, 23, 42, 0.08);
   box-sizing: border-box;
 }
 
 .chat-input {
-  flex: 1;
-  height: 80rpx;
-  padding: 0 26rpx;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 84rpx;
+  padding: 0 28rpx;
   border-radius: 999rpx;
   background: #f1f5f9;
   font-size: 28rpx;
@@ -199,12 +299,19 @@ page {
 }
 
 .send-btn {
-  width: 144rpx;
-  height: 80rpx;
-  line-height: 80rpx;
+  flex: 0 0 112rpx;
+  width: 112rpx;
+  height: 84rpx;
+  line-height: 84rpx;
+  margin: 0;
+  padding: 0;
   border-radius: 999rpx;
   color: #ffffff;
-  font-size: 28rpx;
+  font-size: 27rpx;
   font-weight: 700;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+.send-btn::after {
+  border: none;
 }

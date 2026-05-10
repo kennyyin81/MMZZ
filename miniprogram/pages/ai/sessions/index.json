@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "历史会话",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "ui-empty-state": "/components/ui-empty-state/index"
+  }
+}

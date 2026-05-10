@@ -7,6 +7,6 @@
     "wx-server-sdk": "^3.0.1"
   },
   "cloudfunction": {
-    "timeout": 30
+    "timeout": 60
   }
 }

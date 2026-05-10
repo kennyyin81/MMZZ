@@ -243,7 +243,7 @@ Page({
     const type = e.currentTarget.dataset.type;
     if (!id) return;
     if (type === "bar") {
-      wx.showToast({ title: "酒馆详情待接入", icon: "none" });
+      openPage(`/pages/bar/detail?bar_id=${id}`);
       return;
     }
     openPage(`/pages/wine/detail?wineId=${id}`);

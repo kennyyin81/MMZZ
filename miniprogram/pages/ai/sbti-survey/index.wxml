@@ -1,0 +1,7 @@
+<view class="placeholder-page">
+  <view class="placeholder-card">
+    <view class="placeholder-title">饮酒偏好问卷</view>
+    <view class="placeholder-desc">完成偏好问卷后，我可以为你推荐更合适的酒馆。</view>
+    <button class="back-btn" bindtap="goBack">返回</button>
+  </view>
+</view>

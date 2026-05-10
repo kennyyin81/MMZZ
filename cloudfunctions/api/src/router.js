@@ -8,11 +8,15 @@ const notifications = require("./handlers/notifications");
 const drinkDiary = require("./handlers/drink-diary");
 const wine = require("./handlers/wine");
 const admin = require("./handlers/admin");
+const ai = require("./handlers/ai");
 const bar = require("./handlers/bar");
+const sbti = require("./handlers/sbti");
 const square = require("./handlers/square");
 
 const handlers = {
   "auth.getCurrentUser": async (currentUser) => currentUser,
+  "sbti.get": sbti.getUserSbti,
+  "sbti.init": sbti.initUserSbti,
   "points.listLedger": points.listPointsLedger,
   "points.adjustByApprover": points.adjustPointsByApprover,
   "profile.update": profile.updateCurrentProfile,
@@ -65,9 +69,15 @@ const handlers = {
   "admin.wine.list": admin.adminListWineTopics,
   "admin.wine.upsert": admin.adminUpsertWineTopic,
   "admin.wine.remove": admin.adminRemoveWineTopic,
+  "admin.ai.ping": ai.ping,
+  "admin.ai.testLLM": ai.testLLM,
+  "ai.chat": ai.aiChat,
+  "ai.getSession": ai.getSession,
+  "ai.listSessions": ai.listSessions,
   "admin.user.search": admin.adminSearchUsers,
   "admin.user.setRoles": admin.adminSetRoles,
   "bar.list": bar.listBars,
+  "bar.getDetail": bar.getBarDetail,
   "square.create": square.createSquarePost,
   "square.updateFromRecord": square.updateSquarePostFromRecord,
   "square.list": square.listSquarePosts,

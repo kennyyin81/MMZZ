@@ -1,6 +1,5 @@
 const {
   db,
-  _,
   COLLECTIONS,
   ROLE,
   assert,
@@ -12,13 +11,20 @@ const {
   requireRole,
   assertTextLength
 } = require("../context");
-const { callLLM, safeParseAIJson, getAIConfig } = require("../ai-client");
 
-const VALID_INTENTS = ["recommend", "knowledge", "chitchat", "sbti"];
+function getAIClient() {
+  return require("../ai-client");
+}
+
+const VALID_INTENTS = ["recommend", "recommend_bar", "recommend_wine", "knowledge", "chitchat", "sbti"];
 
 function normalizeStringList(value) {
   const list = Array.isArray(value) ? value : String(value || "").split(/[\r\n、,，/|；;]+/);
   return Array.from(new Set(list.map((item) => String(item || "").trim()).filter(Boolean)));
+}
+
+function normalizeReplyText(value) {
+  return String(value || "").trim();
 }
 
 function pickBarForPrompt(bar) {
@@ -55,38 +61,101 @@ function summarizeBar(bar) {
   };
 }
 
-function buildMainPrompt(sbti, bars) {
+function pickWineForPrompt(wine) {
+  return {
+    wine_id: wine.wine_id,
+    name: wine.name || "",
+    category: wine.category || "",
+    alcohol: wine.alcohol || "",
+    flavor: normalizeStringList(wine.flavor),
+    base_spirit: wine.base_spirit || "",
+    ingredients: wine.ingredients || wine.main_ingredients || "",
+    taste_note: wine.taste_note || "",
+    summary: wine.summary || "",
+    scene: wine.scene || wine.recommended_scenes || "",
+    target_audience: wine.target_audience || "",
+    keywords: normalizeStringList(wine.keywords),
+    acidity: Number(wine.acidity || 0),
+    sweetness: Number(wine.sweetness || 0),
+    bitterness: Number(wine.bitterness || 0),
+    spiciness: Number(wine.spiciness || 0)
+  };
+}
+
+function summarizeWine(wine) {
+  return {
+    wine_id: wine.wine_id,
+    name: wine.name || "",
+    category: wine.category || "",
+    alcohol: wine.alcohol || "",
+    flavor: wine.flavor || "",
+    summary: wine.summary || "",
+    image_url: wine.image_url || "",
+    base_spirit: wine.base_spirit || "",
+    ingredients: wine.ingredients || wine.main_ingredients || "",
+    main_ingredients: wine.main_ingredients || wine.ingredients || "",
+    taste_note: wine.taste_note || "",
+    scene: wine.scene || wine.recommended_scenes || "",
+    recommended_scenes: wine.recommended_scenes || wine.scene || "",
+    target_audience: wine.target_audience || "",
+    acidity: Number(wine.acidity || 0),
+    sweetness: Number(wine.sweetness || 0),
+    bitterness: Number(wine.bitterness || 0),
+    spiciness: Number(wine.spiciness || 0),
+    average_rating: Number(wine.average_rating || 0),
+    rating_count: Number(wine.rating_count || 0)
+  };
+}
+
+function buildMainPrompt(sbti, bars, wines) {
   return [
-    "你是一个酒馆推荐助手，目标是根据用户饮酒画像和当前对话，给出自然、克制、可执行的建议。",
-    "你需要同时完成意图识别与回复生成。",
-    "只允许输出 JSON，不要输出 markdown，不要输出额外解释。",
+    "你是一个酒馆与酒品推荐助手，目标是根据用户饮酒偏好和当前对话，给出自然、克制、可执行的建议。",
+    "你需要先判断用户意图，再生成回复。酒知识问答和结构化推荐要分开处理，不要混淆。",
+    "只允许输出 JSON，不要输出 JSON 外的额外解释。",
+    "reply 和 follow_up_question 可使用少量 **重点** 强调，但不要使用标题、代码块、表格等复杂 markdown。",
     "JSON 格式固定为：",
-    JSON.stringify({ intent: "recommend|knowledge|chitchat|sbti", reply: "给用户看的自然语言回复", recommended_bar_ids: [], follow_up_question: "" }),
-    "intent 规则：recommend=找酒馆/推荐去哪喝；knowledge=酒知识；chitchat=闲聊；sbti=画像相关。",
-    "如果 intent=recommend，只能从给定酒馆列表中选择 1-3 个 bar_id。需求不明确时可追问，但仍尽量推荐最接近的。",
-    "如果不是 recommend，recommended_bar_ids 必须为空数组。",
-    `用户饮酒画像：${JSON.stringify(sbti || {})}`,
-    `可推荐酒馆列表：${JSON.stringify((bars || []).map(pickBarForPrompt))}`
+    JSON.stringify({ intent: "recommend_bar|recommend_wine|knowledge|chitchat|sbti", reply: "给用户看的自然语言回复", recommended_bar_ids: [], recommended_wine_ids: [], follow_up_question: "" }),
+    "intent 规则：recommend_bar=推荐去哪喝/找酒馆/场所；recommend_wine=推荐喝什么酒/酒品/鸡尾酒/啤酒/葡萄酒；knowledge=解释酒知识但不推荐具体库内酒品；chitchat=闲聊；sbti=偏好相关。",
+    "如果 intent=recommend_bar，只能从给定酒馆列表中选择 1-3 个 bar_id，recommended_wine_ids 必须为空数组。",
+    "如果 intent=recommend_wine，只能从给定酒品列表中选择 1-3 个 wine_id，recommended_bar_ids 必须为空数组。",
+    "如果 intent=knowledge/chitchat/sbti，recommended_bar_ids 和 recommended_wine_ids 都必须为空数组。",
+    "如果用户只是问酒知识、概念、区别、怎么喝，不要强行推荐卡片；可以在 reply 中给建议。",
+    `用户饮酒偏好：${JSON.stringify(sbti || {})}`,
+    `可推荐酒馆列表：${JSON.stringify((bars || []).map(pickBarForPrompt))}`,
+    `可推荐酒品列表：${JSON.stringify((wines || []).map(pickWineForPrompt))}`
   ].join("\n");
 }
 
-function normalizeAIResult(parsed, bars) {
+function normalizeAIResult(parsed, bars, wines) {
   const result = parsed && typeof parsed === "object" ? parsed : {};
-  const intent = VALID_INTENTS.includes(result.intent) ? result.intent : "chitchat";
   const barMap = (Array.isArray(bars) ? bars : []).reduce((acc, bar) => {
     if (bar && bar.bar_id) acc[bar.bar_id] = bar;
     return acc;
   }, {});
-  const rawIds = Array.isArray(result.recommended_bar_ids) ? result.recommended_bar_ids : (Array.isArray(result.bar_ids) ? result.bar_ids : []);
-  const ids = Array.from(new Set(rawIds
+  const wineMap = (Array.isArray(wines) ? wines : []).reduce((acc, wine) => {
+    if (wine && wine.wine_id) acc[wine.wine_id] = wine;
+    return acc;
+  }, {});
+  const rawBarIds = Array.isArray(result.recommended_bar_ids) ? result.recommended_bar_ids : (Array.isArray(result.bar_ids) ? result.bar_ids : []);
+  const rawWineIds = Array.isArray(result.recommended_wine_ids) ? result.recommended_wine_ids : (Array.isArray(result.wine_ids) ? result.wine_ids : []);
+  const barIds = Array.from(new Set(rawBarIds
     .map((id) => String(id || "").trim())
     .filter((id) => id && barMap[id]))).slice(0, 3);
+  const wineIds = Array.from(new Set(rawWineIds
+    .map((id) => String(id || "").trim())
+    .filter((id) => id && wineMap[id]))).slice(0, 3);
+
+  let intent = VALID_INTENTS.includes(result.intent) ? result.intent : "chitchat";
+  if (intent === "recommend") {
+    intent = wineIds.length ? "recommend_wine" : "recommend_bar";
+  }
 
   return {
     intent,
-    reply: String(result.reply || "抱歉，我没太理解，能再说一次吗？").trim(),
-    recommended_bar_ids: intent === "recommend" ? ids : [],
-    follow_up_question: String(result.follow_up_question || "").trim()
+    reply: normalizeReplyText(result.reply || "抱歉，我没太理解，能再说一次吗？"),
+    recommended_bar_ids: intent === "recommend_bar" ? barIds : [],
+    recommended_wine_ids: intent === "recommend_wine" ? wineIds : [],
+    follow_up_question: normalizeReplyText(result.follow_up_question || "")
   };
 }
 
@@ -100,6 +169,13 @@ async function getActiveBars() {
   return unwrapList(res)
     .filter((item) => item && item.bar_id)
     .sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0));
+}
+
+async function getRecommendableWines() {
+  const res = await db.collection(COLLECTIONS.WINE_TOPIC).limit(100).get();
+  return unwrapList(res)
+    .filter((item) => item && item.wine_id)
+    .sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime());
 }
 
 async function getSessionById(sessionId, userId) {
@@ -141,9 +217,10 @@ async function aiChat(currentUser, payload) {
   const sessionId = String(payload.session_id || "").trim();
   const userMessage = assertTextLength(payload.message, "消息", 500, true);
 
-  const [sbti, bars] = await Promise.all([
+  const [sbti, bars, wines] = await Promise.all([
     getSbti(currentUser.openid),
-    getActiveBars()
+    getActiveBars(),
+    getRecommendableWines()
   ]);
 
   const session = sessionId
@@ -151,21 +228,27 @@ async function aiChat(currentUser, payload) {
     : await createSession(currentUser._id, userMessage.slice(0, 20) || "新对话", sbti);
 
   const history = (Array.isArray(session.messages) ? session.messages : [])
-    .slice(-20)
+    .slice(-10)
     .map((item) => ({ role: item.role, content: item.content }))
     .filter((item) => item.content && ["user", "assistant"].includes(item.role));
 
+  const { callLLM, safeParseAIJson } = getAIClient();
   const aiRaw = await callLLM(
-    buildMainPrompt(sbti, bars),
+    buildMainPrompt(sbti, bars, wines),
     history.concat({ role: "user", content: userMessage }),
     { temperature: 0.35 }
   );
-  const parsed = normalizeAIResult(safeParseAIJson(aiRaw), bars);
+  const parsed = normalizeAIResult(safeParseAIJson(aiRaw), bars, wines);
   const barMap = bars.reduce((acc, bar) => {
     acc[bar.bar_id] = bar;
     return acc;
   }, {});
+  const wineMap = wines.reduce((acc, wine) => {
+    acc[wine.wine_id] = wine;
+    return acc;
+  }, {});
   const recommendedBars = parsed.recommended_bar_ids.map((id) => summarizeBar(barMap[id])).filter(Boolean);
+  const recommendedWines = parsed.recommended_wine_ids.map((id) => summarizeWine(wineMap[id])).filter(Boolean);
 
   const messageTime = now();
   const nextMessages = (Array.isArray(session.messages) ? session.messages : []).concat([
@@ -177,6 +260,8 @@ async function aiChat(currentUser, payload) {
       intent: parsed.intent,
       recommended_bar_ids: parsed.recommended_bar_ids,
       recommended_bars: recommendedBars,
+      recommended_wine_ids: parsed.recommended_wine_ids,
+      recommended_wines: recommendedWines,
       follow_up_question: parsed.follow_up_question
     }
   ]);
@@ -195,6 +280,8 @@ async function aiChat(currentUser, payload) {
     reply: parsed.reply,
     recommended_bar_ids: parsed.recommended_bar_ids,
     recommended_bars: recommendedBars,
+    recommended_wine_ids: parsed.recommended_wine_ids,
+    recommended_wines: recommendedWines,
     follow_up_question: parsed.follow_up_question,
     action_hint: parsed.intent === "sbti" ? "open_sbti_profile" : ""
   };
@@ -232,9 +319,21 @@ async function listSessions(currentUser, payload) {
   };
 }
 
-async function testLLM(currentUser, payload) {
-  requireRole(currentUser, [ROLE.ADMIN, ROLE.SOMMELIER]);
+async function ping() {
+  return {
+    ok: true,
+    module: "ai",
+    message: "AI handler loaded"
+  };
+}
 
+async function testLLM(currentUser, payload) {
+  // 云端测试没有登录态；currentUser 存在时仍按管理员/品酒师权限校验。
+  if (currentUser) {
+    requireRole(currentUser, [ROLE.ADMIN, ROLE.SOMMELIER]);
+  }
+
+  const { callLLM, getAIConfig } = getAIClient();
   const message = assertTextLength(payload.message || "你好", "测试消息", 200, true);
   const reply = await callLLM(
     "You are a helpful assistant.",
@@ -254,5 +353,6 @@ module.exports = {
   aiChat,
   getSession,
   listSessions,
+  ping,
   testLLM
 };

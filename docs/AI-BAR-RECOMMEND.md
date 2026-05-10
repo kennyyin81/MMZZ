@@ -724,7 +724,7 @@ function calcDistance(lat1, lng1, lat2, lng2) {
 | 3.2 | 后端：`ai.getSession` / `ai.listSessions` 接口 | 2 个 action |
 | 3.3 | 后端：`bar.list` / `bar.getDetail` 接口 | 2 个 action |
 | 3.4 | 前端：AI 对话页 `pages/ai/chat`（消息列表 + 输入框 + loading） | 页面四件套 |
-| 3.5 | 前端：按 intent 分支渲染（推荐卡片 / 纯文本 / 画像按钮） | 渲染逻辑 |
+| 3.5 | 前端：按 intent 分支渲染（酒馆卡片 / 酒品卡片 / 纯文本 / 偏好按钮） | 渲染逻辑 |
 | 3.6 | 前端：酒馆详情页 `pages/bar/detail` | 页面四件套 |
 | 3.7 | `app.json` 注册 `pages/ai/chat` 和 `pages/bar/detail` | 路由生效 |
 | 3.8 | 联调：推荐/知识/闲聊/画像 4 种意图测试 | 全部意图走通 |
@@ -741,12 +741,13 @@ function calcDistance(lat1, lng1, lat2, lng2) {
 - 第二个 Tab `pages/wine/index` 已尝试接入混合流：前端同时调用 `wine.list` + `bar.list`，合并后随机打乱展示。
 - 酒馆卡片目前只展示，不跳详情；点击先提示“酒馆详情待接入”。
 
-当前暂缓 / 占位：
+当前进展 / 暂缓：
 
-- `bar.getDetail` 暂不注册到 `router.js`。
-- `ai.chat` / `ai.getSession` / `ai.listSessions` 暂不注册到 `router.js`。
-- `admin.ai.testLLM` 暂不注册到 `router.js`。
-- `cloudfunctions/api/src/handlers/ai.js`、`cloudfunctions/api/src/ai-client.js`、`miniprogram/pages/ai/`、`miniprogram/pages/bar/` 暂作为占位文件保留。
+- `bar.getDetail` 已注册到 `router.js`，并加入 `PUBLIC_ACTIONS` 便于云端测试。
+- `admin.ai.testLLM` 已注册到 `router.js`，TokenHub `deepseek-v4-flash` 调用已验证通过。
+- `ai.chat` 已注册到 `router.js`，用于小程序端登录态下基础对话联调。
+- `ai.getSession` / `ai.listSessions` 已注册到 `router.js`，用于读取当前用户自己的会话详情和会话列表。
+- `cloudfunctions/api/src/handlers/ai.js`、`cloudfunctions/api/src/ai-client.js`、`miniprogram/pages/ai/`、`miniprogram/pages/bar/` 已从占位进入小步联调阶段。
 
 接入原则：
 
@@ -759,12 +760,12 @@ function calcDistance(lat1, lng1, lat2, lng2) {
 
 | 顺序 | 动作 | 验收 |
 |------|------|------|
-| 1 | 确认第二个 Tab 混合展示稳定 | 酒款和酒馆都能出现；`bar.list` 失败时酒款仍可展示 |
-| 2 | 最小接入 `bar.getDetail`，并加入 `PUBLIC_ACTIONS` | 云端测试 `bar.getDetail` 能返回 `bar_info` 单条记录 |
-| 3 | 酒馆卡片点击跳转 `pages/bar/detail?bar_id=xxx` | 酒馆详情页能展示图片、地址、电话、标签、评分 |
-| 4 | 恢复 `admin.ai.testLLM` | 小程序端调用能返回 `deepseek-v4-flash` 回复 |
-| 5 | 接入 `ai.getSession` / `ai.listSessions` | 当前用户能读取自己的会话列表和历史 |
-| 6 | 接入 `ai.chat` 基础版 | 能读取 `user_sbti(openid)` + `bar_info`，返回 reply 和推荐酒馆 |
+| 1 | 确认第二个 Tab 混合展示稳定 | 已接入，待页面回归 |
+| 2 | 最小接入 `bar.getDetail`，并加入 `PUBLIC_ACTIONS` | 已接入，待云端测试 |
+| 3 | 酒馆卡片点击跳转 `pages/bar/detail?bar_id=xxx` | 已接入，待页面回归 |
+| 4 | 恢复 `admin.ai.testLLM` | 已注册，TokenHub 调用已验证通过 |
+| 5 | 接入 `ai.chat` 基础版 | 已注册，待小程序端登录态联调 |
+| 6 | 接入 `ai.getSession` / `ai.listSessions` | 已注册，待会话历史回归 |
 | 7 | AI 对话页联调 | 推荐 / 知识 / 闲聊 / 画像相关 4 类意图走通 |
 
 ---

@@ -5,17 +5,88 @@ function makeViewId(prefix) {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 }
 
+function makeTextNodes(text) {
+  const parts = String(text || "").split("\n");
+  return parts.reduce((nodes, part, index) => {
+    if (part) {
+      nodes.push({ type: "text", text: part });
+    }
+    if (index < parts.length - 1) {
+      nodes.push({ name: "br" });
+    }
+    return nodes;
+  }, []);
+}
+
+function splitTags(value) {
+  return String(value || "")
+    .split(/[\r\n、,，/|；;]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+function parseMarkdownNodes(value) {
+  const text = String(value || "").trim();
+  if (!text) return [];
+  const nodes = [];
+  const pattern = /(\*\*([\s\S]+?)\*\*|__([\s\S]+?)__|`([^`\n]+)`)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = pattern.exec(text))) {
+    if (match.index > lastIndex) {
+      nodes.push(...makeTextNodes(text.slice(lastIndex, match.index)));
+    }
+    const boldText = match[2] || match[3];
+    const codeText = match[4];
+    if (boldText) {
+      nodes.push({
+        name: "span",
+        attrs: { style: "font-weight: 700;" },
+        children: makeTextNodes(boldText)
+      });
+    } else if (codeText) {
+      nodes.push({
+        name: "span",
+        attrs: { style: "padding: 2px 5px; border-radius: 4px; background: rgba(99,102,241,0.10); color: #4f46e5;" },
+        children: [{ type: "text", text: codeText }]
+      });
+    }
+    lastIndex = pattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(...makeTextNodes(text.slice(lastIndex)));
+  }
+  return nodes.length ? nodes : makeTextNodes(text);
+}
+
 function normalizeMessage(item) {
   const role = item.role === "assistant" ? "assistant" : "user";
   const recommendedBars = Array.isArray(item.recommended_bars) ? item.recommended_bars : [];
+  const recommendedWines = (Array.isArray(item.recommended_wines) ? item.recommended_wines : []).map((wine) => {
+    const merged = mergeWineMeta(wine || {});
+    return {
+      ...merged,
+      flavorTags: splitTags(merged.flavor),
+      sceneText: merged.scene || merged.recommended_scenes || "",
+      averageRatingText: Number(merged.average_rating || 0) > 0 ? Number(merged.average_rating).toFixed(1) : "暂无"
+    };
+  });
   return {
     ...item,
     role,
     isUser: role === "user",
     isAssistant: role === "assistant",
     content: item.content || "",
+    content_nodes: parseMarkdownNodes(item.content),
+    follow_up_question: item.follow_up_question || "",
+    follow_up_nodes: parseMarkdownNodes(item.follow_up_question),
     recommended_bars: recommendedBars,
+    recommended_wines: recommendedWines,
     hasRecommendedBars: recommendedBars.length > 0,
+    hasRecommendedWines: recommendedWines.length > 0,
     time_text: item.time ? formatDateTime(item.time).slice(5, 16) : "",
     _view_id: makeViewId(role)
   };
@@ -99,6 +170,8 @@ Page({
         intent: data.intent || "chitchat",
         recommended_bar_ids: data.recommended_bar_ids || [],
         recommended_bars: data.recommended_bars || [],
+        recommended_wine_ids: data.recommended_wine_ids || [],
+        recommended_wines: data.recommended_wines || [],
         follow_up_question: data.follow_up_question || "",
         action_hint: data.action_hint || ""
       });
@@ -119,7 +192,17 @@ Page({
     wx.navigateTo({ url: `/pages/bar/detail?bar_id=${barId}` });
   },
 
+  goWineDetail(e) {
+    const wineId = e.currentTarget.dataset.id;
+    if (!wineId) return;
+    wx.navigateTo({ url: `/pages/wine/detail?wineId=${wineId}` });
+  },
+
+  openSessions() {
+    wx.navigateTo({ url: "/pages/ai/sessions/index" });
+  },
+
   openSbtiProfile() {
-    wx.showToast({ title: "画像页由 FT-2 接入", icon: "none" });
+    wx.navigateTo({ url: "/pages/ai/sbti-survey/index" });
   }
 });

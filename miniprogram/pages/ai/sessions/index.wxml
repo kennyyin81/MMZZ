@@ -1,0 +1,26 @@
+<view class="session-page">
+  <view class="session-header">
+    <view>
+      <view class="page-title">历史会话</view>
+      <view class="page-desc">选择一个对话继续聊</view>
+    </view>
+    <button class="new-btn" bindtap="newSession">新对话</button>
+  </view>
+
+  <view class="session-list" wx:if="{{list.length}}">
+    <view class="session-card" wx:for="{{list}}" wx:key="session_id" data-id="{{item.session_id}}" bindtap="openSession">
+      <view class="session-main">
+        <view class="session-title">{{item.title}}</view>
+        <view class="session-last">{{item.last_message}}</view>
+      </view>
+      <view class="session-side">
+        <view>{{item.updated_at_text}}</view>
+        <view>{{item.message_count}} 条</view>
+      </view>
+    </view>
+  </view>
+
+  <ui-empty-state wx:if="{{!loading && !list.length}}" title="暂无历史会话" description="开始一次新对话后，会在这里显示。" />
+  <view class="loading-text" wx:if="{{loading}}">加载中...</view>
+  <view class="loading-text" wx:if="{{!loading && list.length && finished}}">没有更多了</view>
+</view>

@@ -1,7 +1,15 @@
+const DEFAULT_TIMEOUT_MS = 30000;
+const AI_TIMEOUT_MS = 60000;
+
+function getTimeout(action) {
+  return String(action || "").startsWith("ai.") ? AI_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+}
+
 function callApi(action, payload, userInfo) {
   return new Promise((resolve, reject) => {
     wx.cloud.callFunction({
       name: "api",
+      timeout: getTimeout(action),
       data: {
         action,
         payload: payload || {},

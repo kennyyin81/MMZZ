@@ -8,6 +8,7 @@
     "pages/square/location",
     "pages/square/publish",
     "pages/ai/chat",
+    "pages/ai/sessions/index",
     "pages/bar/detail",
     "pages/request/my-list",
     "pages/profile/index",
@@ -30,8 +31,7 @@
     "pages/approval/detail",
     "pages/admin/user-role",
     "pages/admin/wine-topic",
-    "pages/ai/sbti-survey/index",
-    "pages/ai/chat/index"
+    "pages/ai/sbti-survey/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#f5f6f8",
