@@ -8,6 +8,7 @@ const notifications = require("./handlers/notifications");
 const drinkDiary = require("./handlers/drink-diary");
 const wine = require("./handlers/wine");
 const admin = require("./handlers/admin");
+const bar = require("./handlers/bar");
 const square = require("./handlers/square");
 
 const handlers = {
@@ -66,6 +67,7 @@ const handlers = {
   "admin.wine.remove": admin.adminRemoveWineTopic,
   "admin.user.search": admin.adminSearchUsers,
   "admin.user.setRoles": admin.adminSetRoles,
+  "bar.list": bar.listBars,
   "square.create": square.createSquarePost,
   "square.updateFromRecord": square.updateSquarePostFromRecord,
   "square.list": square.listSquarePosts,

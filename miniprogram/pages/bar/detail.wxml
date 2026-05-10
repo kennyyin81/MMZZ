@@ -1,0 +1,70 @@
+<view class="page">
+  <view wx:if="{{loading && !bar}}" class="loading">加载中...</view>
+
+  <block wx:if="{{bar}}">
+    <view class="hero">
+      <image class="hero-image" wx:if="{{bar.cover_url}}" src="{{bar.cover_url}}" mode="aspectFill" data-index="0" bindtap="previewImage"></image>
+      <view class="hero-placeholder" wx:else>BAR</view>
+      <view class="hero-mask"></view>
+      <view class="hero-content">
+        <view class="bar-name">{{bar.name}}</view>
+        <view class="bar-subtitle">{{bar.area}} · {{bar.bar_type}} · {{bar.priceText}}</view>
+        <view class="rating-pill">⭐ {{bar.ratingText}}</view>
+      </view>
+    </view>
+
+    <view class="section card">
+      <view class="section-title">推荐亮点</view>
+      <view class="desc">{{bar.highlights || bar.description || '暂无介绍'}}</view>
+      <view class="desc muted" wx:if="{{bar.description && bar.highlights}}">{{bar.description}}</view>
+    </view>
+
+    <view class="section card">
+      <view class="section-title">酒馆信息</view>
+      <view class="info-row">
+        <text class="info-label">营业时间</text>
+        <text class="info-value">{{bar.business_hours || '暂无'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">地址</text>
+        <text class="info-value">{{bar.address || '暂无'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">电话</text>
+        <text class="info-value">{{bar.phone || '暂无'}}</text>
+      </view>
+      <view class="action-row">
+        <button class="action-btn" bindtap="copyAddress">复制地址</button>
+        <button class="action-btn" bindtap="openMap">打开地图</button>
+        <button class="action-btn primary" bindtap="callPhone">拨打电话</button>
+      </view>
+    </view>
+
+    <view class="section card" wx:if="{{bar.drink_types.length || bar.taste_tags.length || bar.atmosphere_tags.length || bar.scene_tags.length}}">
+      <view class="section-title">标签</view>
+      <view class="tag-group" wx:if="{{bar.drink_types.length}}">
+        <view class="tag-title">酒类</view>
+        <text class="tag" wx:for="{{bar.drink_types}}" wx:key="*this">{{item}}</text>
+      </view>
+      <view class="tag-group" wx:if="{{bar.taste_tags.length}}">
+        <view class="tag-title">口味</view>
+        <text class="tag" wx:for="{{bar.taste_tags}}" wx:key="*this">{{item}}</text>
+      </view>
+      <view class="tag-group" wx:if="{{bar.atmosphere_tags.length}}">
+        <view class="tag-title">氛围</view>
+        <text class="tag" wx:for="{{bar.atmosphere_tags}}" wx:key="*this">{{item}}</text>
+      </view>
+      <view class="tag-group" wx:if="{{bar.scene_tags.length}}">
+        <view class="tag-title">场景</view>
+        <text class="tag" wx:for="{{bar.scene_tags}}" wx:key="*this">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="section card" wx:if="{{bar.images.length > 1}}">
+      <view class="section-title">环境相册</view>
+      <view class="gallery">
+        <image class="gallery-image" wx:for="{{bar.images}}" wx:key="url" src="{{item.thumb || item.url}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage"></image>
+      </view>
+    </view>
+  </block>
+</view>

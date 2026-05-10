@@ -37,12 +37,48 @@ function decorateWine(item) {
   const wine = mergeWineMeta(item);
   return {
     ...wine,
+    item_type: "wine",
+    item_key: `wine_${wine.wine_id}`,
+    isWine: true,
+    isBar: false,
     averageRatingText: Number(wine.average_rating || 0) > 0 ? Number(wine.average_rating).toFixed(1) : "暂无",
     acidityText: TASTE_LEVELS.acidity[wine.acidity] || "",
     sweetnessText: TASTE_LEVELS.sweetness[wine.sweetness] || "",
     bitternessText: TASTE_LEVELS.bitterness[wine.bitterness] || "",
     spicinessText: TASTE_LEVELS.spiciness[wine.spiciness] || ""
   };
+}
+
+function getBarCover(item) {
+  if (item.image_url) return item.image_url;
+  const first = Array.isArray(item.images) ? item.images[0] : null;
+  if (typeof first === "string") return first;
+  return (first && (first.thumb || first.url)) || "";
+}
+
+function decorateBar(item) {
+  return {
+    ...item,
+    item_type: "bar",
+    item_key: `bar_${item.bar_id}`,
+    isWine: false,
+    isBar: true,
+    image: getBarCover(item),
+    averageRatingText: Number(item.rating || 0) > 0 ? Number(item.rating).toFixed(1) : "暂无",
+    summary: item.description || item.highlights || "",
+    metaText: `${item.area || "未知区域"}${item.bar_type ? ` · ${item.bar_type}` : ""}${item.avg_price ? ` · 人均¥${item.avg_price}` : ""}`
+  };
+}
+
+function shuffleList(list) {
+  const result = list.slice();
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = result[i];
+    result[i] = result[j];
+    result[j] = temp;
+  }
+  return result;
 }
 
 Page({
@@ -105,6 +141,37 @@ Page({
     };
   },
 
+  async loadMixedPage(pageNo) {
+    const keyword = String(this.data.keyword || "").trim();
+    const [wineResult, barResult] = await Promise.allSettled([
+      callApi("wine.list", this.getFilterPayload(pageNo)),
+      callApi("bar.list", {
+        page_no: pageNo,
+        page_size: PAGE_SIZE,
+        keyword
+      })
+    ]);
+
+    if (wineResult.status === "rejected" && barResult.status === "rejected") {
+      throw wineResult.reason || barResult.reason;
+    }
+
+    const wineData = wineResult.status === "fulfilled" ? wineResult.value : {};
+    const barData = barResult.status === "fulfilled" ? barResult.value : {};
+    const wines = (wineData.list || [])
+      .filter((item) => item && item.wine_id)
+      .map(decorateWine);
+    const bars = (barData.list || [])
+      .filter((item) => item && item.bar_id)
+      .map(decorateBar);
+
+    return {
+      list: shuffleList(wines.concat(bars)),
+      hasMore: !!wineData.has_more || !!barData.has_more,
+      total: Number(wineData.total || 0) + Number(barData.total || 0)
+    };
+  },
+
   async refreshList() {
     this.setData({
       loading: true,
@@ -113,16 +180,13 @@ Page({
       list: []
     });
     try {
-      const data = await callApi("wine.list", this.getFilterPayload(1));
-      const list = (data.list || [])
-        .filter((item) => item && item.wine_id)
-        .map(decorateWine);
+      const data = await this.loadMixedPage(1);
       this.setData({
-        list,
+        list: data.list,
         hasLoaded: true,
-        hasMore: !!data.has_more,
+        hasMore: data.hasMore,
         pageNo: 1,
-        total: Number(data.total || 0)
+        total: data.total
       });
     } catch (err) {
       showError(err);
@@ -137,13 +201,10 @@ Page({
     const nextPage = this.data.pageNo + 1;
     this.setData({ loadingMore: true });
     try {
-      const data = await callApi("wine.list", this.getFilterPayload(nextPage));
-      const list = (data.list || [])
-        .filter((item) => item && item.wine_id)
-        .map(decorateWine);
+      const data = await this.loadMixedPage(nextPage);
       this.setData({
-        list: this.data.list.concat(list),
-        hasMore: !!data.has_more,
+        list: this.data.list.concat(data.list),
+        hasMore: data.hasMore,
         pageNo: nextPage,
         total: Number(data.total || this.data.total || 0)
       });
@@ -178,8 +239,13 @@ Page({
   },
 
   goDetail(e) {
-    const wineId = e.currentTarget.dataset.id;
-    if (!wineId) return;
-    openPage(`/pages/wine/detail?wineId=${wineId}`);
+    const id = e.currentTarget.dataset.id;
+    const type = e.currentTarget.dataset.type;
+    if (!id) return;
+    if (type === "bar") {
+      wx.showToast({ title: "酒馆详情待接入", icon: "none" });
+      return;
+    }
+    openPage(`/pages/wine/detail?wineId=${id}`);
   }
 });

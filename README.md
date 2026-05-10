@@ -6,6 +6,7 @@
 - 审批人快捷入口直接调分
 - 站内消息通知
 - 酒款浏览、收藏、评分、留言
+- 酒馆推荐能力建设中：`bar_info` 种子数据、`bar.list` 接口、酒款/酒馆混合流试接入
 - 酒款相似推荐（算法自动计算，定时 + 手动更新）
 - 首页内嵌"微醺日历"与记录维护
 - 酒友广场（从喝酒记录分享到公开内容流）
@@ -41,6 +42,9 @@
 - `wine_comment`
 - `wine_comment_like`
 - `wine_favorite`
+- `user_sbti`
+- `bar_info`
+- `ai_chat_session`
 - `square_post`
 - `square_like`
 - `square_comment`
@@ -61,6 +65,20 @@
 10. "我的 > 我的动态"可查看自己发布到广场的所有动态
 
 ## 最近更新
+
+### 2026-05-10
+
+- 启动 AI 智能推荐酒馆 FT-1 / FT-3 基础建设，详细方案见 `docs/AI-BAR-RECOMMEND.md`
+- 新增 AI 酒馆推荐相关集合规划：`user_sbti`、`bar_info`、`ai_chat_session`
+- 接入 TokenHub 大模型调用封装，模型为 `deepseek-v4-flash`，云函数环境变量使用 `TOKENHUB_API_KEY` / `TOKENHUB_MODEL` / `TOKENHUB_BASE_URL`
+- `callLLM()` 已完成联调，能通过云函数调用大模型并返回结果
+- `user_sbti.user_id` 约定为当前用户 `openid`，不是 `user_profile._id`
+- 新增 `bar_info` 酒馆种子数据示例，当前已验证 `bar.list` 可从 `bar_info` 拉取启用酒馆
+- `bar.list` 最小版接入云函数路由，当前作为公开 action 便于云端测试；`cloudfunctions/api/index.js` 保留原登录态逻辑注释，测试完成后可恢复
+- 第二个 Tab `pages/wine/index` 试接入酒款 + 酒馆混合流：前端并发调用 `wine.list` 和 `bar.list`，合并后随机打乱展示；酒馆卡片暂不跳详情
+- 新增 FT-3 占位文件：`cloudfunctions/api/src/ai-client.js`、`cloudfunctions/api/src/handlers/ai.js`、`cloudfunctions/api/src/handlers/bar.js`、`miniprogram/pages/ai/`、`miniprogram/pages/bar/`
+- 当前暂缓注册：`bar.getDetail`、`ai.chat`、`ai.getSession`、`ai.listSessions`、`admin.ai.testLLM`，后续按一个 action 一次接入并验证
+- 排查并记录云函数接入风险：如出现 `writeRuntimeFile` / `InitFunction: 0ms`，优先回滚最近注册 action，避免多个新增模块同时定位
 
 ### 2026-05-08
 

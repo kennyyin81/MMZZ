@@ -1,0 +1,38 @@
+<view class="chat-page">
+  <scroll-view class="message-scroll" scroll-y scroll-with-animation scroll-into-view="{{scrollIntoView}}">
+    <view class="welcome-card" wx:if="{{!messages.length && hasLoaded}}">
+      <view class="welcome-title">今晚想喝点什么？</view>
+      <view class="welcome-desc">告诉我预算、区域、氛围或口味，我会结合你的 SBTI 画像推荐合适酒馆。</view>
+    </view>
+
+    <view wx:for="{{messages}}" wx:key="_view_id" id="{{item._view_id}}" class="message-row {{item.isUser ? 'message-row-user' : 'message-row-ai'}}">
+      <view class="message-bubble {{item.isUser ? 'bubble-user' : 'bubble-ai'}}">
+        <view class="message-content">{{item.content}}</view>
+        <view class="follow-question" wx:if="{{item.follow_up_question}}">{{item.follow_up_question}}</view>
+        <view class="bar-card-list" wx:if="{{item.hasRecommendedBars}}">
+          <view class="bar-card" wx:for="{{item.recommended_bars}}" wx:for-item="bar" wx:key="bar_id" data-id="{{bar.bar_id}}" bindtap="goBarDetail">
+            <image class="bar-cover" wx:if="{{bar.image_url}}" src="{{bar.image_url}}" mode="aspectFill"></image>
+            <view class="bar-cover placeholder" wx:else>BAR</view>
+            <view class="bar-info">
+              <view class="bar-title-line">
+                <text class="bar-name">{{bar.name}}</text>
+                <text class="bar-rating">⭐ {{bar.rating || '暂无'}}</text>
+              </view>
+              <view class="bar-meta">{{bar.area}} · {{bar.bar_type}} · 人均 ¥{{bar.avg_price}}</view>
+              <view class="bar-highlight">{{bar.highlights || bar.description}}</view>
+            </view>
+          </view>
+        </view>
+        <button wx:if="{{item.action_hint === 'open_sbti_profile'}}" class="sbti-btn" bindtap="openSbtiProfile">查看我的画像</button>
+        <view class="message-time" wx:if="{{item.time_text}}">{{item.time_text}}</view>
+      </view>
+    </view>
+
+    <view class="sending-row" wx:if="{{sending}}">AI 正在思考...</view>
+  </scroll-view>
+
+  <view class="input-bar">
+    <input class="chat-input" value="{{inputValue}}" placeholder="例如：天河附近，安静一点，预算 150" confirm-type="send" bindinput="onInput" bindconfirm="sendMessage" disabled="{{sending}}" />
+    <button class="send-btn" bindtap="sendMessage" loading="{{sending}}" disabled="{{sending}}">发送</button>
+  </view>
+</view>

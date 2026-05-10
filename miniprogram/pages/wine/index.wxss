@@ -2,8 +2,25 @@
   height: 360rpx;
 }
 
-.wine-cover {
+.wine-cover,
+.bar-cover-placeholder {
+  width: 100%;
+  height: 100%;
   border-radius: 24rpx;
+}
+
+.bar-list-media {
+  background: linear-gradient(135deg, #312e81, #7c3aed);
+}
+
+.bar-cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 52rpx;
+  font-weight: 900;
+  letter-spacing: 6rpx;
 }
 
 .filter-row {
@@ -44,6 +61,27 @@
 
 .wine-card-head {
   align-items: flex-start;
+}
+
+.type-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 10rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.type-chip-wine {
+  color: #4f46e5;
+  background: #eef2ff;
+}
+
+.type-chip-bar {
+  color: #7c2d12;
+  background: #ffedd5;
 }
 
 .wine-card-name {
@@ -104,6 +142,11 @@
 
 .wine-flavor-chip {
   flex-shrink: 0;
+}
+
+.bar-rating-chip {
+  color: #b45309;
+  background: #fef3c7;
 }
 
 .load-more {
