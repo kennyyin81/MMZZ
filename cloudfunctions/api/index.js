@@ -2024,9 +2024,6 @@ async function handleAction(currentUser, action, payload) {
       throw new AppError(2001, "未知 action");
   }
 }
-const { AppError, assert, fail, ensureCurrentUser } = require("./src/context");
-const { handleAction } = require("./src/router");
-
 exports.main = async (event) => {
   try {
     const action = String((event && event.action) || "").trim();
