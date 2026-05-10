@@ -38,6 +38,13 @@
     <view class="card reveal-card reveal-delay-1">
       <view class="section-title">快捷入口</view>
       <view class="quick-grid home-quick-grid">
+        <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/ai/sbti-survey/index" bindtap="goTo">
+          <view class="quick-entry-compact">
+            <view class="quick-entry-label">AI 酒馆助手</view>
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
+
         <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/request/earn-create" bindtap="goTo">
           <view class="quick-entry-compact">
             <view class="quick-entry-label">加分申请</view>
@@ -158,4 +165,5 @@
     ></ui-empty-state>
     <button class="ghost-btn tap-btn" hover-class="is-pressed" hover-stay-time="60" bindtap="retryLoad">重新加载</button>
   </view>
+
 </view>
