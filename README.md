@@ -68,17 +68,16 @@
 
 ### 2026-05-10
 
-- 启动 AI 智能推荐酒馆 FT-1 / FT-3 基础建设，详细方案见 `docs/AI-BAR-RECOMMEND.md`
-- 新增 AI 酒馆推荐相关集合规划：`user_sbti`、`bar_info`、`ai_chat_session`
-- 接入 TokenHub 大模型调用封装，模型为 `deepseek-v4-flash`，云函数环境变量使用 `TOKENHUB_API_KEY` / `TOKENHUB_MODEL` / `TOKENHUB_BASE_URL`
-- `callLLM()` 已完成联调，能通过云函数调用大模型并返回结果
-- `user_sbti.user_id` 约定为当前用户 `openid`，不是 `user_profile._id`
-- 新增 `bar_info` 酒馆种子数据示例，当前已验证 `bar.list` 可从 `bar_info` 拉取启用酒馆
-- `bar.list` 最小版接入云函数路由，当前作为公开 action 便于云端测试；`cloudfunctions/api/index.js` 保留原登录态逻辑注释，测试完成后可恢复
-- 第二个 Tab `pages/wine/index` 试接入酒款 + 酒馆混合流：前端并发调用 `wine.list` 和 `bar.list`，合并后随机打乱展示；酒馆卡片暂不跳详情
-- 新增 FT-3 占位文件：`cloudfunctions/api/src/ai-client.js`、`cloudfunctions/api/src/handlers/ai.js`、`cloudfunctions/api/src/handlers/bar.js`、`miniprogram/pages/ai/`、`miniprogram/pages/bar/`
-- 当前暂缓注册：`bar.getDetail`、`ai.chat`、`ai.getSession`、`ai.listSessions`、`admin.ai.testLLM`，后续按一个 action 一次接入并验证
-- 排查并记录云函数接入风险：如出现 `writeRuntimeFile` / `InitFunction: 0ms`，优先回滚最近注册 action，避免多个新增模块同时定位
+- 新增 AI 酒馆助手，可根据用户偏好进行自然语言对话
+- AI 酒馆助手支持酒馆推荐、酒品推荐、酒知识问答、闲聊和偏好相关咨询
+- 推荐结果支持结构化卡片展示，酒馆和酒品卡片均可点击查看详情
+- 新增历史会话能力，用户可查看过往对话并继续聊天
+- 新增新对话入口，用户可从历史会话页快速开启一轮新咨询
+- AI 对话页优化为顶部导航和底部输入栏固定，中间消息区独立滚动
+- AI 回复支持加粗等简单富文本展示，长回复阅读体验更好
+- 推荐逻辑接入用户饮酒偏好，优先给出更贴近预算、口味、场景和氛围的建议
+- 酒百科页面接入酒款 + 酒馆混合展示，用户可在同一内容流中发现酒品和酒馆
+- AI 对话响应链路优化，减少长对话场景下的等待和超时问题
 
 ### 2026-05-08
 

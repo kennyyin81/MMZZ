@@ -27,6 +27,54 @@ function normalizeReplyText(value) {
   return String(value || "").trim();
 }
 
+function inferRecommendationIntent(message) {
+  const text = String(message || "").trim();
+  if (!text) return "";
+
+  const asksRecommendation = /(推荐|适合|喝什么|喝点什么|来一杯|几款|一款|想喝|新手|低度|好入口|清爽|甜一点|苦一点|微醺)/.test(text);
+  if (!asksRecommendation) return "";
+
+  const asksPlace = /(酒馆|酒吧|bar|店|场所|去哪喝|哪里喝|附近|安静|聊天|约会|小酌)/i.test(text);
+  const asksDrink = /(酒|鸡尾酒|啤酒|葡萄酒|威士忌|白兰地|金酒|伏特加|朗姆|龙舌兰|一杯|喝点什么|低度|好入口|清爽|甜一点|苦一点|微醺)/.test(text);
+
+  if (asksPlace && !asksDrink) {
+    return "recommend_bar";
+  }
+  if (asksDrink) {
+    return "recommend_wine";
+  }
+  return asksPlace ? "recommend_bar" : "";
+}
+
+function pickFallbackWineIds(wines, message) {
+  const text = String(message || "").toLowerCase();
+  return (Array.isArray(wines) ? wines : [])
+    .map((wine) => {
+      const haystack = [
+        wine.name,
+        wine.category,
+        wine.flavor,
+        wine.base_spirit,
+        wine.summary,
+        wine.scene,
+        wine.recommended_scenes,
+        wine.target_audience,
+        wine.taste_note
+      ].join(" ").toLowerCase();
+      let score = 0;
+      normalizeStringList(text).forEach((word) => {
+        if (word && haystack.includes(word)) score += 2;
+      });
+      if (/女生|低度|好入口|甜|果/.test(text) && /女生|低度|好入口|甜|果|清爽/.test(haystack)) score += 3;
+      if (/苦|草本|酒感|经典/.test(text) && /苦|草本|酒感|经典/.test(haystack)) score += 3;
+      return { wine, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.wine && item.wine.wine_id)
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
 function pickBarForPrompt(bar) {
   return {
     bar_id: bar.bar_id,
@@ -116,6 +164,9 @@ function buildMainPrompt(sbti, bars, wines) {
     "JSON 格式固定为：",
     JSON.stringify({ intent: "recommend_bar|recommend_wine|knowledge|chitchat|sbti", reply: "给用户看的自然语言回复", recommended_bar_ids: [], recommended_wine_ids: [], follow_up_question: "" }),
     "intent 规则：recommend_bar=推荐去哪喝/找酒馆/场所；recommend_wine=推荐喝什么酒/酒品/鸡尾酒/啤酒/葡萄酒；knowledge=解释酒知识但不推荐具体库内酒品；chitchat=闲聊；sbti=偏好相关。",
+    "用户明确要求推荐喝什么、适合喝什么、来一杯、喝点什么、低度/好入口/清爽/微醺等饮用建议时，必须判定为 recommend_wine，不要判定为 chitchat/chat/knowledge。",
+    "用户明确要求推荐去哪喝、找酒馆/酒吧/附近/安静聊天/约会场所时，必须判定为 recommend_bar，不要判定为 chitchat/chat/knowledge。",
+    "不要输出 chat 这个 intent；闲聊只能输出 chitchat。",
     "如果 intent=recommend_bar，只能从给定酒馆列表中选择 1-3 个 bar_id，recommended_wine_ids 必须为空数组。",
     "如果 intent=recommend_wine，只能从给定酒品列表中选择 1-3 个 wine_id，recommended_bar_ids 必须为空数组。",
     "如果 intent=knowledge/chitchat/sbti，recommended_bar_ids 和 recommended_wine_ids 都必须为空数组。",
@@ -126,7 +177,7 @@ function buildMainPrompt(sbti, bars, wines) {
   ].join("\n");
 }
 
-function normalizeAIResult(parsed, bars, wines) {
+function normalizeAIResult(parsed, bars, wines, userMessage) {
   const result = parsed && typeof parsed === "object" ? parsed : {};
   const barMap = (Array.isArray(bars) ? bars : []).reduce((acc, bar) => {
     if (bar && bar.bar_id) acc[bar.bar_id] = bar;
@@ -145,16 +196,25 @@ function normalizeAIResult(parsed, bars, wines) {
     .map((id) => String(id || "").trim())
     .filter((id) => id && wineMap[id]))).slice(0, 3);
 
-  let intent = VALID_INTENTS.includes(result.intent) ? result.intent : "chitchat";
+  let intent = result.intent === "chat" ? "chitchat" : (VALID_INTENTS.includes(result.intent) ? result.intent : "chitchat");
   if (intent === "recommend") {
     intent = wineIds.length ? "recommend_wine" : "recommend_bar";
   }
+
+  const explicitIntent = inferRecommendationIntent(userMessage);
+  if (explicitIntent && intent === "chitchat") {
+    intent = explicitIntent;
+  }
+
+  const finalWineIds = intent === "recommend_wine"
+    ? (wineIds.length ? wineIds : pickFallbackWineIds(wines, userMessage))
+    : [];
 
   return {
     intent,
     reply: normalizeReplyText(result.reply || "抱歉，我没太理解，能再说一次吗？"),
     recommended_bar_ids: intent === "recommend_bar" ? barIds : [],
-    recommended_wine_ids: intent === "recommend_wine" ? wineIds : [],
+    recommended_wine_ids: finalWineIds,
     follow_up_question: normalizeReplyText(result.follow_up_question || "")
   };
 }
@@ -238,7 +298,7 @@ async function aiChat(currentUser, payload) {
     history.concat({ role: "user", content: userMessage }),
     { temperature: 0.35 }
   );
-  const parsed = normalizeAIResult(safeParseAIJson(aiRaw), bars, wines);
+  const parsed = normalizeAIResult(safeParseAIJson(aiRaw), bars, wines, userMessage);
   const barMap = bars.reduce((acc, bar) => {
     acc[bar.bar_id] = bar;
     return acc;
