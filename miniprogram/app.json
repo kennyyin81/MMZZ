@@ -3,9 +3,14 @@
     "pages/home/index",
     "pages/drink-calendar/detail",
     "pages/wine/index",
+    "pages/square/index",
+    "pages/square/detail",
+    "pages/square/location",
+    "pages/square/publish",
     "pages/request/my-list",
     "pages/profile/index",
     "pages/profile/favorites",
+    "pages/profile/my-posts",
     "pages/profile/relation",
     "pages/profile/invitation",
     "pages/profile/edit",
@@ -29,7 +34,7 @@
   "window": {
     "navigationBarBackgroundColor": "#f5f6f8",
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "\u9996\u9875",
+    "navigationBarTitleText": "首页",
     "backgroundColor": "#f5f6f8",
     "backgroundTextStyle": "light"
   },
@@ -42,19 +47,19 @@
     "list": [
       {
         "pagePath": "pages/home/index",
-        "text": "\u9996\u9875"
+        "text": "首页"
       },
       {
         "pagePath": "pages/wine/index",
-        "text": "\u9152\u767e\u79d1"
+        "text": "选酒"
       },
       {
-        "pagePath": "pages/request/my-list",
-        "text": "\u8bb0\u5f55"
+        "pagePath": "pages/square/index",
+        "text": "广场"
       },
       {
         "pagePath": "pages/profile/index",
-        "text": "\u6211\u7684"
+        "text": "我的"
       }
     ]
   },
@@ -62,6 +67,14 @@
     "ui-empty-state": "/components/ui-empty-state/index",
     "ui-skeleton": "/components/ui-skeleton/index"
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于记录你喝酒时所在的酒馆位置"
+    }
+  },
+  "requiredPrivateInfos": [
+    "chooseLocation"
+  ],
   "lazyCodeLoading": "requiredComponents",
   "style": "v2",
   "sitemapLocation": "sitemap.json"

@@ -2,6 +2,13 @@
 
 所有接口统一通过云函数 `api` 调用。
 
+后端实现结构：
+
+- `cloudfunctions/api/index.js`：云函数入口，负责统一鉴权、错误处理和调用路由
+- `cloudfunctions/api/src/router.js`：维护 `action` 到处理函数的映射
+- `cloudfunctions/api/src/context.js`：云开发初始化、数据库实例、常量和公共工具
+- `cloudfunctions/api/src/handlers/`：按业务域拆分具体处理逻辑
+
 统一请求格式：
 
 ```json
@@ -36,7 +43,20 @@
 
 补充：
 
-- `unread_notification_count` 当前不包含 `approval_pending` 类型，避免与“待我审批”重复提醒
+- `unread_notification_count` 当前不包含 `approval_pending` 类型，避免与"待我审批"重复提醒
+
+### `profile.update`
+
+更新当前用户资料。
+
+入参：
+
+- `nickname`：昵称，最长 20
+- `avatar_url`：头像地址
+
+说明：
+
+- 两个参数均为可选，仅传入的字段会被更新
 
 ### `points.listLedger`
 
@@ -44,7 +64,7 @@
 
 ### `approver.getAssignedUserSummary`
 
-查询当前审批人绑定的被审批对象摘要，用于“直接调分”页。
+查询当前审批人绑定的被审批对象摘要，用于"直接调分"页。
 
 返回字段：
 
@@ -229,15 +249,36 @@
 - `points_adjusted` 表示审批人直接调分通知
 - 通知中心中的 `approval_pending`、`approval_result`、`points_adjusted` 等消息，前端会按类型跳转到对应页面
 
-## 喝酒日历记录
+## 微醺日历记录
 
 ### `drinkDiary.create`
 
 创建喝酒记录。
 
+入参核心字段：
+
+- `drink_name`
+- `record_date`
+- `drink_time`
+- `price`
+- `alcohol`：度数，0-100
+- `taste_note`
+- `environment_note`
+- `other_note`
+- `images`
+- `location_name`
+- `location_address`
+- `location_lat`
+- `location_lng`
+
+补充：
+
+- `remark` 为旧版备注字段，仍兼容写入；新记录优先使用 `taste_note`、`environment_note`、`other_note`
+- 旧记录若仅有 `remark` 且无新字段，前端会自动将 `remark` 迁移至 `other_note` 显示
+
 ### `drinkDiary.listByMonth`
 
-按月份查询当前用户记录，用于首页喝酒日历。
+按月份查询当前用户记录，用于首页微醺日历。
 
 ### `drinkDiary.listByDate`
 
@@ -251,6 +292,14 @@
 
 更新单条喝酒记录。
 
+支持更新的字段：
+
+- `drink_name`、`record_date`、`drink_time`、`price`、`alcohol`
+- `taste_note`、`environment_note`、`other_note`
+- `remark`（兼容旧字段）
+- `images`、`thumbnail_url`
+- `location_name`、`location_address`、`location_lat`、`location_lng`
+
 ### `drinkDiary.remove`
 
 删除单条喝酒记录。
@@ -259,12 +308,34 @@
 
 ### `wine.list`
 
-查询前台可见酒款列表。
+分页查询前台可见酒款列表。
+
+入参：
+
+```json
+{
+  "page_no": 1,
+  "page_size": 20,
+  "taste_filter": "all",
+  "rating_order": "none",
+  "alcohol_order": "none"
+}
+```
+
+说明：
+
+- `taste_filter` 支持 `all`、`acidity`、`sweetness`、`bitterness`、`spiciness`
+- `rating_order` 支持 `none`、`asc`、`desc`
+- `alcohol_order` 支持 `none`、`asc`、`desc`
 
 返回字段：
 
 - `rating_count`
 - `comment_count`
+- `total`
+- `page_no`
+- `page_size`
+- `has_more`
 
 ### `wine.getDetail`
 
@@ -310,6 +381,18 @@
 
 删除当前用户自己的评价。
 
+### `wine.comment.like.toggle`
+
+点赞或取消点赞酒款评论。
+
+入参：
+
+- `comment_id`
+
+返回字段：
+
+- `is_liked`
+
 ## 酒款维护
 
 ### `admin.wine.list`
@@ -340,10 +423,209 @@
 
 补充：
 
-- `similar_wine_ids` 最多保留 3 个
-- 保存时会按风味相近程度重新排序
-- `image_url` 建议使用 `1:1` 或 `4:5` 图片，尺寸不低于 `800 × 800`
+- `similar_wine_ids` 由算法自动计算，最多保留 3 个
+- 酒款维护页"现有酒款"改为按名称搜索，客户端实时过滤
 
 ### `admin.wine.remove`
 
 删除酒款记录。
+
+### `admin.wine.recommendSimilar`
+
+手动触发相似推荐算法，计算所有酒款的 Top-3 相似酒款并写入数据库。
+
+返回字段：
+
+- `updated`：本次更新的酒款数量
+
+说明：
+
+- 算法从风味标签（Jaccard 相似度 ×100）、类别（×10）、基酒（×10）、原料（×50）、口感（差值累加）五个维度加权评分
+- 每款酒取得分最高的 3 款作为相似推荐
+- 也可通过定时云函数 `wine-scheduler` 每周一凌晨 3 点自动执行
+
+### `admin.user.search`
+
+搜索用户（需 ADMIN 角色）。
+
+入参：
+
+- `keyword`：昵称关键词，为空时返回前 30 个用户
+
+返回字段：
+
+- `list`
+
+### `admin.user.setRoles`
+
+设置用户角色（需 ADMIN 角色）。
+
+入参：
+
+- `user_id`（必填）
+- `roles`：角色数组
+
+说明：
+
+- 无论传入什么角色数组，都会自动包含 `USER` 角色
+
+## 酒友广场
+
+### `square.create`
+
+创建广场动态，从喝酒记录分享。
+
+入参：
+
+- `record_id`（必填）
+- `cover_index`：封面图索引，默认 0
+- `location_visibility`：地点公开范围，`name` / `area` / `hidden`，默认 `name`
+- `show_other_note`：是否展示"其他"笔记，默认 true
+
+规则：
+
+- 同一条喝酒记录不能重复发布广场动态
+- 发布后会在 drink_diary 记录上写入 `is_shared_to_square=true` 和 `square_post_id`
+
+### `square.list`
+
+分页查询广场动态列表。
+
+入参：
+
+- `page_no`
+- `page_size`
+
+返回字段：
+
+- 每条动态包含 `nickname`、`avatar_url`、`is_liked`、`is_favorited`、`location_text`
+
+### `square.listByLocation`
+
+按地点名称查询广场动态列表。
+
+入参：
+
+- `location_name`（必填）
+- `page_no`
+- `page_size`
+
+返回字段：
+
+- 与 `square.list` 格式一致
+
+### `square.listMine`
+
+查询当前用户发布的广场动态列表。
+
+入参：
+
+- `page_no`
+- `page_size`
+
+返回字段：
+
+- 与 `square.list` 格式一致
+
+### `square.favorite.listMine`
+
+查询当前用户收藏的广场动态列表。
+
+入参：
+
+- `page_no`
+- `page_size`
+
+返回字段：
+
+- 每条动态额外包含 `favorite_created_at`（收藏时间）
+
+### `square.getDetail`
+
+查询广场动态详情。
+
+入参：
+
+- `post_id`
+
+### `square.like.toggle`
+
+点赞或取消点赞。
+
+入参：
+
+- `post_id`
+
+### `square.favorite.toggle`
+
+收藏或取消收藏。
+
+入参：
+
+- `post_id`
+
+### `square.comment.create`
+
+创建评论。
+
+入参：
+
+- `post_id`
+- `content`（必填，最长 200）
+- `reply_to_id`：回复的评论 ID（可选）
+
+### `square.comment.list`
+
+查询评论列表。
+
+入参：
+
+- `post_id`
+- `page_no`
+- `page_size`
+
+### `square.comment.remove`
+
+删除自己的评论。
+
+入参：
+
+- `comment_id`
+
+### `square.comment.like.toggle`
+
+点赞或取消点赞广场评论。
+
+入参：
+
+- `comment_id`
+
+返回字段：
+
+- `is_liked`
+
+### `square.updateFromRecord`
+
+从喝酒记录同步更新已发布的广场动态。
+
+入参：
+
+- `record_id`（必填）
+
+规则：
+
+- 仅更新记录相关字段（酒名、价格、度数、口感、环境、其他笔记、图片），保留广场特有字段（推荐语、封面索引、其他笔记展示开关、地点公开范围）
+- 喝酒记录必须已分享到广场
+
+### `square.remove`
+
+删除自己的广场动态。
+
+入参：
+
+- `post_id`
+
+规则：
+
+- 删除广场动态不会删除原喝酒记录
+- 会清除 drink_diary 上的 `is_shared_to_square` 和 `square_post_id`

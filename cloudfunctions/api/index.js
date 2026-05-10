@@ -1564,7 +1564,7 @@ async function getWineStatsMap(wineIds) {
 async function listWineTopics(currentUser) {
   const res = await db.collection(COLLECTIONS.WINE_TOPIC).orderBy("created_at", "desc").get();
   const raw = unwrapList(res).filter((item) => item && item.wine_id);
-  
+
   if (!raw.length) {
     return { total: 0, list: [] };
   }
@@ -2024,6 +2024,8 @@ async function handleAction(currentUser, action, payload) {
       throw new AppError(2001, "未知 action");
   }
 }
+const { AppError, assert, fail, ensureCurrentUser } = require("./src/context");
+const { handleAction } = require("./src/router");
 
 exports.main = async (event) => {
   try {
@@ -2039,4 +2041,3 @@ exports.main = async (event) => {
     return fail(5000, error.message || "系统异常", { stack: error.stack });
   }
 };
-

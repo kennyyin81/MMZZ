@@ -1,5 +1,5 @@
 const { callApi, showError } = require("../../utils/api");
-const { formatDateTime } = require("../../utils/const");
+const { smartTimeAgo } = require("../../utils/const");
 const { mergeWineMeta } = require("../../utils/wine-data");
 
 const TASTE_LEVELS = {
@@ -42,12 +42,12 @@ function decorateWine(wine) {
   const merged = mergeWineMeta(wine || {});
   return {
     ...merged,
-    averageRatingText: Number(merged.average_rating || 0).toFixed(1),
+    averageRatingText: Number(merged.average_rating || 0) > 0 ? Number(merged.average_rating).toFixed(1) : "暂无",
     ratingStars: buildStars(Math.round(Number(merged.average_rating || 0))),
     flavorTags: splitTags(merged.flavor),
     similarWines: (Array.isArray(merged.similar_wines) ? merged.similar_wines : []).map((item) => ({
       ...mergeWineMeta(item),
-      averageRatingText: Number(item.average_rating || 0).toFixed(1)
+      averageRatingText: Number(item.average_rating || 0) > 0 ? Number(item.average_rating).toFixed(1) : "暂无"
     })),
     hasMiddleSection: !!(merged.base_spirit || merged.ingredients || merged.main_ingredients || merged.taste_note || merged.story || (Array.isArray(merged.similar_wines) && merged.similar_wines.length)),
     tasteMetrics: TASTE_META.map((item) => ({
@@ -73,6 +73,8 @@ Page({
     ratingSaving: false,
     deletingCommentId: "",
     hasMyComment: false,
+    commentInput: "",
+    commentFocus: false,
     pageNo: 1,
     pageSize: 20,
     total: 0,
@@ -137,8 +139,10 @@ Page({
           nickname: item.nickname || "微信用户",
           avatar_url: item.avatar_url || ""
         },
-        created_at_text: formatDateTime(item.created_at),
-        ratingStars: buildStars(Number(item.rating || 0))
+        created_at_text: smartTimeAgo(item.created_at),
+        ratingStars: buildStars(Number(item.rating || 0)),
+        like_count: Number(item.like_count || 0),
+        is_liked: !!item.is_liked
       }));
       const merged = this.data.comments.concat(list);
       const total = Number(data.total || 0);
@@ -285,5 +289,50 @@ Page({
     } finally {
       this.setData({ deletingCommentId: "" });
     }
+  },
+
+  async toggleCommentLike(e) {
+    const commentId = e.currentTarget.dataset.id;
+    if (!commentId) return;
+    const index = this.data.comments.findIndex((c) => c.comment_id === commentId);
+    if (index < 0) return;
+    try {
+      const res = await callApi("wine.comment.like.toggle", { comment_id: commentId });
+      const isLiked = !!res.is_liked;
+      const item = this.data.comments[index];
+      const likeCount = Number(item.like_count || 0) + (isLiked ? 1 : -1);
+      this.setData({
+        [`comments[${index}].is_liked`]: isLiked,
+        [`comments[${index}].like_count`]: Math.max(0, likeCount)
+      });
+    } catch (err) {
+      showError(err);
+    }
+  },
+
+  focusCommentInput() {
+    this.setData({ commentFocus: true });
+  },
+
+  onCommentBlur() {
+    this.setData({ commentFocus: false });
+  },
+
+  onShareAppMessage() {
+    const wine = this.data.wine || {};
+    return {
+      title: wine.name ? `${wine.name} - 选酒指南` : "选酒指南",
+      path: `/pages/wine/detail?wineId=${this.data.wineId}`,
+      imageUrl: wine.cover_url || ""
+    };
+  },
+
+  onShareTimeline() {
+    const wine = this.data.wine || {};
+    return {
+      title: wine.name ? `${wine.name} - 选酒指南` : "选酒指南",
+      query: `wineId=${this.data.wineId}`,
+      imageUrl: wine.cover_url || ""
+    };
   }
 });

@@ -7,12 +7,6 @@ const TASTE_LEVELS = {
   spiciness: ["几乎不辣", "微辣顺口", "辛感适中", "辛辣明显", "烈感强劲"]
 };
 
-const SORT_OPTIONS = [
-  { label: "名称升序", value: "name:asc" },
-  { label: "名称降序", value: "name:desc" },
-  { label: "更新时间降序", value: "updated_at:desc" }
-];
-
 function splitTags(value) {
   return String(value || "")
     .split(/[\r\n、,，/|；;]+/)
@@ -134,6 +128,7 @@ Page({
     loading: false,
     saving: false,
     uploading: false,
+    generatingSimilar: false,
     list: [],
     allWineList: [],
     editingWineId: "",
@@ -141,10 +136,7 @@ Page({
     previewWine: buildPreview(getEmptyForm(), []),
     similarWineOptions: [],
     tasteLevels: TASTE_LEVELS,
-    sortOptions: SORT_OPTIONS.map((item) => item.label),
-    selectedSortLabel: SORT_OPTIONS[0].label,
-    keyword: "",
-    sortValue: SORT_OPTIONS[0].value
+    keyword: ""
   },
 
   onShow() {
@@ -169,21 +161,16 @@ Page({
   async loadList() {
     this.setData({ loading: true });
     try {
-      const [orderBy, orderDir] = String(this.data.sortValue || "name:asc").split(":");
-      const [filteredData, allData] = await Promise.all([
-        callApi("admin.wine.list", {
-          keyword: this.data.keyword,
-          order_by: orderBy,
-          order_dir: orderDir
-        }),
-        callApi("admin.wine.list", {
-          keyword: "",
-          order_by: "name",
-          order_dir: "asc"
-        })
-      ]);
-      const list = filteredData.list || [];
+      const allData = await callApi("admin.wine.list", {
+        keyword: "",
+        order_by: "name",
+        order_dir: "asc"
+      });
       const allWineList = allData.list || [];
+      const keyword = String(this.data.keyword || "").trim().toLowerCase();
+      const list = keyword
+        ? allWineList.filter((item) => String(item.name || "").toLowerCase().includes(keyword))
+        : [];
       this.setData({ list, allWineList });
       this.syncPreview({ allWineList });
     } catch (err) {
@@ -204,7 +191,13 @@ Page({
   },
 
   onSearchInput(e) {
+    const keyword = String(e.detail.value || "").trim().toLowerCase();
     this.setData({ keyword: e.detail.value });
+    const allWineList = this.data.allWineList;
+    const list = keyword
+      ? allWineList.filter((item) => String(item.name || "").toLowerCase().includes(keyword))
+      : [];
+    this.setData({ list });
   },
 
   onTasteChange(e) {
@@ -230,15 +223,6 @@ Page({
     };
     this.setData({ form });
     this.syncPreview({ form });
-  },
-
-  onSortChange(e) {
-    const target = SORT_OPTIONS[Number(e.detail.value || 0)] || SORT_OPTIONS[0];
-    this.setData({
-      sortValue: target.value,
-      selectedSortLabel: target.label
-    });
-    this.loadList();
   },
 
   editItem(e) {
@@ -379,6 +363,19 @@ Page({
       await this.loadList();
     } catch (err) {
       showError(err);
+    }
+  },
+
+  async generateSimilar() {
+    this.setData({ generatingSimilar: true });
+    try {
+      const result = await callApi("admin.wine.recommendSimilar", {});
+      wx.showToast({ title: `已更新 ${result.updated || 0} 款`, icon: "success" });
+      await this.loadList();
+    } catch (err) {
+      showError(err);
+    } finally {
+      this.setData({ generatingSimilar: false });
     }
   }
 });

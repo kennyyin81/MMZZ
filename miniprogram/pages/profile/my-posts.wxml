@@ -1,0 +1,63 @@
+<view class="container">
+  <view wx:if="{{!list.length && !loading}}" class="card reveal-card reveal-delay-1">
+    <ui-empty-state
+      title="还没有发布动态"
+      description="去喝酒记录里分享一条到广场吧。"
+    ></ui-empty-state>
+  </view>
+
+  <view class="wf-wrap">
+    <view class="wf-col">
+      <view class="wf-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" wx:for="{{leftList}}" wx:key="_id" data-id="{{item._id}}" bindtap="goPostDetail">
+        <view class="wf-cover-frame">
+          <image class="wf-cover" src="{{item.cover_url}}" mode="widthFix" wx:if="{{item.cover_url}}"></image>
+          <view wx:else class="wf-cover-placeholder">🍷</view>
+        </view>
+        <view class="wf-info">
+          <view class="wf-name">{{item.drink_name}}</view>
+          <view class="wf-location" wx:if="{{item.location_text}}">📍 {{item.location_text}}</view>
+        </view>
+        <view class="wf-bottom">
+          <view class="wf-user">
+            <image wx:if="{{item.avatar_url}}" class="wf-avatar" src="{{item.avatar_url}}" mode="aspectFill"></image>
+            <view wx:else class="wf-avatar wf-avatar-placeholder">我</view>
+            <text class="wf-nickname">{{item.nickname || '微信用户'}}</text>
+          </view>
+          <view class="wf-like">
+            <text class="wf-like-icon {{item.is_liked ? 'wf-like-active' : ''}}">{{item.is_liked ? '❤' : '♡'}}</text>
+            <text class="wf-like-num">{{item.like_count || 0}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="wf-col">
+      <view class="wf-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" wx:for="{{rightList}}" wx:key="_id" data-id="{{item._id}}" bindtap="goPostDetail">
+        <view class="wf-cover-frame">
+          <image class="wf-cover" src="{{item.cover_url}}" mode="widthFix" wx:if="{{item.cover_url}}"></image>
+          <view wx:else class="wf-cover-placeholder">🍷</view>
+        </view>
+        <view class="wf-info">
+          <view class="wf-name">{{item.drink_name}}</view>
+          <view class="wf-location" wx:if="{{item.location_text}}">📍 {{item.location_text}}</view>
+        </view>
+        <view class="wf-bottom">
+          <view class="wf-user">
+            <image wx:if="{{item.avatar_url}}" class="wf-avatar" src="{{item.avatar_url}}" mode="aspectFill"></image>
+            <view wx:else class="wf-avatar wf-avatar-placeholder">我</view>
+            <text class="wf-nickname">{{item.nickname || '微信用户'}}</text>
+          </view>
+          <view class="wf-like">
+            <text class="wf-like-icon {{item.is_liked ? 'wf-like-active' : ''}}">{{item.is_liked ? '❤' : '♡'}}</text>
+            <text class="wf-like-num">{{item.like_count || 0}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="list-end muted">
+    <text wx:if="{{loading}}">加载中...</text>
+    <text wx:elif="{{finished && list.length}}">没有更多数据</text>
+  </view>
+</view>

@@ -10,15 +10,15 @@ Component({
       },
       {
         pagePath: "/pages/wine/index",
-        text: "酒",
+        text: "酒馆",
         icon: "/assets/tab/wine.svg",
         activeIcon: "/assets/tab/wine-active.svg"
       },
       {
-        pagePath: "/pages/request/my-list",
-        text: "记录",
-        icon: "/assets/tab/request.svg",
-        activeIcon: "/assets/tab/request-active.svg"
+        pagePath: "/pages/square/index",
+        text: "广场",
+        icon: "/assets/tab/square.svg",
+        activeIcon: "/assets/tab/square-active.svg"
       },
       {
         pagePath: "/pages/profile/index",

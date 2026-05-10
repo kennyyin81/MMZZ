@@ -1,24 +1,45 @@
 const { callApi, showError } = require("../../utils/api");
-const { formatDateTime, openPage } = require("../../utils/const");
+const { formatDateTime, smartTimeAgo, openPage } = require("../../utils/const");
 const { mergeWineMeta } = require("../../utils/wine-data");
+
+function splitColumns(list) {
+  const left = [];
+  const right = [];
+  list.forEach((item, i) => {
+    if (i % 2 === 0) left.push(item);
+    else right.push(item);
+  });
+  return { left, right };
+}
 
 function decorateWine(item) {
   const wine = mergeWineMeta(item || {});
   return {
     ...wine,
-    averageRatingText: Number(wine.average_rating || 0).toFixed(1),
+    averageRatingText: Number(wine.average_rating || 0) > 0 ? Number(wine.average_rating).toFixed(1) : "暂无",
     favorite_created_at_text: formatDateTime(wine.favorite_created_at)
   };
 }
 
 Page({
   data: {
-    list: [],
-    pageNo: 1,
-    pageSize: 20,
-    total: 0,
-    loading: false,
-    finished: false
+    activeTab: "wine",
+    // 酒款收藏
+    wineList: [],
+    winePageNo: 1,
+    winePageSize: 20,
+    wineTotal: 0,
+    wineLoading: false,
+    wineFinished: false,
+    // 动态收藏
+    postList: [],
+    postLeftList: [],
+    postRightList: [],
+    postPageNo: 1,
+    postPageSize: 10,
+    postTotal: 0,
+    postLoading: false,
+    postFinished: false
   },
 
   onShow() {
@@ -26,47 +47,120 @@ Page({
   },
 
   onReachBottom() {
-    if (!this.data.loading && !this.data.finished) {
-      this.loadList();
+    if (this.data.activeTab === "wine") {
+      if (!this.data.wineLoading && !this.data.wineFinished) {
+        this.loadWineList();
+      }
+    } else {
+      if (!this.data.postLoading && !this.data.postFinished) {
+        this.loadPostList();
+      }
+    }
+  },
+
+  switchTab(e) {
+    const tab = e.currentTarget.dataset.tab;
+    if (tab === this.data.activeTab) return;
+    this.setData({ activeTab: tab });
+    if (tab === "wine" && !this.data.wineList.length) {
+      this.resetWineAndLoad();
+    } else if (tab === "post" && !this.data.postList.length) {
+      this.resetPostAndLoad();
     }
   },
 
   resetAndLoad() {
-    this.setData({
-      list: [],
-      pageNo: 1,
-      total: 0,
-      finished: false
-    });
-    this.loadList();
+    if (this.data.activeTab === "wine") {
+      this.resetWineAndLoad();
+    } else {
+      this.resetPostAndLoad();
+    }
   },
 
-  async loadList() {
-    this.setData({ loading: true });
+  resetWineAndLoad() {
+    this.setData({
+      wineList: [],
+      winePageNo: 1,
+      wineTotal: 0,
+      wineFinished: false
+    });
+    this.loadWineList();
+  },
+
+  resetPostAndLoad() {
+    this.setData({
+      postList: [],
+      postLeftList: [],
+      postRightList: [],
+      postPageNo: 1,
+      postTotal: 0,
+      postFinished: false
+    });
+    this.loadPostList();
+  },
+
+  async loadWineList() {
+    this.setData({ wineLoading: true });
     try {
       const data = await callApi("wine.favorite.listMine", {
-        page_no: this.data.pageNo,
-        page_size: this.data.pageSize
+        page_no: this.data.winePageNo,
+        page_size: this.data.winePageSize
       });
       const list = (data.list || []).map(decorateWine);
-      const nextList = this.data.list.concat(list);
+      const nextList = this.data.wineList.concat(list);
       const total = Number(data.total || 0);
       this.setData({
-        list: nextList,
-        total,
-        finished: nextList.length >= total,
-        pageNo: this.data.pageNo + 1
+        wineList: nextList,
+        wineTotal: total,
+        wineFinished: nextList.length >= total,
+        winePageNo: this.data.winePageNo + 1
       });
     } catch (err) {
       showError(err);
     } finally {
-      this.setData({ loading: false });
+      this.setData({ wineLoading: false });
     }
   },
 
-  goDetail(e) {
+  async loadPostList() {
+    this.setData({ postLoading: true });
+    try {
+      const data = await callApi("square.favorite.listMine", {
+        page_no: this.data.postPageNo,
+        page_size: this.data.postPageSize
+      });
+      const list = (data.list || []).map((item) => ({
+        ...item,
+        created_at_text: smartTimeAgo(item.created_at),
+        favorite_created_at_text: formatDateTime(item.favorite_created_at)
+      }));
+      const nextList = this.data.postList.concat(list);
+      const total = Number(data.total || 0);
+      const { left, right } = splitColumns(nextList);
+      this.setData({
+        postList: nextList,
+        postLeftList: left,
+        postRightList: right,
+        postTotal: total,
+        postFinished: nextList.length >= total,
+        postPageNo: this.data.postPageNo + 1
+      });
+    } catch (err) {
+      showError(err);
+    } finally {
+      this.setData({ postLoading: false });
+    }
+  },
+
+  goWineDetail(e) {
     const wineId = e.currentTarget.dataset.id;
     if (!wineId) return;
     openPage(`/pages/wine/detail?wineId=${wineId}`);
+  },
+
+  goPostDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    openPage(`/pages/square/detail?postId=${id}`);
   }
 });

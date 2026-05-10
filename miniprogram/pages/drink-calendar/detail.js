@@ -44,18 +44,30 @@ Page({
     saving: false,
     deleting: false,
     uploading: false,
+    updatingSquare: false,
     mode: "edit",
     initialDate: "",
     initialTime: "",
     createInitialized: false,
+    hasLoaded: false,
     recordId: "",
+    shareToSquareAfterSave: false,
+    isSharedToSquare: false,
+    squarePostId: "",
     form: {
       drink_name: "",
       record_date: "",
       drink_time_hm: "",
       price: "0",
-      remark: "",
-      images: []
+      alcohol: "",
+      taste_note: "",
+      environment_note: "",
+      other_note: "",
+      images: [],
+      location_name: "",
+      location_address: "",
+      location_lat: 0,
+      location_lng: 0
     }
   },
 
@@ -74,7 +86,9 @@ Page({
 
   onShow() {
     if (this.data.recordId) {
-      this.loadDetail();
+      if (!this.data.hasLoaded) {
+        this.loadDetail();
+      }
       return;
     }
     if (this.data.mode === "create") {
@@ -88,8 +102,15 @@ Page({
             record_date: date,
             drink_time_hm: time,
             price: "0",
-            remark: "",
-            images: []
+            alcohol: "",
+            taste_note: "",
+            environment_note: "",
+            other_note: "",
+            images: [],
+            location_name: "",
+            location_address: "",
+            location_lat: 0,
+            location_lng: 0
           }
         });
       }
@@ -106,13 +127,23 @@ Page({
       const record = data.record || {};
       const dt = splitDateTime(record.drink_time);
       this.setData({
+        hasLoaded: true,
+        isSharedToSquare: !!record.is_shared_to_square,
+        squarePostId: String(record.square_post_id || "").trim(),
         form: {
           drink_name: record.drink_name || "",
           record_date: record.record_date || dt.date,
           drink_time_hm: dt.time,
           price: String(record.price || 0),
-          remark: record.remark || "",
-          images: Array.isArray(record.images) ? record.images : []
+          alcohol: record.alcohol ? String(record.alcohol) : "",
+          taste_note: record.taste_note || "",
+          environment_note: record.environment_note || "",
+          other_note: record.other_note || (record.remark && !record.taste_note && !record.environment_note && !record.other_note ? record.remark : ""),
+          images: Array.isArray(record.images) ? record.images : [],
+          location_name: record.location_name || "",
+          location_address: record.location_address || "",
+          location_lat: Number(record.location_lat || 0),
+          location_lng: Number(record.location_lng || 0)
         }
       });
     } catch (err) {
@@ -133,6 +164,113 @@ Page({
 
   onTimeChange(e) {
     this.setData({ "form.drink_time_hm": e.detail.value });
+  },
+
+  async chooseLocation() {
+    try {
+      const res = await wx.chooseLocation({});
+      if (res && (res.name || res.address)) {
+        this.setData({
+          "form.location_name": String(res.name || "").trim(),
+          "form.location_address": String(res.address || "").trim(),
+          "form.location_lat": Number(res.latitude || 0),
+          "form.location_lng": Number(res.longitude || 0)
+        });
+      }
+    } catch (err) {
+      if (err && err.errMsg && err.errMsg.includes("cancel")) return;
+      if (err && err.errMsg && err.errMsg.includes("auth")) {
+        wx.showModal({
+          title: "需要位置权限",
+          content: "请在设置中允许使用位置信息",
+          confirmText: "去设置",
+          success: (modalRes) => {
+            if (modalRes.confirm) wx.openSetting();
+          }
+        });
+        return;
+      }
+      showError(err);
+    }
+  },
+
+  removeLocation() {
+    this.setData({
+      "form.location_name": "",
+      "form.location_address": "",
+      "form.location_lat": 0,
+      "form.location_lng": 0
+    });
+  },
+
+  onShareToSquareChange(e) {
+    this.setData({ shareToSquareAfterSave: !!e.detail.value });
+  },
+
+  goToSquarePublish() {
+    if (!this.data.recordId) return;
+    wx.navigateTo({ url: `/pages/square/publish?recordId=${this.data.recordId}` });
+  },
+
+  async saveAndShareToSquare() {
+    if (this.data.saving) return;
+    const form = this.data.form;
+    const drinkName = String(form.drink_name || "").trim();
+    if (!drinkName) {
+      wx.showToast({ title: "请输入酒名", icon: "none" });
+      return;
+    }
+    const price = Number(form.price || 0);
+    if (!Number.isFinite(price) || price < 0) {
+      wx.showToast({ title: "价格格式不正确", icon: "none" });
+      return;
+    }
+
+    this.setData({ saving: true });
+    try {
+      await callApi("drinkDiary.update", {
+        record_id: this.data.recordId,
+        record_date: form.record_date || getToday(),
+        drink_name: drinkName,
+        drink_time: `${form.record_date || getToday()} ${form.drink_time_hm || getCurrentTime()}:00`,
+        price,
+        alcohol: Number(form.alcohol || 0),
+        taste_note: String(form.taste_note || "").trim(),
+        environment_note: String(form.environment_note || "").trim(),
+        other_note: String(form.other_note || "").trim(),
+        images: Array.isArray(form.images) ? form.images : [],
+        thumbnail_url: (form.images && form.images[0] && (form.images[0].thumb || form.images[0].url)) || "",
+        location_name: String(form.location_name || "").trim(),
+        location_address: String(form.location_address || "").trim(),
+        location_lat: Number(form.location_lat || 0),
+        location_lng: Number(form.location_lng || 0)
+      });
+      wx.navigateTo({ url: `/pages/square/publish?recordId=${this.data.recordId}` });
+    } catch (err) {
+      showError(err);
+    } finally {
+      this.setData({ saving: false });
+    }
+  },
+
+  goToSquareDetail() {
+    if (!this.data.squarePostId) return;
+    wx.setStorageSync("square_need_refresh", true);
+    wx.navigateTo({ url: `/pages/square/detail?postId=${this.data.squarePostId}` });
+  },
+
+  async updateSquarePost() {
+    if (!this.data.recordId || this.data.updatingSquare) return;
+    this.setData({ updatingSquare: true });
+    try {
+      await callApi("square.updateFromRecord", { record_id: this.data.recordId });
+      wx.setStorageSync("square_need_refresh", true);
+      wx.showToast({ title: "广场动态已更新", icon: "success" });
+    } catch (err) {
+      showError(err);
+    } finally {
+      this.setData({ updatingSquare: false });
+    }
   },
 
   previewImage(e) {
@@ -230,9 +368,16 @@ Page({
         drink_name: drinkName,
         drink_time: `${form.record_date || getToday()} ${form.drink_time_hm || getCurrentTime()}:00`,
         price,
-        remark: String(form.remark || "").trim(),
+        alcohol: Number(form.alcohol || 0),
+        taste_note: String(form.taste_note || "").trim(),
+        environment_note: String(form.environment_note || "").trim(),
+        other_note: String(form.other_note || "").trim(),
         images: Array.isArray(form.images) ? form.images : [],
-        thumbnail_url: (form.images && form.images[0] && (form.images[0].thumb || form.images[0].url)) || ""
+        thumbnail_url: (form.images && form.images[0] && (form.images[0].thumb || form.images[0].url)) || "",
+        location_name: String(form.location_name || "").trim(),
+        location_address: String(form.location_address || "").trim(),
+        location_lat: Number(form.location_lat || 0),
+        location_lng: Number(form.location_lng || 0)
       };
 
       if (this.data.recordId) {
@@ -241,6 +386,7 @@ Page({
           ...payload
         });
         wx.showToast({ title: "已保存", icon: "success" });
+        this.setData({ hasLoaded: false });
         this.loadDetail();
       } else {
         const createRes = await callApi("drinkDiary.create", {
@@ -248,9 +394,16 @@ Page({
           drink_name: payload.drink_name,
           drink_time: payload.drink_time,
           price: payload.price,
-          remark: payload.remark,
+          alcohol: payload.alcohol,
+          taste_note: payload.taste_note,
+          environment_note: payload.environment_note,
+          other_note: payload.other_note,
           images: payload.images,
-          thumbnail_url: payload.thumbnail_url
+          thumbnail_url: payload.thumbnail_url,
+          location_name: payload.location_name,
+          location_address: payload.location_address,
+          location_lat: payload.location_lat,
+          location_lng: payload.location_lng
         });
         const newId = String((createRes && createRes.record_id) || "").trim();
         if (!newId) {
@@ -261,9 +414,16 @@ Page({
           mode: "edit"
         });
         wx.showToast({ title: "已创建", icon: "success" });
-        setTimeout(() => {
-          wx.switchTab({ url: "/pages/home/index" });
-        }, 260);
+        if (this.data.shareToSquareAfterSave) {
+          this.setData({ shareToSquareAfterSave: false, isSharedToSquare: false });
+          setTimeout(() => {
+            wx.navigateTo({ url: `/pages/square/publish?recordId=${newId}` });
+          }, 400);
+        } else {
+          setTimeout(() => {
+            wx.switchTab({ url: "/pages/home/index" });
+          }, 260);
+        }
       }
     } catch (err) {
       showError(err);

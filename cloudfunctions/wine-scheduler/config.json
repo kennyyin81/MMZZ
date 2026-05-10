@@ -1,0 +1,9 @@
+{
+  "triggers": [
+    {
+      "name": "weeklySimilarWineTimer",
+      "type": "timer",
+      "config": "0 3 ? * MON"
+    }
+  ]
+}

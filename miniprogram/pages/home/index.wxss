@@ -320,9 +320,10 @@
 }
 
 .day-extra {
+  width: 100%;
+  text-align: center;
   font-size: 16rpx;
   color: #475569;
-  align-self: center;
 }
 
 .panel-mask {
@@ -400,6 +401,11 @@
   font-weight: 700;
   color: #0f172a;
   line-height: 1.35;
+}
+
+.record-alcohol {
+  color: #f59e0b;
+  margin-left: 12rpx;
 }
 
 .calendar-add-btn {

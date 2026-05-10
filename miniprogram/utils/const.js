@@ -34,7 +34,7 @@ const LEDGER_SOURCE_LABEL = {
 const TAB_PAGES = [
   "/pages/home/index",
   "/pages/wine/index",
-  "/pages/request/my-list",
+  "/pages/square/index",
   "/pages/profile/index"
 ];
 
@@ -72,6 +72,41 @@ function formatDateTime(value) {
     `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
     `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
   ].join(" ");
+}
+
+function smartTimeAgo(value) {
+  if (!value) return "";
+  const date = parseDateValue(value);
+  if (Number.isNaN(date.getTime())) return formatDateTime(value);
+
+  const now = new Date();
+  const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor((nowDate - targetDate) / 86400000);
+  const timeStr = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+  if (diffDays === 0) {
+    const minutes = Math.floor(diffMs / 60000);
+    if (minutes < 1) return "刚刚";
+    if (minutes < 60) return `${minutes}分钟前`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}小时前`;
+  }
+
+  if (diffDays === 1) {
+    return `昨天 ${timeStr}`;
+  }
+
+  if (diffDays > 1 && diffDays < 7) {
+    return `${diffDays}天前`;
+  }
+
+  if (date.getFullYear() === now.getFullYear()) {
+    return `${pad(date.getMonth() + 1)}月${pad(date.getDate())}日 ${timeStr}`;
+  }
+
+  return `${date.getFullYear()}年${pad(date.getMonth() + 1)}月${pad(date.getDate())}日`;
 }
 
 function getStatusClass(status) {
@@ -131,6 +166,7 @@ module.exports = {
   TAB_PAGES,
   formatRoles,
   formatDateTime,
+  smartTimeAgo,
   formatPointsChange,
   getStatusClass,
   getLedgerSourceLabel,

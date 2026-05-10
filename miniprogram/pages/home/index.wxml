@@ -45,6 +45,12 @@
           </view>
         </view>
 
+        <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/request/my-list" bindtap="goTo">
+          <view class="quick-entry-compact">
+            <view class="quick-entry-label">我的记录</view>
+            <view class="quick-entry-arrow">进入</view>
+          </view>
+        </view>
         <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/request/earn-create" bindtap="goTo">
           <view class="quick-entry-compact">
             <view class="quick-entry-label">加分申请</view>
@@ -91,7 +97,7 @@
 
     <view class="card reveal-card reveal-delay-2">
       <view class="row month-head">
-        <view class="section-title" style="margin-bottom: 0;">{{calendarMonth}}月喝酒日历</view>
+        <view class="section-title" style="margin-bottom: 0;">{{calendarMonth}}月微醺日历</view>
         <view class="actions">
           <button class="ghost-btn month-btn" data-step="-1" bindtap="switchCalendarMonth">上月</button>
           <view class="month-title">{{calendarMonthLabel}}</view>
@@ -151,7 +157,7 @@
           <view class="record-main">
             <view class="record-name">{{item.drink_name || '未命名酒款'}}</view>
             <view class="subtitle">{{item.drink_time_text}}</view>
-            <view class="subtitle" wx:if="{{item.price > 0}}">¥ {{item.price}}</view>
+            <view class="subtitle" wx:if="{{item.price > 0 || item.alcohol > 0}}"><text wx:if="{{item.price > 0}}">¥{{item.price}}</text><text wx:if="{{item.alcohol > 0}}" class="record-alcohol">{{item.alcohol}}%</text></view>
           </view>
         </view>
       </view>
