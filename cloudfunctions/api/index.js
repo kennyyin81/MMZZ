@@ -1,4 +1,5 @@
 const cloud = require("wx-server-sdk");
+const square = require("./src/handlers/square");
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
@@ -2020,6 +2021,34 @@ async function handleAction(currentUser, action, payload) {
       return ok(await adminSearchUsers(currentUser, payload));
     case "admin.user.setRoles":
       return ok(await adminSetRoles(currentUser, payload));
+    case "square.create":
+      return ok(await square.createSquarePost(currentUser, payload));
+    case "square.updateFromRecord":
+      return ok(await square.updateSquarePostFromRecord(currentUser, payload));
+    case "square.list":
+      return ok(await square.listSquarePosts(currentUser, payload));
+    case "square.listByLocation":
+      return ok(await square.listSquarePostsByLocation(currentUser, payload));
+    case "square.listMine":
+      return ok(await square.listMySquarePosts(currentUser, payload));
+    case "square.favorite.listMine":
+      return ok(await square.listMyFavoritePosts(currentUser, payload));
+    case "square.getDetail":
+      return ok(await square.getSquarePostDetail(currentUser, payload));
+    case "square.like.toggle":
+      return ok(await square.toggleSquareLike(currentUser, payload));
+    case "square.favorite.toggle":
+      return ok(await square.toggleSquareFavorite(currentUser, payload));
+    case "square.comment.create":
+      return ok(await square.createSquareComment(currentUser, payload));
+    case "square.comment.list":
+      return ok(await square.listSquareComments(currentUser, payload));
+    case "square.comment.like.toggle":
+      return ok(await square.toggleSquareCommentLike(currentUser, payload));
+    case "square.comment.remove":
+      return ok(await square.removeSquareComment(currentUser, payload));
+    case "square.remove":
+      return ok(await square.removeSquarePost(currentUser, payload));
     default:
       throw new AppError(2001, "未知 action");
   }
