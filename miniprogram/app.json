@@ -22,7 +22,9 @@
     "pages/approval/history-list",
     "pages/approval/detail",
     "pages/admin/user-role",
-    "pages/admin/wine-topic"
+    "pages/admin/wine-topic",
+    "pages/ai/sbti-survey/index",
+    "pages/ai/chat/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#f5f6f8",

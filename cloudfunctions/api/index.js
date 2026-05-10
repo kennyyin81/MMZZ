@@ -19,8 +19,59 @@ const COLLECTIONS = {
   WINE_TOPIC: "wine_topic",
   WINE_COMMENT: "wine_comment",
   WINE_FAVORITE: "wine_favorite",
-  DRINK_DIARY: "drink_diary"
+  DRINK_DIARY: "drink_diary",
+  USER_SBTI: "user_sbti"
 };
+// SBTI 用户画像相关（openid 作为唯一标识，budget_amount 为用户输入的人均金额，单位元）
+async function getUserSbti(currentUser) {
+  const wxContext = cloud.getWXContext();
+  const openid = wxContext.OPENID;
+  if (!openid) {
+    return null;
+  }
+  try {
+    const res = await db.collection(COLLECTIONS.USER_SBTI)
+      .where({ openid })
+      .limit(1)
+      .get();
+    return unwrapDoc(res);
+  } catch (error) {
+    console.error("getUserSbti error:", error);
+    // 如果集合不存在或查询失败，返回 null
+    return null;
+  }
+}
+
+async function initUserSbti(currentUser, payload) {
+  const wxContext = cloud.getWXContext();
+  const openid = wxContext.OPENID;
+  // 字段校验
+  assert(Array.isArray(payload.taste_preferences) && payload.taste_preferences.length > 0, 2001, "口味偏好必填");
+  assert(Array.isArray(payload.drink_types) && payload.drink_types.length > 0, 2001, "酒类偏好必填");
+  assert(Array.isArray(payload.atmosphere) && payload.atmosphere.length > 0, 2001, "氛围偏好必填");
+  assert(Array.isArray(payload.social_scene) && payload.social_scene.length > 0, 2001, "社交场景必填");
+  const budgetAmount = Number(payload.budget_amount || payload.budget_level);
+  assert(Number.isFinite(budgetAmount) && budgetAmount > 0, 2001, "预算金额必须大于 0");
+  const nowTime = now();
+  // 先删后插，保证唯一
+  await db.collection(COLLECTIONS.USER_SBTI).where({ openid }).remove();
+  const doc = {
+    openid,
+    taste_preferences: payload.taste_preferences,
+    drink_types: payload.drink_types,
+    atmosphere: payload.atmosphere,
+    social_scene: payload.social_scene,
+    budget_amount: budgetAmount,
+    preferred_areas: [],
+    avoid_tags: [],
+    note: "",
+    version: 1,
+    created_at: nowTime,
+    updated_at: nowTime
+  };
+  const addRes = await db.collection(COLLECTIONS.USER_SBTI).add({ data: doc });
+  return { ...doc, _id: unwrapInsertId(addRes) };
+}
 
 const ROLE = {
   USER: "USER",
@@ -1859,6 +1910,10 @@ async function adminSetRoles(currentUser, payload) {
 
 async function handleAction(currentUser, action, payload) {
   switch (action) {
+    case "sbti.get":
+      return ok(await getUserSbti(currentUser));
+    case "sbti.init":
+      return ok(await initUserSbti(currentUser, payload));
     case "auth.getCurrentUser":
       return ok(currentUser);
     case "points.listLedger":
