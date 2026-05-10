@@ -7,7 +7,7 @@
     "pages/square/detail",
     "pages/square/location",
     "pages/square/publish",
-    "pages/ai/chat",
+    "pages/ai/chat/index",
     "pages/ai/sessions/index",
     "pages/bar/detail",
     "pages/request/my-list",

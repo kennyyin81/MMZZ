@@ -265,7 +265,7 @@ Page({
       const sbti = await callApi("sbti.get");
       wx.hideLoading();
       if (sbti && sbti._id) {
-        wx.navigateTo({ url: "/pages/ai/chat" });
+        wx.navigateTo({ url: "/pages/ai/chat/index" });
       } else {
         wx.navigateTo({ url: "/pages/ai/sbti-survey/index" });
       }

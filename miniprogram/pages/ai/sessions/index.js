@@ -74,10 +74,10 @@ Page({
   openSession(e) {
     const sessionId = e.currentTarget.dataset.id;
     if (!sessionId) return;
-    wx.redirectTo({ url: `/pages/ai/chat?session_id=${sessionId}` });
+    wx.redirectTo({ url: `/pages/ai/chat/index?session_id=${sessionId}` });
   },
 
   newSession() {
-    wx.redirectTo({ url: "/pages/ai/chat" });
+    wx.redirectTo({ url: "/pages/ai/chat/index" });
   }
 });

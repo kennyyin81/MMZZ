@@ -424,11 +424,15 @@ const COLLECTIONS = {
 ```json
 {
   "session_id": "xxx",
-  "intent": "recommend",
+  "intent": "recommend_bar | recommend_wine | knowledge | chitchat | sbti",
   "reply": "根据你的喜好，推荐这几家...",
   "recommended_bar_ids": ["bar_001", "bar_005"],
   "recommended_bars": [
     { "bar_id": "bar_001", "name": "月色酒馆", "area": "广州天河", "avg_price": 120, "highlights": "..." }
+  ],
+  "recommended_wine_ids": ["wine_001"],
+  "recommended_wines": [
+    { "wine_id": "wine_001", "name": "内格罗尼", "category": "金酒鸡尾酒", "alcohol": "24%", "summary": "..." }
   ],
   "follow_up_question": "",
   "action_hint": ""
@@ -714,20 +718,21 @@ function calcDistance(lat1, lng1, lat2, lng2) {
 
 ### FT-3：AI 对话核心 + 酒馆详情
 
-> **目标**：用户能和 AI 对话，推荐意图返回酒馆卡片，其他意图返回纯文本  
+> **目标**：用户能和 AI 对话，推荐意图返回酒馆 / 酒品卡片，其他意图返回文本  
 > **前置**：FT-1（大模型可调用） + FT-2（SBTI 有数据）  
-> **验收**：发消息 → AI 正确回复 → 推荐带酒馆卡片 → 卡片可点击看详情
+> **验收**：发消息 → AI 正确回复 → 推荐带结构化卡片 → 卡片可点击看详情
 
 | # | 任务 | 产出 |
 |---|------|------|
 | 3.1 | 后端：`aiChat()` 主函数（完整流程：加载数据 → 组装 prompt → 调大模型 → 解析 → 存 session） | 核心 action |
 | 3.2 | 后端：`ai.getSession` / `ai.listSessions` 接口 | 2 个 action |
 | 3.3 | 后端：`bar.list` / `bar.getDetail` 接口 | 2 个 action |
-| 3.4 | 前端：AI 对话页 `pages/ai/chat`（消息列表 + 输入框 + loading） | 页面四件套 |
+| 3.4 | 前端：AI 对话页 `pages/ai/chat/index`（消息列表 + 输入框 + loading） | 页面四件套 |
 | 3.5 | 前端：按 intent 分支渲染（酒馆卡片 / 酒品卡片 / 纯文本 / 偏好按钮） | 渲染逻辑 |
-| 3.6 | 前端：酒馆详情页 `pages/bar/detail` | 页面四件套 |
-| 3.7 | `app.json` 注册 `pages/ai/chat` 和 `pages/bar/detail` | 路由生效 |
-| 3.8 | 联调：推荐/知识/闲聊/画像 4 种意图测试 | 全部意图走通 |
+| 3.6 | 前端：历史会话页 `pages/ai/sessions/index` | 用户可选择历史会话继续聊 |
+| 3.7 | 前端：酒馆详情页 `pages/bar/detail` | 页面四件套 |
+| 3.8 | `app.json` 注册 `pages/ai/chat/index`、`pages/ai/sessions/index` 和 `pages/bar/detail` | 路由生效 |
+| 3.9 | 联调：酒馆推荐 / 酒品推荐 / 酒知识 / 闲聊 / 偏好相关意图 | 主要链路走通 |
 
 #### FT-3 当前接入记录（2026-05-10）
 
@@ -739,15 +744,19 @@ function calcDistance(lat1, lng1, lat2, lng2) {
 - `bar.list` 当前作为公开 action，可跳过登录态，便于云端测试。
 - `cloudfunctions/api/index.js` 保留了原登录态逻辑注释，测试完成后可恢复。
 - 第二个 Tab `pages/wine/index` 已尝试接入混合流：前端同时调用 `wine.list` + `bar.list`，合并后随机打乱展示。
-- 酒馆卡片目前只展示，不跳详情；点击先提示“酒馆详情待接入”。
+- 酒馆卡片和酒品卡片均已支持点击跳转详情。
 
-当前进展 / 暂缓：
+当前结论：FT-3 开发完成，进入整体回归 / FT-4 串联阶段。
 
-- `bar.getDetail` 已注册到 `router.js`，并加入 `PUBLIC_ACTIONS` 便于云端测试。
+已完成：
+
+- `bar.list` / `bar.getDetail` 已注册到 `router.js`，酒馆列表、详情和卡片跳转已接入。
 - `admin.ai.testLLM` 已注册到 `router.js`，TokenHub `deepseek-v4-flash` 调用已验证通过。
-- `ai.chat` 已注册到 `router.js`，用于小程序端登录态下基础对话联调。
+- `ai.chat` 已注册到 `router.js`，支持 `recommend_bar` / `recommend_wine` / `knowledge` / `chitchat` / `sbti` 分流。
 - `ai.getSession` / `ai.listSessions` 已注册到 `router.js`，用于读取当前用户自己的会话详情和会话列表。
-- `cloudfunctions/api/src/handlers/ai.js`、`cloudfunctions/api/src/ai-client.js`、`miniprogram/pages/ai/`、`miniprogram/pages/bar/` 已从占位进入小步联调阶段。
+- `pages/ai/chat/index` 已完成顶部固定、底部输入固定、中间消息区滚动、Markdown 富文本展示、酒馆 / 酒品卡片渲染。
+- `pages/ai/sessions/index` 已完成历史会话列表、新对话入口和继续会话跳转。
+- 大模型上下文只携带最近 10 条历史消息；酒馆和酒品推荐基于精简候选列表输出结构化 ID。
 
 接入原则：
 
@@ -760,13 +769,13 @@ function calcDistance(lat1, lng1, lat2, lng2) {
 
 | 顺序 | 动作 | 验收 |
 |------|------|------|
-| 1 | 确认第二个 Tab 混合展示稳定 | 已接入，待页面回归 |
-| 2 | 最小接入 `bar.getDetail`，并加入 `PUBLIC_ACTIONS` | 已接入，待云端测试 |
-| 3 | 酒馆卡片点击跳转 `pages/bar/detail?bar_id=xxx` | 已接入，待页面回归 |
-| 4 | 恢复 `admin.ai.testLLM` | 已注册，TokenHub 调用已验证通过 |
-| 5 | 接入 `ai.chat` 基础版 | 已注册，待小程序端登录态联调 |
-| 6 | 接入 `ai.getSession` / `ai.listSessions` | 已注册，待会话历史回归 |
-| 7 | AI 对话页联调 | 推荐 / 知识 / 闲聊 / 画像相关 4 类意图走通 |
+| 1 | 确认第二个 Tab 混合展示稳定 | 已接入 |
+| 2 | 最小接入 `bar.getDetail`，并加入 `PUBLIC_ACTIONS` | 已完成 |
+| 3 | 酒馆卡片点击跳转 `pages/bar/detail?bar_id=xxx` | 已完成 |
+| 4 | 恢复 `admin.ai.testLLM` | 已完成，TokenHub 调用已验证通过 |
+| 5 | 接入 `ai.chat` 基础版 | 已完成 |
+| 6 | 接入 `ai.getSession` / `ai.listSessions` | 已完成 |
+| 7 | AI 对话页联调 | 酒馆推荐 / 酒品推荐 / 酒知识 / 闲聊 / 偏好相关主要链路已走通 |
 
 ---
 
@@ -880,7 +889,7 @@ FT-6 收尾（依赖全部）
 - [x] 方案设计
 - [x] **FT-1：基础设施搭建**（集合已建，`callLLM()` 已通过 `deepseek-v4-flash` 联调）
 - [ ] FT-2：SBTI 画像全流程
-- [ ] FT-3：AI 对话核心 + 酒馆详情 ← 进行中（代码已补，待部署联调）
+- [x] FT-3：AI 对话核心 + 酒馆详情（已完成，进入整体回归 / FT-4 串联）
 - [ ] FT-4：悬浮窗 + 入口串联
 - [ ] FT-5：SBTI 离线微调
 - [ ] FT-6：收尾打磨
