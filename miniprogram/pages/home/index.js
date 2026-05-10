@@ -100,6 +100,7 @@ Page({
     isSommelier: false,
     unreadNotificationCount: 0,
     pendingCount: 0,
+    aiChecking: false,
     loadError: "",
     calendarLoading: false,
     calendarUploading: false,
@@ -253,6 +254,27 @@ Page({
   goTo(e) {
     const url = e.currentTarget.dataset.url;
     openPage(url);
+  },
+
+  async openAiAssistant() {
+    if (this.data.aiChecking) return;
+    this.setData({ aiChecking: true });
+    wx.showLoading({ title: "检查画像中", mask: true });
+
+    try {
+      const sbti = await callApi("sbti.get");
+      wx.hideLoading();
+      if (sbti && sbti._id) {
+        wx.navigateTo({ url: "/pages/ai/chat/index" });
+      } else {
+        wx.navigateTo({ url: "/pages/ai/sbti-survey/index" });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      showError(err);
+    } finally {
+      this.setData({ aiChecking: false });
+    }
   },
 
   goPointsLedger() {

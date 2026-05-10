@@ -38,7 +38,7 @@
     <view class="card reveal-card reveal-delay-1">
       <view class="section-title">快捷入口</view>
       <view class="quick-grid home-quick-grid">
-        <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/ai/sbti-survey/index" bindtap="goTo">
+        <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" bindtap="openAiAssistant">
           <view class="quick-entry-compact">
             <view class="quick-entry-label">AI 酒馆助手</view>
             <view class="quick-entry-arrow">进入</view>
