@@ -110,7 +110,13 @@ Page({
     calendarWeeks: [],
     selectedCalendarDate: "",
     showCalendarDayPanel: false,
-    calendarDayRecords: []
+    calendarDayRecords: [],
+    aiFabX: 0,
+    aiFabY: 0
+  },
+
+  onLoad() {
+    this.initAiFabPosition();
   },
 
   onShow() {
@@ -119,6 +125,26 @@ Page({
     this.loadPage();
     this.loadHomeCalendarRecords();
     this.checkSquareNavigate();
+  },
+
+  initAiFabPosition() {
+    const saved = wx.getStorageSync("home_ai_fab_position");
+    if (saved && typeof saved.x === "number" && typeof saved.y === "number") {
+      this.setData({ aiFabX: saved.x, aiFabY: saved.y });
+      this.aiFabPosition = saved;
+      return;
+    }
+
+    const systemInfo = wx.getSystemInfoSync();
+    const fabSize = Math.round((128 / 750) * systemInfo.windowWidth);
+    const sideGap = Math.round((28 / 750) * systemInfo.windowWidth);
+    const bottomGap = Math.round((220 / 750) * systemInfo.windowWidth);
+    const position = {
+      x: Math.max(sideGap, systemInfo.windowWidth - fabSize - sideGap),
+      y: Math.max(sideGap, systemInfo.windowHeight - fabSize - bottomGap)
+    };
+    this.aiFabPosition = position;
+    this.setData({ aiFabX: position.x, aiFabY: position.y });
   },
 
   initCalendarBase() {
@@ -256,7 +282,38 @@ Page({
     openPage(url);
   },
 
+  onAiFabTouchStart() {
+    const position = this.aiFabPosition || { x: this.data.aiFabX, y: this.data.aiFabY };
+    this.aiFabTouchStart = {
+      x: position.x,
+      y: position.y
+    };
+    this.aiFabMoved = false;
+  },
+
+  onAiFabChange(e) {
+    const position = {
+      x: Math.round(e.detail.x || 0),
+      y: Math.round(e.detail.y || 0)
+    };
+    const start = this.aiFabTouchStart || position;
+    if (Math.abs(position.x - start.x) > 8 || Math.abs(position.y - start.y) > 8) {
+      this.aiFabMoved = true;
+    }
+    this.aiFabPosition = position;
+  },
+
+  onAiFabTouchEnd() {
+    const position = this.aiFabPosition || { x: this.data.aiFabX, y: this.data.aiFabY };
+    this.setData({ aiFabX: position.x, aiFabY: position.y });
+    wx.setStorageSync("home_ai_fab_position", position);
+  },
+
   async openAiAssistant() {
+    if (this.aiFabMoved) {
+      this.aiFabMoved = false;
+      return;
+    }
     if (this.data.aiChecking) return;
     this.setData({ aiChecking: true });
     wx.showLoading({ title: "准备中", mask: true });

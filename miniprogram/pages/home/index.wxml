@@ -38,13 +38,6 @@
     <view class="card reveal-card reveal-delay-1">
       <view class="section-title">快捷入口</view>
       <view class="quick-grid home-quick-grid">
-        <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" bindtap="openAiAssistant">
-          <view class="quick-entry-compact">
-            <view class="quick-entry-label">AI 酒馆助手</view>
-            <view class="quick-entry-arrow">进入</view>
-          </view>
-        </view>
-
         <view class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/request/my-list" bindtap="goTo">
           <view class="quick-entry-compact">
             <view class="quick-entry-label">我的记录</view>
@@ -94,6 +87,23 @@
         </view>
       </view>
     </view>
+
+    <movable-area class="ai-assistant-fab-area">
+      <movable-view
+        class="ai-assistant-fab tap-card {{aiChecking ? 'ai-assistant-fab-loading' : ''}}"
+        direction="all"
+        inertia
+        x="{{aiFabX}}"
+        y="{{aiFabY}}"
+        bindchange="onAiFabChange"
+        bindtouchstart="onAiFabTouchStart"
+        bindtouchend="onAiFabTouchEnd"
+        bindtap="openAiAssistant"
+      >
+        <image class="ai-assistant-fab-icon" src="/assets/quick/sommelier.svg" mode="aspectFit"></image>
+        <view class="ai-assistant-fab-text">AI</view>
+      </movable-view>
+    </movable-area>
 
     <view class="card reveal-card reveal-delay-2">
       <view class="row month-head">

@@ -1,5 +1,6 @@
 const {
   db,
+  _,
   COLLECTIONS,
   ROLE,
   assert,
@@ -18,6 +19,47 @@ function getAIClient() {
 
 const VALID_INTENTS = ["recommend", "recommend_bar", "recommend_wine", "knowledge", "chitchat", "sbti"];
 
+const SBTI_MAX_TAGS = {
+  taste_preferences: 3,
+  drink_types: 4,
+  atmosphere: 3,
+  social_scene: 3,
+  preferred_areas: 5,
+  avoid_tags: 5
+};
+
+const SBTI_ALLOWED_TAGS = {
+  taste_preferences: [
+    "\u751c\u578b",
+    "\u679c\u5473",
+    "\u6e05\u723d\u89e3\u6e34",
+    "\u6d53\u70c8\u9187\u539a",
+    "\u9178\u723d\u5f00\u80c3"
+  ],
+  drink_types: [
+    "\u9e21\u5c3e\u9152",
+    "\u7cbe\u917f\u5564\u9152",
+    "\u5a01\u58eb\u5fcc/\u767d\u5170\u5730",
+    "\u7ea2\u9152/\u767d\u8461\u8404\u9152",
+    "\u6e05\u9152/\u6885\u9152",
+    "\u4f4e\u5ea6\u5fae\u91ba\u996e\u54c1"
+  ],
+  atmosphere: [
+    "\u5b89\u9759\u53ef\u804a\u5929",
+    "\u6709\u80cc\u666f\u97f3\u4e50",
+    "\u70ed\u95f9\u6709\u9a7b\u5531/DJ",
+    "\u6709\u6237\u5916\u4f4d\u7f6e",
+    "\u6709\u7279\u8272\u88c5\u4fee/\u4e3b\u9898"
+  ],
+  social_scene: [
+    "\u4e00\u4e2a\u4eba\u653e\u677e",
+    "\u8ddf\u670b\u53cb\u5c0f\u805a",
+    "\u7ea6\u4f1a",
+    "\u5546\u52a1\u5e94\u916c",
+    "\u7279\u6b8a\u7eaa\u5ff5\u65e5"
+  ]
+};
+
 function normalizeStringList(value) {
   const list = Array.isArray(value) ? value : String(value || "").split(/[\r\n、,，/|；;]+/);
   return Array.from(new Set(list.map((item) => String(item || "").trim()).filter(Boolean)));
@@ -25,6 +67,94 @@ function normalizeStringList(value) {
 
 function normalizeReplyText(value) {
   return String(value || "").trim();
+}
+
+function normalizeTagList(value, options) {
+  const allowSet = Array.isArray(options && options.allow) ? new Set(options.allow) : null;
+  const maxLength = Number((options && options.maxLength) || 20);
+  const list = Array.isArray(value) ? value : [];
+  return Array.from(new Set(list
+    .map((item) => String(item || "").trim())
+    .filter((item) => item && item.length <= maxLength && (!allowSet || allowSet.has(item)))));
+}
+
+function mergeSbtiTags(existing, incoming, maxTags) {
+  const merged = normalizeTagList(existing, { maxLength: 30 });
+  normalizeTagList(incoming, { maxLength: 30 }).forEach((tag) => {
+    const index = merged.indexOf(tag);
+    if (index >= 0) {
+      merged.splice(index, 1);
+    }
+    merged.push(tag);
+  });
+  return merged.slice(-maxTags);
+}
+
+function sameStringList(left, right) {
+  const a = Array.isArray(left) ? left : [];
+  const b = Array.isArray(right) ? right : [];
+  return a.length === b.length && a.every((item, index) => item === b[index]);
+}
+
+function buildSbtiAnalyzePrompt(currentSbti, conversation) {
+  const schema = {
+    new_taste_preferences: [],
+    new_drink_types: [],
+    new_atmosphere: [],
+    new_social_scene: [],
+    new_preferred_areas: [],
+    new_avoid_tags: [],
+    budget_amount_change: null,
+    confidence: "low|medium|high",
+    reason: ""
+  };
+  return [
+    "You are a user drinking-preference profile analyst.",
+    "Analyze only explicit or strongly implied new preferences from this completed user/assistant exchange.",
+    "Return strict JSON only. Do not include markdown or explanations outside JSON.",
+    "Only update when the evidence is strong. If there is no reliable new preference, return empty arrays and confidence=low.",
+    "For enumerated fields, use only the exact tags listed below.",
+    `Current SBTI: ${JSON.stringify(currentSbti || {})}`,
+    `Conversation: ${JSON.stringify(conversation || [])}`,
+    `Allowed taste_preferences: ${JSON.stringify(SBTI_ALLOWED_TAGS.taste_preferences)}`,
+    `Allowed drink_types: ${JSON.stringify(SBTI_ALLOWED_TAGS.drink_types)}`,
+    `Allowed atmosphere: ${JSON.stringify(SBTI_ALLOWED_TAGS.atmosphere)}`,
+    `Allowed social_scene: ${JSON.stringify(SBTI_ALLOWED_TAGS.social_scene)}`,
+    "preferred_areas and avoid_tags may be short free-text Chinese labels extracted from the user message.",
+    "budget_amount_change should be a positive number only if the user clearly states a new per-person budget amount; otherwise null.",
+    `JSON schema: ${JSON.stringify(schema)}`
+  ].join("\n");
+}
+
+function normalizeSbtiAnalysis(raw) {
+  const parsed = raw && typeof raw === "object" ? raw : {};
+  const result = {
+    new_taste_preferences: normalizeTagList(parsed.new_taste_preferences, { allow: SBTI_ALLOWED_TAGS.taste_preferences }),
+    new_drink_types: normalizeTagList(parsed.new_drink_types, { allow: SBTI_ALLOWED_TAGS.drink_types }),
+    new_atmosphere: normalizeTagList(parsed.new_atmosphere, { allow: SBTI_ALLOWED_TAGS.atmosphere }),
+    new_social_scene: normalizeTagList(parsed.new_social_scene, { allow: SBTI_ALLOWED_TAGS.social_scene }),
+    new_preferred_areas: normalizeTagList(parsed.new_preferred_areas, { maxLength: 20 }),
+    new_avoid_tags: normalizeTagList(parsed.new_avoid_tags, { maxLength: 20 }),
+    budget_amount_change: null,
+    confidence: parsed.confidence === "high" ? "high" : (parsed.confidence === "medium" ? "medium" : "low"),
+    reason: String(parsed.reason || "").trim().slice(0, 200)
+  };
+  const budgetAmount = Number(parsed.budget_amount_change || parsed.budget_level_change || 0);
+  if (Number.isFinite(budgetAmount) && budgetAmount > 0) {
+    result.budget_amount_change = budgetAmount;
+  }
+  return result;
+}
+
+function hasSbtiAnalysisChange(analysis) {
+  return [
+    "new_taste_preferences",
+    "new_drink_types",
+    "new_atmosphere",
+    "new_social_scene",
+    "new_preferred_areas",
+    "new_avoid_tags"
+  ].some((key) => analysis[key] && analysis[key].length) || analysis.budget_amount_change !== null;
 }
 
 function inferRecommendationIntent(message) {
@@ -238,6 +368,91 @@ async function getRecommendableWines() {
     .sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime());
 }
 
+async function analyzeSbti(sessionId, openid, conversation) {
+  if (!sessionId || !openid) return;
+
+  const currentSbti = await getSbti(openid);
+  if (!currentSbti || !currentSbti._id) return;
+
+  const { callLLM, safeParseAIJson } = getAIClient();
+  const aiRaw = await callLLM(
+    buildSbtiAnalyzePrompt(currentSbti, conversation),
+    [{ role: "user", content: "Analyze the conversation and return the SBTI update JSON." }],
+    { temperature: 0.1, max_tokens: 600 }
+  );
+  const analysis = normalizeSbtiAnalysis(safeParseAIJson(aiRaw));
+  const analyzedAt = now();
+
+  if (analysis.confidence !== "high" || !hasSbtiAnalysisChange(analysis)) {
+    await db.collection(COLLECTIONS.AI_CHAT_SESSION).doc(sessionId).update({
+      data: {
+        sbti_analyzed: true,
+        sbti_analysis_result: analysis,
+        sbti_analyzed_at: analyzedAt
+      }
+    }).catch((error) => {
+      console.error("mark sbti analysis skipped failed:", error);
+    });
+    return;
+  }
+
+  const nextSbti = {
+    taste_preferences: mergeSbtiTags(currentSbti.taste_preferences, analysis.new_taste_preferences, SBTI_MAX_TAGS.taste_preferences),
+    drink_types: mergeSbtiTags(currentSbti.drink_types, analysis.new_drink_types, SBTI_MAX_TAGS.drink_types),
+    atmosphere: mergeSbtiTags(currentSbti.atmosphere, analysis.new_atmosphere, SBTI_MAX_TAGS.atmosphere),
+    social_scene: mergeSbtiTags(currentSbti.social_scene, analysis.new_social_scene, SBTI_MAX_TAGS.social_scene),
+    preferred_areas: mergeSbtiTags(currentSbti.preferred_areas, analysis.new_preferred_areas, SBTI_MAX_TAGS.preferred_areas),
+    avoid_tags: mergeSbtiTags(currentSbti.avoid_tags, analysis.new_avoid_tags, SBTI_MAX_TAGS.avoid_tags)
+  };
+  const budgetChanged = analysis.budget_amount_change !== null && Number(currentSbti.budget_amount || 0) !== analysis.budget_amount_change;
+  const listChanged = Object.keys(nextSbti).some((key) => !sameStringList(currentSbti[key], nextSbti[key]));
+
+  if (!listChanged && !budgetChanged) {
+    await db.collection(COLLECTIONS.AI_CHAT_SESSION).doc(sessionId).update({
+      data: {
+        sbti_analyzed: true,
+        sbti_analysis_result: { ...analysis, applied: false },
+        sbti_analyzed_at: analyzedAt
+      }
+    }).catch((error) => {
+      console.error("mark sbti analysis unchanged failed:", error);
+    });
+    return;
+  }
+
+  const patch = {
+    ...nextSbti,
+    sbti_last_analysis: {
+      session_id: sessionId,
+      reason: analysis.reason,
+      analyzed_at: analyzedAt
+    },
+    version: _.inc(1),
+    updated_at: analyzedAt
+  };
+
+  if (budgetChanged) {
+    patch.budget_amount = analysis.budget_amount_change;
+  }
+
+  await db.collection(COLLECTIONS.USER_SBTI).doc(currentSbti._id).update({ data: patch });
+  await db.collection(COLLECTIONS.AI_CHAT_SESSION).doc(sessionId).update({
+    data: {
+      sbti_analyzed: true,
+      sbti_analysis_result: analysis,
+      sbti_analyzed_at: analyzedAt
+    }
+  }).catch((error) => {
+    console.error("mark sbti analysis applied failed:", error);
+  });
+}
+
+function scheduleSbtiAnalysis(sessionId, openid, conversation) {
+  analyzeSbti(sessionId, openid, conversation).catch((error) => {
+    console.error("analyzeSbti failed:", error);
+  });
+}
+
 async function getSessionById(sessionId, userId) {
   const session = await db.collection(COLLECTIONS.AI_CHAT_SESSION).doc(sessionId).get().then(unwrapDoc).catch(() => null);
   assert(session && session.user_id === userId && !session.is_deleted, 3001, "会话不存在");
@@ -333,6 +548,8 @@ async function aiChat(currentUser, payload) {
       updated_at: messageTime
     }
   });
+
+  scheduleSbtiAnalysis(session._id, currentUser.openid, nextMessages.slice(-6));
 
   return {
     session_id: session._id,
