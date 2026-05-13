@@ -330,7 +330,7 @@
 
 ### `bar_info`
 
-用途：酒馆种子数据，用于酒馆列表、详情和 AI 推荐。
+用途：酒馆基础数据，用于酒馆列表、详情和 AI 推荐；当前可通过 `pages/admin/bar-info` 后台维护。
 
 关键字段：
 
@@ -340,8 +340,8 @@
 - `city`：城市，可选；缺省时后端会尝试从 `area` / `address` 推断
 - `area`
 - `address`
-- `latitude`
-- `longitude`
+- `latitude`：地图选择后写入，维护页不直接展示
+- `longitude`：地图选择后写入，维护页不直接展示
 - `phone`
 - `business_hours`
 - `avg_price`
@@ -368,6 +368,12 @@
 - `is_active`
 - `province + city`
 
+维护策略：
+
+- 酒馆删除采用下架策略：`admin.bar.remove` 只将 `is_active` 更新为 `false`，不物理删除数据。
+- `drink_types`、`taste_tags`、`atmosphere_tags`、`scene_tags` 当前维护页不展示，但字段保留给历史数据兼容和 AI 推荐扩展。
+- 前台 `bar.list` 只返回 `is_active=true` 的酒馆；后台 `admin.bar.list` 可返回已下架酒馆用于继续维护。
+
 ### `bar_rating`
 
 用途：用户对酒馆的评分记录。
@@ -382,8 +388,8 @@
 
 建议索引：
 
-- `bar_id + user_id`，建议唯一
-- `bar_id + created_at(desc)`
+- `idx_bar_rating_bar_user`：`bar_id(asc) + user_id(asc)`，建议唯一
+- `idx_bar_rating_bar_created`：`bar_id(asc) + created_at(desc)`
 
 ### `square_post`
 

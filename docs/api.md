@@ -458,6 +458,11 @@
 
 - `list`
 
+说明：
+
+- 维护列表会包含已下架酒馆，便于重新编辑和恢复展示。
+- 前端酒馆维护页默认本地过滤列表，后端 `keyword` 保留给后续服务端搜索扩展。
+
 ### `admin.bar.upsert`
 
 新增或更新酒馆（需 SOMMELIER 角色）。
@@ -486,6 +491,12 @@
 - `image_url`
 - `images`
 - `is_active`：是否前台展示
+
+前端维护页说明：
+
+- “地图搜索填入”使用 `wx.chooseLocation`，可自动回填酒馆名、地址、经纬度，并尽量解析省份、城市和区域。
+- 经纬度字段不在页面直接展示，但会随地图选择结果保存。
+- `drink_types`、`taste_tags`、`atmosphere_tags`、`scene_tags` 当前不在维护页展示；后端仍保留字段，用于兼容历史数据和后续 AI 推荐扩展。
 
 ### `admin.bar.remove`
 
