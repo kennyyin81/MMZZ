@@ -2,13 +2,12 @@ const { callApi, showError } = require("../../../utils/api");
 const { smartTimeAgo } = require("../../../utils/const");
 
 function normalizeSession(item) {
-  return {
-    ...item,
+  return Object.assign({}, item, {
     title: item.title || "新对话",
     last_message: item.last_message || "暂无消息",
     message_count: Number(item.message_count || 0),
     updated_at_text: smartTimeAgo(item.updated_at || item.created_at)
-  };
+  });
 }
 
 Page({

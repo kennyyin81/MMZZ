@@ -29,8 +29,8 @@
     "pages/approval/pending-list",
     "pages/approval/history-list",
     "pages/approval/detail",
-    "pages/admin/user-role",
     "pages/admin/wine-topic",
+    "pages/admin/bar-info",
     "pages/ai/sbti-survey/index"
   ],
   "window": {
@@ -53,7 +53,7 @@
       },
       {
         "pagePath": "pages/wine/index",
-        "text": "选酒"
+        "text": "酒馆"
       },
       {
         "pagePath": "pages/square/index",

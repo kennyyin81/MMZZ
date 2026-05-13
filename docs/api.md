@@ -444,30 +444,119 @@
 - 每款酒取得分最高的 3 款作为相似推荐
 - 也可通过定时云函数 `wine-scheduler` 每周一凌晨 3 点自动执行
 
-### `admin.user.search`
+## 酒馆
 
-搜索用户（需 ADMIN 角色）。
+### `admin.bar.list`
+
+查询酒馆维护列表（需 SOMMELIER 角色）。
 
 入参：
 
-- `keyword`：昵称关键词，为空时返回前 30 个用户
+- `keyword`：可选，按酒馆名、省市区域、地址、类型模糊过滤
 
 返回字段：
 
 - `list`
 
-### `admin.user.setRoles`
+### `admin.bar.upsert`
 
-设置用户角色（需 ADMIN 角色）。
+新增或更新酒馆（需 SOMMELIER 角色）。
 
 入参：
 
-- `user_id`（必填）
-- `roles`：角色数组
+- `bar_id`：更新时传入；新增时可省略，由后端生成
+- `name`（必填）
+- `province`
+- `city`
+- `area`
+- `address`
+- `latitude`
+- `longitude`
+- `phone`
+- `business_hours`
+- `avg_price`
+- `budget_level`
+- `bar_type`
+- `drink_types`
+- `taste_tags`
+- `atmosphere_tags`
+- `scene_tags`
+- `highlights`
+- `description`
+- `image_url`
+- `images`
+- `is_active`：是否前台展示
+
+### `admin.bar.remove`
+
+下架酒馆（需 SOMMELIER 角色）。
+
+入参：
+
+- `bar_id`（必填）
 
 说明：
 
-- 无论传入什么角色数组，都会自动包含 `USER` 角色
+- 该接口不会物理删除 `bar_info`，只会将 `is_active` 置为 `false`
+
+### `bar.list`
+
+分页查询前台可见酒馆列表。
+
+入参：
+
+```json
+{
+  "page_no": 1,
+  "page_size": 20,
+  "province": "广东省",
+  "city": "广州市",
+  "keyword": "清吧"
+}
+```
+
+说明：
+
+- `province`、`city` 均可选，用于省市筛选
+- `keyword` 会匹配酒馆名称、区域、地址和酒馆类型
+- 返回的酒馆会补齐 `province`、`city` 字段；若数据库未显式维护，会从 `area` / `address` 中尽量推断
+
+返回字段：
+
+- `list`
+- `total`
+- `page_no`
+- `page_size`
+- `has_more`
+- `province_options`：当前数据中的可选省份
+- `city_options`：当前省份下的可选城市
+
+### `bar.getDetail`
+
+查询单个酒馆详情。
+
+入参：
+
+- `bar_id`
+
+### `bar.rating.upsert`
+
+创建或更新当前用户对酒馆的评分。
+
+入参：
+
+```json
+{
+  "bar_id": "bar_001",
+  "rating": 5
+}
+```
+
+规则：
+
+- `rating` 必须在 1 到 5 之间
+- 同一用户对同一酒馆只保留一条评分
+- 提交后会回写 `bar_info.average_rating`、`bar_info.rating` 和 `bar_info.rating_count`
 
 ## 酒友广场
 

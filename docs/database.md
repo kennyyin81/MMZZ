@@ -17,6 +17,10 @@
 - `wine_comment`
 - `wine_comment_like`
 - `wine_favorite`
+- `user_sbti`
+- `bar_info`
+- `bar_rating`
+- `ai_chat_session`
 - `square_post`
 - `square_like`
 - `square_comment`
@@ -323,6 +327,63 @@
 
 - `idx_favorite_user_wine`：`user_id(asc) + wine_id(asc)`，建议唯一
 - `idx_favorite_user_created`：`user_id(asc) + created_at(desc)`
+
+### `bar_info`
+
+用途：酒馆种子数据，用于酒馆列表、详情和 AI 推荐。
+
+关键字段：
+
+- `bar_id`
+- `name`
+- `province`：省份，可选；缺省时后端会尝试从 `area` / `address` 推断
+- `city`：城市，可选；缺省时后端会尝试从 `area` / `address` 推断
+- `area`
+- `address`
+- `latitude`
+- `longitude`
+- `phone`
+- `business_hours`
+- `avg_price`
+- `budget_level`
+- `bar_type`
+- `drink_types`
+- `taste_tags`
+- `atmosphere_tags`
+- `scene_tags`
+- `highlights`
+- `description`
+- `image_url`
+- `images`
+- `rating`
+- `average_rating`
+- `rating_count`
+- `is_active`
+- `created_at`
+- `updated_at`
+
+建议索引：
+
+- `bar_id` 唯一
+- `is_active`
+- `province + city`
+
+### `bar_rating`
+
+用途：用户对酒馆的评分记录。
+
+关键字段：
+
+- `bar_id`
+- `user_id`
+- `rating`
+- `created_at`
+- `updated_at`
+
+建议索引：
+
+- `bar_id + user_id`，建议唯一
+- `bar_id + created_at(desc)`
 
 ### `square_post`
 

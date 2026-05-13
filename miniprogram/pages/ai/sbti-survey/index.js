@@ -120,21 +120,17 @@ Page({
     } else {
       const index = currentQ.answers.indexOf(option);
       if (index > -1) {
-        newAnswers = [
-          ...currentQ.answers.slice(0, index),
-          ...currentQ.answers.slice(index + 1)
-        ];
+        newAnswers = currentQ.answers.slice(0, index).concat(currentQ.answers.slice(index + 1));
       } else {
-        newAnswers = [...currentQ.answers, option];
+        newAnswers = currentQ.answers.concat(option);
       }
     }
 
     const newQuestions = questions.map((q, idx) => {
       if (idx === currentQuestion) {
-        return {
-          ...q,
+        return Object.assign({}, q, {
           answers: newAnswers
-        };
+        });
       }
       return q;
     });
@@ -152,10 +148,9 @@ Page({
     const { currentQuestion, questions } = this.data;
     const newQuestions = questions.map((q, idx) => {
       if (idx === currentQuestion) {
-        return {
-          ...q,
+        return Object.assign({}, q, {
           value
-        };
+        });
       }
       return q;
     });

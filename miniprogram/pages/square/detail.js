@@ -16,14 +16,13 @@ function groupComments(flatList) {
   });
   return topLevel.map((parent) => {
     const allReplies = replyMap[parent.comment_id] || [];
-    return {
-      ...parent,
+    return Object.assign({}, parent, {
       replies: allReplies,
       reply_count: allReplies.length,
       displayReplies: allReplies.slice(0, REPLY_PREVIEW_COUNT),
       hiddenReplyCount: Math.max(0, allReplies.length - REPLY_PREVIEW_COUNT),
       expanded: allReplies.length <= REPLY_PREVIEW_COUNT
-    };
+    });
   });
 }
 
@@ -79,8 +78,7 @@ Page({
         page_no: this.data.pageNo,
         page_size: this.data.pageSize
       });
-      const list = (data.list || []).map((item) => ({
-        ...item,
+      const list = (data.list || []).map((item) => Object.assign({}, item, {
         created_at_text: smartTimeAgo(item.created_at),
         like_count: Number(item.like_count || 0),
         is_liked: !!item.is_liked,
@@ -167,7 +165,7 @@ Page({
     if (!this.data.post) return;
     try {
       const res = await callApi("square.like.toggle", { post_id: this.data.postId });
-      const post = { ...this.data.post };
+      const post = Object.assign({}, this.data.post);
       post.is_liked = !!res.is_liked;
       post.like_count = Math.max(0, Number(post.like_count || 0) + (post.is_liked ? 1 : -1));
       this.setData({ post });
@@ -180,7 +178,7 @@ Page({
     if (!this.data.post) return;
     try {
       const res = await callApi("square.favorite.toggle", { post_id: this.data.postId });
-      const post = { ...this.data.post };
+      const post = Object.assign({}, this.data.post);
       post.is_favorited = !!res.is_favorited;
       post.favorite_count = Math.max(0, Number(post.favorite_count || 0) + (post.is_favorited ? 1 : -1));
       this.setData({ post });

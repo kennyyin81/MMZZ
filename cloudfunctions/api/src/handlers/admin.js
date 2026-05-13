@@ -105,32 +105,8 @@ async function adminRemoveWineTopic(currentUser, payload) {
   return { success: true };
 }
 
-async function adminSearchUsers(currentUser, payload) {
-  requireRole(currentUser, ROLE.ADMIN);
-  const keyword = String(payload.keyword || "").trim();
-  const where = keyword ? { nickname: db.RegExp({ regexp: keyword, options: "i" }) } : {};
-  const res = await db.collection(COLLECTIONS.USER_PROFILE).where(where).limit(30).get();
-  return { list: unwrapList(res) };
-}
-
-async function adminSetRoles(currentUser, payload) {
-  requireRole(currentUser, ROLE.ADMIN);
-  const userId = String(payload.user_id || "").trim();
-  assert(userId, 2001, "user_id 不能为空");
-  const roles = Array.isArray(payload.roles) ? Array.from(new Set(payload.roles.concat([ROLE.USER]))) : [ROLE.USER];
-  await db.collection(COLLECTIONS.USER_PROFILE).doc(userId).update({
-    data: {
-      roles,
-      updated_at: now()
-    }
-  });
-  return { roles };
-}
-
 module.exports = {
   adminListWineTopics,
   adminUpsertWineTopic,
-  adminRemoveWineTopic,
-  adminSearchUsers,
-  adminSetRoles
+  adminRemoveWineTopic
 };

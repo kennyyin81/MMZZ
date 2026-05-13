@@ -96,7 +96,6 @@ Page({
     loading: false,
     user: null,
     canApprove: false,
-    isAdmin: false,
     isSommelier: false,
     unreadNotificationCount: 0,
     pendingCount: 0,
@@ -173,7 +172,6 @@ Page({
       this.setData({
         user,
         canApprove: !!user.can_approve,
-        isAdmin: (user.roles || []).includes("ADMIN"),
         isSommelier: (user.roles || []).includes("SOMMELIER"),
         unreadNotificationCount: Number(user.unread_notification_count || 0),
         pendingCount: Number(pendingData.total || 0)

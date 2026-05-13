@@ -72,16 +72,16 @@
           </view>
         </view>
 
-        <view wx:if="{{isAdmin}}" class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/admin/user-role" bindtap="goTo">
+        <view wx:if="{{isSommelier}}" class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/admin/wine-topic" bindtap="goTo">
           <view class="quick-entry-compact">
-            <view class="quick-entry-label">角色管理</view>
+            <view class="quick-entry-label">酒款维护</view>
             <view class="quick-entry-arrow">进入</view>
           </view>
         </view>
 
-        <view wx:if="{{isSommelier}}" class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/admin/wine-topic" bindtap="goTo">
+        <view wx:if="{{isSommelier}}" class="quick-entry-card tap-card" hover-class="is-pressed-soft" hover-stay-time="80" data-url="/pages/admin/bar-info" bindtap="goTo">
           <view class="quick-entry-compact">
-            <view class="quick-entry-label">酒款维护</view>
+            <view class="quick-entry-label">酒馆维护</view>
             <view class="quick-entry-arrow">进入</view>
           </view>
         </view>
@@ -100,8 +100,7 @@
         bindtouchend="onAiFabTouchEnd"
         bindtap="openAiAssistant"
       >
-        <image class="ai-assistant-fab-icon" src="/assets/quick/sommelier.svg" mode="aspectFit"></image>
-        <view class="ai-assistant-fab-text">AI</view>
+        <image class="ai-assistant-fab-icon" src="/assets/quick/ai-wine-assistant.png" mode="aspectFit"></image>
       </movable-view>
     </movable-area>
 

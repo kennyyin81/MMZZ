@@ -10,17 +10,17 @@
 }
 
 .bar-list-media {
-  background: linear-gradient(135deg, #312e81, #7c3aed);
+  background: #f1f5f9;
 }
 
 .bar-cover-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 52rpx;
+  color: #64748b;
+  font-size: 44rpx;
   font-weight: 900;
-  letter-spacing: 6rpx;
+  letter-spacing: 2rpx;
 }
 
 .filter-row {
@@ -33,6 +33,38 @@
 
 .filter-item {
   flex: 0 0 192rpx;
+}
+
+.filter-item-wide {
+  flex-basis: 260rpx;
+}
+
+.mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8rpx;
+  margin-bottom: 18rpx;
+  padding: 8rpx;
+  border-radius: 24rpx;
+  background: #f1f5f9;
+}
+
+.mode-switch-item {
+  min-height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18rpx;
+  color: #64748b;
+  font-size: 26rpx;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.mode-switch-item-active {
+  color: #ffffff;
+  background: #4f46e5;
+  box-shadow: 0 10rpx 24rpx rgba(79, 70, 229, 0.18);
 }
 
 .filter-search {
@@ -61,27 +93,6 @@
 
 .wine-card-head {
   align-items: flex-start;
-}
-
-.type-chip {
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: 10rpx;
-  padding: 6rpx 14rpx;
-  border-radius: 999rpx;
-  font-size: 22rpx;
-  line-height: 1.2;
-  font-weight: 700;
-}
-
-.type-chip-wine {
-  color: #4f46e5;
-  background: #eef2ff;
-}
-
-.type-chip-bar {
-  color: #7c2d12;
-  background: #ffedd5;
 }
 
 .wine-card-name {
@@ -147,6 +158,14 @@
 .bar-rating-chip {
   color: #b45309;
   background: #fef3c7;
+}
+
+.bar-score-row {
+  justify-content: space-between;
+}
+
+.bar-score-hint {
+  flex: 1;
 }
 
 .load-more {

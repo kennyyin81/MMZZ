@@ -1,5 +1,12 @@
 const { callApi, showError } = require("../../utils/api");
 
+function buildStars(count) {
+  return Array.from({ length: 5 }, (_, index) => ({
+    value: index + 1,
+    active: index < count
+  }));
+}
+
 function normalizeImages(bar) {
   const seen = new Set();
   const list = [];
@@ -20,6 +27,8 @@ function normalizeImages(bar) {
 
 function decorateBar(bar) {
   const images = normalizeImages(bar || {});
+  const rating = Number(bar.average_rating || bar.rating || 0);
+  const myRating = Number(bar.my_rating || 0);
   return {
     ...(bar || {}),
     images,
@@ -28,7 +37,10 @@ function decorateBar(bar) {
     taste_tags: Array.isArray(bar.taste_tags) ? bar.taste_tags : [],
     atmosphere_tags: Array.isArray(bar.atmosphere_tags) ? bar.atmosphere_tags : [],
     scene_tags: Array.isArray(bar.scene_tags) ? bar.scene_tags : [],
-    ratingText: Number(bar.rating || 0) > 0 ? Number(bar.rating).toFixed(1) : "暂无评分",
+    ratingText: rating > 0 ? rating.toFixed(1) : "暂无",
+    ratingStars: buildStars(Math.round(rating)),
+    rating_count: Number(bar.rating_count || 0),
+    my_rating: myRating,
     priceText: Number(bar.avg_price || 0) > 0 ? `人均 ¥${Number(bar.avg_price || 0)}` : "人均暂无"
   };
 }
@@ -37,6 +49,9 @@ Page({
   data: {
     barId: "",
     bar: null,
+    selectedRating: 5,
+    ratingOptions: buildStars(5),
+    ratingSaving: false,
     loading: false,
     hasLoaded: false
   },
@@ -57,7 +72,13 @@ Page({
     try {
       const data = await callApi("bar.getDetail", { bar_id: this.data.barId });
       const bar = decorateBar(data.bar || {});
-      this.setData({ bar, hasLoaded: true });
+      const selectedRating = Number(bar.my_rating || 5);
+      this.setData({
+        bar,
+        selectedRating,
+        ratingOptions: buildStars(selectedRating),
+        hasLoaded: true
+      });
       if (bar.name) {
         wx.setNavigationBarTitle({ title: bar.name });
       }
@@ -107,6 +128,45 @@ Page({
       address: bar.address || "",
       scale: 16
     });
+  },
+
+  chooseRating(e) {
+    const rating = Number(e.currentTarget.dataset.value || 5);
+    this.setData({
+      selectedRating: rating,
+      ratingOptions: buildStars(rating)
+    });
+    this.saveRating(rating);
+  },
+
+  async saveRating(rating) {
+    if (!this.data.barId || this.data.ratingSaving) return;
+    this.setData({ ratingSaving: true });
+    try {
+      const data = await callApi("bar.rating.upsert", {
+        bar_id: this.data.barId,
+        rating
+      });
+      const nextBar = this.data.bar ? {
+        ...this.data.bar,
+        average_rating: data.average_rating,
+        rating: data.average_rating,
+        ratingText: Number(data.average_rating || 0) > 0 ? Number(data.average_rating).toFixed(1) : "暂无",
+        ratingStars: buildStars(Math.round(Number(data.average_rating || 0))),
+        rating_count: Number(data.rating_count || 0),
+        my_rating: Number(data.my_rating || rating)
+      } : null;
+      const app = getApp();
+      if (app && app.globalData) {
+        app.globalData.barRatingChanged = true;
+      }
+      this.setData({ bar: nextBar });
+      wx.showToast({ title: "已保存评分", icon: "success" });
+    } catch (err) {
+      showError(err);
+    } finally {
+      this.setData({ ratingSaving: false });
+    }
   },
 
   onShareAppMessage() {

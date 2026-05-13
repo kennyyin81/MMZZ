@@ -37,7 +37,7 @@ function parseMarkdownNodes(value) {
 
   while ((match = pattern.exec(text))) {
     if (match.index > lastIndex) {
-      nodes.push(...makeTextNodes(text.slice(lastIndex, match.index)));
+      nodes.push.apply(nodes, makeTextNodes(text.slice(lastIndex, match.index)));
     }
     const boldText = match[2] || match[3];
     const codeText = match[4];
@@ -58,7 +58,7 @@ function parseMarkdownNodes(value) {
   }
 
   if (lastIndex < text.length) {
-    nodes.push(...makeTextNodes(text.slice(lastIndex)));
+    nodes.push.apply(nodes, makeTextNodes(text.slice(lastIndex)));
   }
   return nodes.length ? nodes : makeTextNodes(text);
 }
@@ -68,15 +68,13 @@ function normalizeMessage(item) {
   const recommendedBars = Array.isArray(item.recommended_bars) ? item.recommended_bars : [];
   const recommendedWines = (Array.isArray(item.recommended_wines) ? item.recommended_wines : []).map((wine) => {
     const merged = mergeWineMeta(wine || {});
-    return {
-      ...merged,
+    return Object.assign({}, merged, {
       flavorTags: splitTags(merged.flavor),
       sceneText: merged.scene || merged.recommended_scenes || "",
       averageRatingText: Number(merged.average_rating || 0) > 0 ? Number(merged.average_rating).toFixed(1) : "暂无"
-    };
+    });
   });
-  return {
-    ...item,
+  return Object.assign({}, item, {
     role,
     isUser: role === "user",
     isAssistant: role === "assistant",
@@ -90,7 +88,7 @@ function normalizeMessage(item) {
     hasRecommendedWines: recommendedWines.length > 0,
     time_text: item.time ? formatDateTime(item.time).slice(5, 16) : "",
     _view_id: makeViewId(role)
-  };
+  });
 }
 
 Page({

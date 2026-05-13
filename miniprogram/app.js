@@ -25,6 +25,7 @@ App({
     });
   },
   globalData: {
-    currentUser: null
+    currentUser: null,
+    barRatingChanged: false
   }
 });

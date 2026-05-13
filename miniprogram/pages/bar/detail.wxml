@@ -9,7 +9,37 @@
       <view class="hero-content">
         <view class="bar-name">{{bar.name}}</view>
         <view class="bar-subtitle">{{bar.area}} · {{bar.bar_type}} · {{bar.priceText}}</view>
-        <view class="rating-pill">⭐ {{bar.ratingText}}</view>
+        <view class="rating-pill">评分 {{bar.ratingText}}</view>
+      </view>
+    </view>
+
+    <view class="section card">
+      <view class="section-title">用户评分</view>
+      <view class="score-panel">
+        <view>
+          <view class="subtitle">综合评分</view>
+          <view class="score-value">{{bar.rating_count > 0 ? bar.ratingText + ' / 5' : '暂无'}}</view>
+          <view class="subtitle score-counts">{{bar.rating_count}} 人评分</view>
+        </view>
+        <view class="stars">
+          <text
+            wx:for="{{bar.ratingStars}}"
+            wx:key="value"
+            class="star {{item.active ? 'star-active' : ''}}"
+          >★</text>
+        </view>
+      </view>
+      <view class="rate-line">
+        <view class="subtitle">我的评分</view>
+        <view class="stars rate-stars">
+          <text
+            wx:for="{{ratingOptions}}"
+            wx:key="value"
+            class="rate-star {{item.active ? 'rate-star-active' : ''}}"
+            data-value="{{item.value}}"
+            bindtap="chooseRating"
+          >★</text>
+        </view>
       </view>
     </view>
 
@@ -37,26 +67,6 @@
         <button class="action-btn" bindtap="copyAddress">复制地址</button>
         <button class="action-btn" bindtap="openMap">打开地图</button>
         <button class="action-btn primary" bindtap="callPhone">拨打电话</button>
-      </view>
-    </view>
-
-    <view class="section card" wx:if="{{bar.drink_types.length || bar.taste_tags.length || bar.atmosphere_tags.length || bar.scene_tags.length}}">
-      <view class="section-title">标签</view>
-      <view class="tag-group" wx:if="{{bar.drink_types.length}}">
-        <view class="tag-title">酒类</view>
-        <text class="tag" wx:for="{{bar.drink_types}}" wx:key="*this">{{item}}</text>
-      </view>
-      <view class="tag-group" wx:if="{{bar.taste_tags.length}}">
-        <view class="tag-title">口味</view>
-        <text class="tag" wx:for="{{bar.taste_tags}}" wx:key="*this">{{item}}</text>
-      </view>
-      <view class="tag-group" wx:if="{{bar.atmosphere_tags.length}}">
-        <view class="tag-title">氛围</view>
-        <text class="tag" wx:for="{{bar.atmosphere_tags}}" wx:key="*this">{{item}}</text>
-      </view>
-      <view class="tag-group" wx:if="{{bar.scene_tags.length}}">
-        <view class="tag-title">场景</view>
-        <text class="tag" wx:for="{{bar.scene_tags}}" wx:key="*this">{{item}}</text>
       </view>
     </view>
 

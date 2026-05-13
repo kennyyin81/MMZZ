@@ -1,0 +1,175 @@
+<view class="container">
+  <view class="card editor-card">
+    <view class="section-head">
+      <view>
+        <view class="title" style="margin-bottom: 8rpx;">酒馆维护</view>
+        <view class="subtitle">维护酒馆列表、详情展示和 AI 推荐所需的基础数据。</view>
+      </view>
+    </view>
+
+    <view class="editor-layout">
+      <view class="editor-main">
+        <view class="form-section">
+          <view class="section-title">基础信息</view>
+          <view class="field-grid">
+            <view class="field-block field-block-half">
+              <view class="subtitle">酒馆名</view>
+              <input class="input-shell" value="{{form.name}}" data-field="name" bindinput="onInput" placeholder="如 Maybe Bar" />
+            </view>
+            <view class="field-block field-block-half">
+              <view class="subtitle">酒馆类型</view>
+              <input class="input-shell" value="{{form.bar_type}}" data-field="bar_type" bindinput="onInput" placeholder="如 鸡尾酒吧、精酿酒馆" />
+            </view>
+            <view class="field-block field-block-full bar-two-column-row">
+              <view class="field-block">
+                <view class="subtitle">人均价格</view>
+                <input class="input-shell" type="number" value="{{form.avg_price}}" data-field="avg_price" bindinput="onInput" placeholder="如 128" />
+              </view>
+              <view class="field-block">
+                <view class="subtitle">预算等级</view>
+                <input class="input-shell" type="number" value="{{form.budget_level}}" data-field="budget_level" bindinput="onInput" placeholder="0-5" />
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="form-section">
+          <view class="section-title">位置</view>
+          <view class="field-grid">
+            <view class="field-block field-block-full">
+              <button class="ghost-btn bar-map-btn" bindtap="chooseMapLocation">地图搜索填入</button>
+            </view>
+            <view class="field-block field-block-full bar-two-column-row">
+              <view class="field-block">
+                <view class="subtitle">省份</view>
+                <input class="input-shell" value="{{form.province}}" data-field="province" bindinput="onInput" placeholder="如 广东省" />
+              </view>
+              <view class="field-block">
+                <view class="subtitle">城市</view>
+                <input class="input-shell" value="{{form.city}}" data-field="city" bindinput="onInput" placeholder="如 深圳市" />
+              </view>
+            </view>
+            <view class="field-block field-block-full">
+              <view class="subtitle">商圈/区域</view>
+              <input class="input-shell" value="{{form.area}}" data-field="area" bindinput="onInput" placeholder="如 南山区" />
+            </view>
+            <view class="field-block field-block-full">
+              <view class="subtitle">详细地址</view>
+              <input class="input-shell" value="{{form.address}}" data-field="address" bindinput="onInput" placeholder="填写门牌或商场楼层" />
+            </view>
+          </view>
+        </view>
+
+        <view class="form-section">
+          <view class="section-title">营业与联系</view>
+          <view class="field-grid">
+            <view class="field-block field-block-half">
+              <view class="subtitle">电话</view>
+              <input class="input-shell" value="{{form.phone}}" data-field="phone" bindinput="onInput" placeholder="如 0755-xxxxxxx" />
+            </view>
+            <view class="field-block field-block-half">
+              <view class="subtitle">营业时间</view>
+              <input class="input-shell" value="{{form.business_hours}}" data-field="business_hours" bindinput="onInput" placeholder="如 18:00-02:00" />
+            </view>
+          </view>
+        </view>
+
+        <view class="form-section">
+          <view class="section-title">推荐信息</view>
+          <textarea class="input-shell textarea textarea-compact" value="{{form.highlights}}" data-field="highlights" bindinput="onInput" maxlength="200" placeholder="推荐亮点，展示在详情页靠前位置"></textarea>
+          <textarea class="input-shell textarea textarea-tall bar-textarea-gap" value="{{form.description}}" data-field="description" bindinput="onInput" maxlength="500" placeholder="补充介绍，如氛围、招牌饮品、适合人群"></textarea>
+        </view>
+
+        <view class="form-section">
+          <view class="section-title">图片与状态</view>
+          <view class="field-grid">
+            <view class="field-block field-block-wide">
+              <view class="subtitle">封面图片</view>
+              <input class="input-shell" value="{{form.image_url}}" data-field="image_url" bindinput="onInput" placeholder="可手填，也可上传" />
+            </view>
+            <view class="field-block field-block-action">
+              <view class="subtitle">上传图片</view>
+              <button class="ghost-btn action-btn" loading="{{uploading}}" bindtap="uploadImage">选择图片</button>
+            </view>
+            <view class="field-block field-block-full">
+              <view class="subtitle">相册图片</view>
+              <textarea class="input-shell textarea textarea-compact" value="{{form.images}}" data-field="images" bindinput="onInput" placeholder="多张图片可用换行或顿号分隔"></textarea>
+            </view>
+            <view class="field-block field-block-half switch-block">
+              <view class="subtitle">前台展示</view>
+              <view class="switch-shell">
+                <switch checked="{{form.is_active}}" bindchange="onActiveChange" />
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="submit-section">
+          <view class="field-grid">
+            <view class="field-block field-block-wide">
+              <button class="btn primary-btn" type="primary" bindtap="submitForm" loading="{{saving}}">
+                {{editingBarId ? "保存修改" : "新增酒馆"}}
+              </button>
+            </view>
+            <view class="field-block field-block-action">
+              <button class="ghost-btn action-btn" bindtap="resetForm">清空</button>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="preview-panel">
+        <view class="section-title">实时预览</view>
+        <view class="preview-card">
+          <image class="preview-image" wx:if="{{previewBar.image}}" src="{{previewBar.image}}" mode="aspectFill"></image>
+          <view class="bar-preview-placeholder" wx:else>BAR</view>
+          <view class="preview-title">{{previewBar.name}}</view>
+          <view class="preview-meta">{{previewBar.areaText}}</view>
+          <view class="preview-meta">{{previewBar.metaText}}</view>
+          <view class="preview-copy">{{previewBar.highlights}}</view>
+          <view class="preview-copy" wx:if="{{previewBar.description}}">{{previewBar.description}}</view>
+
+          <view class="preview-subtitle">酒馆信息</view>
+          <view class="preview-copy">营业时间：{{previewBar.business_hours}}</view>
+          <view class="preview-copy">地址：{{previewBar.address}}</view>
+          <view class="preview-copy">电话：{{previewBar.phone}}</view>
+          <view class="preview-copy">相册：{{previewBar.imageCount}} 张 · {{previewBar.isActive ? "展示中" : "已下架"}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-head">
+      <view>
+        <view class="title" style="margin-bottom: 8rpx;">现有酒馆</view>
+        <view class="subtitle">点击编辑；下架后前台不展示</view>
+      </view>
+    </view>
+
+    <view class="filter-panel">
+      <view class="field-grid">
+        <view class="field-block field-block-wide">
+          <view class="subtitle">搜索</view>
+          <input class="input-shell" value="{{keyword}}" bindinput="onSearchInput" placeholder="输入酒馆名、城市或区域搜索" />
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!list.length && !loading}}" class="muted">未找到匹配的酒馆。</view>
+    <view class="list-card wine-row" wx:for="{{list}}" wx:key="bar_id">
+      <view class="row">
+        <view>
+          <view style="font-size: 32rpx; font-weight: 700;">{{item.name}}</view>
+          <view class="muted" style="margin-top: 8rpx;">{{item.province}} {{item.city}} {{item.area}} · {{item.bar_type}} · 人均 ¥{{item.avg_price}}</view>
+        </view>
+        <view class="actions">
+          <button size="mini" class="ghost-btn compact-btn" data-id="{{item.bar_id}}" bindtap="editItem">编辑</button>
+          <button size="mini" class="ghost-btn compact-btn" data-id="{{item.bar_id}}" bindtap="removeItem">下架</button>
+        </view>
+      </view>
+      <view style="margin-top: 12rpx;">{{item.highlights || item.description}}</view>
+      <view class="muted" style="margin-top: 10rpx;">{{item.is_active === false ? '已下架' : '展示中'}} · 评分 {{item.average_rating || item.rating || 0}} · {{item.rating_count || 0}} 人评分</view>
+    </view>
+  </view>
+</view>

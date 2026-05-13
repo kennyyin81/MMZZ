@@ -3,7 +3,6 @@ const { handleAction } = require("./src/router");
 
 const PUBLIC_ACTIONS = new Set([
   "bar.list",
-  "bar.getDetail",
   "admin.ai.ping",
   "admin.ai.testLLM"
 ]);

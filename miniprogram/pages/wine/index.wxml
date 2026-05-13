@@ -1,7 +1,17 @@
 <view class="container">
   <view class="card reveal-card">
-    <view class="section-title" style="margin-bottom: 14rpx;">发现酒和酒馆</view>
-    <view class="filter-row">
+    <view class="section-title" style="margin-bottom: 14rpx;">发现酒馆和酒</view>
+    <view class="mode-switch">
+      <view
+        wx:for="{{modeOptions}}"
+        wx:key="*this"
+        class="mode-switch-item {{modeIndex === index ? 'mode-switch-item-active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onModeChange"
+      >{{item}}</view>
+    </view>
+
+    <view class="filter-row" wx:if="{{activeMode === 'wine'}}">
       <view class="filter-item">
         <view class="subtitle">口味偏好</view>
         <picker mode="selector" range="{{tasteFilterOptions}}" value="{{tasteFilterIndex}}" bindchange="onTasteFilterChange">
@@ -21,8 +31,24 @@
         </picker>
       </view>
     </view>
+
+    <view class="filter-row" wx:if="{{activeMode === 'bar'}}">
+      <view class="filter-item filter-item-wide">
+        <view class="subtitle">省份</view>
+        <picker mode="selector" range="{{provinceOptions}}" value="{{provinceIndex}}" bindchange="onProvinceChange">
+          <view class="input-shell picker-shell">{{provinceOptions[provinceIndex]}}</view>
+        </picker>
+      </view>
+      <view class="filter-item filter-item-wide">
+        <view class="subtitle">城市</view>
+        <picker mode="selector" range="{{cityOptions}}" value="{{cityIndex}}" bindchange="onCityChange">
+          <view class="input-shell picker-shell">{{cityOptions[cityIndex]}}</view>
+        </picker>
+      </view>
+    </view>
+
     <view class="filter-search">
-      <input class="input-shell search-input" value="{{keyword}}" bindinput="onKeywordInput" bindconfirm="onSearchConfirm" placeholder="搜索酒名、酒馆或区域" confirm-type="search" />
+      <input class="input-shell search-input" value="{{keyword}}" bindinput="onKeywordInput" bindconfirm="onSearchConfirm" placeholder="{{activeMode === 'bar' ? '搜索酒馆、区域或类型' : '搜索酒名'}}" confirm-type="search" />
     </view>
   </view>
 
@@ -44,19 +70,17 @@
     >
       <view class="media-frame wine-list-media {{item.isBar ? 'bar-list-media' : ''}}">
         <image class="wine-cover" wx:if="{{item.image}}" src="{{item.image}}" mode="{{item.isBar ? 'aspectFill' : 'aspectFit'}}"></image>
-        <view class="bar-cover-placeholder" wx:else>{{item.isBar ? 'BAR' : 'WINE'}}</view>
+        <view class="bar-cover-placeholder" wx:else>{{item.placeholderText}}</view>
       </view>
 
       <view class="wine-card-body">
         <view class="row wine-card-head">
           <view>
-            <view class="type-chip {{item.isBar ? 'type-chip-bar' : 'type-chip-wine'}}">{{item.isBar ? '酒馆' : '酒款'}}</view>
             <view class="wine-card-name">{{item.name}}</view>
             <view class="subtitle wine-card-meta" wx:if="{{item.isWine}}">{{item.category}}<text wx:if="{{item.alcohol}}"> · {{item.alcohol}}</text></view>
             <view class="subtitle wine-card-meta" wx:if="{{item.isBar}}">{{item.metaText}}</view>
           </view>
           <view class="chip wine-flavor-chip" wx:if="{{item.isWine && item.flavor}}">{{item.flavor}}</view>
-          <view class="chip wine-flavor-chip bar-rating-chip" wx:if="{{item.isBar}}">⭐ {{item.averageRatingText}}</view>
         </view>
 
         <view class="muted wine-card-summary">{{item.summary}}</view>
@@ -74,21 +98,24 @@
           </view>
         </view>
 
-        <view class="chip-row wine-card-tags wine-taste-row" wx:if="{{item.isBar}}">
-          <view class="chip" wx:for="{{item.drink_types}}" wx:key="*this">{{item}}</view>
-          <view class="chip" wx:for="{{item.atmosphere_tags}}" wx:key="*this">{{item}}</view>
+        <view class="row wine-taste-score-row bar-score-row" wx:if="{{item.isBar}}">
+          <view class="muted bar-score-hint">{{item.ratingCountText}}</view>
+          <view class="wine-inline-score">
+            <view class="subtitle">评分</view>
+            <view class="wine-inline-score-value">{{item.averageRatingText}}</view>
+          </view>
         </view>
       </view>
     </view>
 
     <view class="load-more" wx:if="{{loadingMore}}">加载中...</view>
-    <view class="load-more" wx:elif="{{!hasMore}}">已展示全部 {{total}} 款</view>
+    <view class="load-more" wx:elif="{{!hasMore}}">已展示全部 {{total}} 个</view>
   </block>
 
   <view wx:else class="card reveal-card reveal-delay-1">
     <ui-empty-state
       title="暂时还没有内容"
-      description="录入酒款或酒馆后，这里会混合展示可浏览的内容。"
+      description="{{activeMode === 'bar' ? '换个省市或关键词试试。' : '录入酒款后，这里会展示可浏览的内容。'}}"
     ></ui-empty-state>
   </view>
 </view>

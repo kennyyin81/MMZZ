@@ -23,6 +23,7 @@ const COLLECTIONS = {
   DRINK_DIARY: "drink_diary",
   USER_SBTI: "user_sbti",
   BAR_INFO: "bar_info",
+  BAR_RATING: "bar_rating",
   AI_CHAT_SESSION: "ai_chat_session",
   SQUARE_POST: "square_post",
   SQUARE_LIKE: "square_like",

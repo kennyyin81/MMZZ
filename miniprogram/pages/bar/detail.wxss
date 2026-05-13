@@ -18,7 +18,7 @@ page {
   position: relative;
   height: 520rpx;
   overflow: hidden;
-  background: linear-gradient(135deg, #312e81, #7c3aed);
+  background: #f1f5f9;
 }
 
 .hero-image,
@@ -31,7 +31,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.72);
+  color: #64748b;
   font-size: 72rpx;
   font-weight: 900;
   letter-spacing: 8rpx;
@@ -43,7 +43,7 @@ page {
   right: 0;
   top: 0;
   bottom: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.12), rgba(15, 23, 42, 0.78));
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(15, 23, 42, 0.72));
 }
 
 .hero-content {
@@ -75,6 +75,66 @@ page {
   background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(10px);
   font-size: 25rpx;
+}
+
+.score-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: #f8fafc;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.score-value {
+  margin-top: 8rpx;
+  color: #0f172a;
+  font-size: 44rpx;
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+.score-counts {
+  margin-top: 8rpx;
+}
+
+.stars,
+.rate-stars {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.star,
+.rate-star {
+  color: #cbd5e1;
+  font-size: 38rpx;
+  line-height: 1;
+}
+
+.star-active,
+.rate-star-active {
+  color: #f59e0b;
+}
+
+.rate-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-top: 22rpx;
+}
+
+.rate-star {
+  padding: 8rpx 2rpx;
+  font-size: 42rpx;
 }
 
 .section {

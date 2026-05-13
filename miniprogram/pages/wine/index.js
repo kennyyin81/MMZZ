@@ -31,6 +31,48 @@ const SORT_OPTIONS = [
   { label: "收藏最少", rating: "none", favorite: "asc" }
 ];
 
+const VIEW_MODES = [
+  { label: "酒馆", value: "bar" },
+  { label: "酒款", value: "wine" }
+];
+
+const CHINA_PROVINCES = [
+  "北京市",
+  "天津市",
+  "河北省",
+  "山西省",
+  "内蒙古自治区",
+  "辽宁省",
+  "吉林省",
+  "黑龙江省",
+  "上海市",
+  "江苏省",
+  "浙江省",
+  "安徽省",
+  "福建省",
+  "江西省",
+  "山东省",
+  "河南省",
+  "湖北省",
+  "湖南省",
+  "广东省",
+  "广西壮族自治区",
+  "海南省",
+  "重庆市",
+  "四川省",
+  "贵州省",
+  "云南省",
+  "西藏自治区",
+  "陕西省",
+  "甘肃省",
+  "青海省",
+  "宁夏回族自治区",
+  "新疆维吾尔自治区",
+  "香港特别行政区",
+  "澳门特别行政区",
+  "台湾省"
+];
+
 const PAGE_SIZE = 20;
 
 function decorateWine(item) {
@@ -41,6 +83,7 @@ function decorateWine(item) {
     item_key: `wine_${wine.wine_id}`,
     isWine: true,
     isBar: false,
+    placeholderText: "酒",
     averageRatingText: Number(wine.average_rating || 0) > 0 ? Number(wine.average_rating).toFixed(1) : "暂无",
     acidityText: TASTE_LEVELS.acidity[wine.acidity] || "",
     sweetnessText: TASTE_LEVELS.sweetness[wine.sweetness] || "",
@@ -64,25 +107,20 @@ function decorateBar(item) {
     isWine: false,
     isBar: true,
     image: getBarCover(item),
+    placeholderText: String(item.name || "酒馆").slice(0, 2),
     averageRatingText: Number(item.rating || 0) > 0 ? Number(item.rating).toFixed(1) : "暂无",
+    ratingCountText: Number(item.rating_count || 0) > 0 ? `${Number(item.rating_count)} 人评分` : "暂无评分",
     summary: item.description || item.highlights || "",
-    metaText: `${item.area || "未知区域"}${item.bar_type ? ` · ${item.bar_type}` : ""}${item.avg_price ? ` · 人均¥${item.avg_price}` : ""}`
+    locationText: [item.province, item.city, item.area].filter(Boolean).join(" · ") || "未知区域",
+    metaText: `${[item.province, item.city, item.area].filter(Boolean).join(" · ") || "未知区域"}${item.bar_type ? ` · ${item.bar_type}` : ""}${item.avg_price ? ` · 人均¥${item.avg_price}` : ""}`
   };
-}
-
-function shuffleList(list) {
-  const result = list.slice();
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const temp = result[i];
-    result[i] = result[j];
-    result[j] = temp;
-  }
-  return result;
 }
 
 Page({
   data: {
+    modeOptions: VIEW_MODES.map((item) => item.label),
+    modeIndex: 0,
+    activeMode: "bar",
     list: [],
     loading: false,
     loadingMore: false,
@@ -97,11 +135,22 @@ Page({
     alcoholOrderIndex: 0,
     sortOptions: SORT_OPTIONS.map((item) => item.label),
     sortIndex: 0,
+    provinceOptions: ["全部省份"].concat(CHINA_PROVINCES),
+    provinceIndex: 0,
+    cityOptions: ["全部城市"],
+    cityIndex: 0,
     keyword: ""
   },
 
   onShow() {
     syncTabBar("/pages/wine/index");
+    const app = getApp();
+    const shouldRefreshBarRating = !!(app && app.globalData && app.globalData.barRatingChanged);
+    if (shouldRefreshBarRating && this.data.activeMode === "bar") {
+      app.globalData.barRatingChanged = false;
+      this.refreshList();
+      return;
+    }
     if (!this.data.hasLoaded) {
       this.refreshList();
     }
@@ -141,35 +190,51 @@ Page({
     };
   },
 
-  async loadMixedPage(pageNo) {
-    const keyword = String(this.data.keyword || "").trim();
-    const [wineResult, barResult] = await Promise.allSettled([
-      callApi("wine.list", this.getFilterPayload(pageNo)),
-      callApi("bar.list", {
-        page_no: pageNo,
-        page_size: PAGE_SIZE,
-        keyword
-      })
-    ]);
+  getBarPayload(pageNo) {
+    return {
+      page_no: pageNo,
+      page_size: PAGE_SIZE,
+      keyword: String(this.data.keyword || "").trim(),
+      province: this.data.provinceIndex > 0 ? this.data.provinceOptions[this.data.provinceIndex] : "",
+      city: this.data.cityIndex > 0 ? this.data.cityOptions[this.data.cityIndex] : ""
+    };
+  },
 
-    if (wineResult.status === "rejected" && barResult.status === "rejected") {
-      throw wineResult.reason || barResult.reason;
-    }
-
-    const wineData = wineResult.status === "fulfilled" ? wineResult.value : {};
-    const barData = barResult.status === "fulfilled" ? barResult.value : {};
-    const wines = (wineData.list || [])
+  async loadWinePage(pageNo) {
+    const data = await callApi("wine.list", this.getFilterPayload(pageNo));
+    const list = (data.list || [])
       .filter((item) => item && item.wine_id)
       .map(decorateWine);
-    const bars = (barData.list || [])
-      .filter((item) => item && item.bar_id)
-      .map(decorateBar);
 
     return {
-      list: shuffleList(wines.concat(bars)),
-      hasMore: !!wineData.has_more || !!barData.has_more,
-      total: Number(wineData.total || 0) + Number(barData.total || 0)
+      list,
+      hasMore: !!data.has_more,
+      total: Number(data.total || 0)
     };
+  },
+
+  async loadBarPage(pageNo) {
+    const data = await callApi("bar.list", this.getBarPayload(pageNo));
+    const list = (data.list || [])
+      .filter((item) => item && item.bar_id)
+      .map(decorateBar);
+    const cityOptions = ["全部城市"].concat(data.city_options || []);
+
+    if (pageNo === 1) {
+      this.setData({
+        cityOptions,
+        cityIndex: Math.min(this.data.cityIndex, cityOptions.length - 1)
+      });
+    }
+    return {
+      list,
+      hasMore: !!data.has_more,
+      total: Number(data.total || 0)
+    };
+  },
+
+  loadCurrentPage(pageNo) {
+    return this.data.activeMode === "bar" ? this.loadBarPage(pageNo) : this.loadWinePage(pageNo);
   },
 
   async refreshList() {
@@ -180,7 +245,7 @@ Page({
       list: []
     });
     try {
-      const data = await this.loadMixedPage(1);
+      const data = await this.loadCurrentPage(1);
       this.setData({
         list: data.list,
         hasLoaded: true,
@@ -201,7 +266,7 @@ Page({
     const nextPage = this.data.pageNo + 1;
     this.setData({ loadingMore: true });
     try {
-      const data = await this.loadMixedPage(nextPage);
+      const data = await this.loadCurrentPage(nextPage);
       this.setData({
         list: this.data.list.concat(data.list),
         hasMore: data.hasMore,
@@ -220,6 +285,18 @@ Page({
     this.refreshList();
   },
 
+  onModeChange(e) {
+    const modeIndex = Number(e.currentTarget.dataset.index || 0);
+    const option = VIEW_MODES[modeIndex] || VIEW_MODES[0];
+    if (option.value === this.data.activeMode) return;
+    this.setData({
+      modeIndex,
+      activeMode: option.value,
+      keyword: ""
+    });
+    this.refreshList();
+  },
+
   onAlcoholOrderChange(e) {
     this.setData({ alcoholOrderIndex: Number(e.detail.value || 0) });
     this.refreshList();
@@ -235,6 +312,19 @@ Page({
   },
 
   onSearchConfirm() {
+    this.refreshList();
+  },
+
+  onProvinceChange(e) {
+    this.setData({
+      provinceIndex: Number(e.detail.value || 0),
+      cityIndex: 0
+    });
+    this.refreshList();
+  },
+
+  onCityChange(e) {
+    this.setData({ cityIndex: Number(e.detail.value || 0) });
     this.refreshList();
   },
 

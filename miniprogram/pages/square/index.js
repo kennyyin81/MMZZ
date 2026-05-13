@@ -54,8 +54,7 @@ Page({
         page_no: this.data.pageNo,
         page_size: this.data.pageSize
       });
-      const list = (data.list || []).map((item) => ({
-        ...item,
+      const list = (data.list || []).map((item) => Object.assign({}, item, {
         created_at_text: smartTimeAgo(item.created_at)
       }));
       const merged = this.data.list.concat(list);
@@ -98,8 +97,11 @@ Page({
       if (index < 0) return;
       const isLiked = !!res.is_liked;
       const likeCount = Number(item.like_count || 0) + (isLiked ? 1 : -1);
-      const updated = [...this.data.list];
-      updated[index] = { ...updated[index], is_liked: isLiked, like_count: Math.max(0, likeCount) };
+      const updated = this.data.list.slice();
+      updated[index] = Object.assign({}, updated[index], {
+        is_liked: isLiked,
+        like_count: Math.max(0, likeCount)
+      });
       const { left, right } = splitColumns(updated);
       this.setData({ list: updated, leftList: left, rightList: right });
     } catch (err) {
